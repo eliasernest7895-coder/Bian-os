@@ -4,21 +4,23 @@ from core.database import create_db_and_tables
 from apps.bian.router import router as bian_router
 from apps.space.router import router as space_router
 from apps.fitch.router import router as fitch_router
+from apps.audio.router import router as audio_router
 
 app = FastAPI(
     title="Suite Estrada Core Engine",
-    version="1.0.0",
-    description="Backend soberano 100% local para Bian, Space y Fitch."
+    version="1.1.0",
+    description="Backend soberano 100% local para la Suite Estrada."
 )
 
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
 
-# Trilogía de Apps Montada
+# Routers de la Suite
 app.include_router(bian_router)
 app.include_router(space_router)
 app.include_router(fitch_router)
+app.include_router(audio_router)
 
 @app.get("/")
 async def root():
@@ -26,7 +28,7 @@ async def root():
         "status": "online",
         "mode": "offline_sovereign",
         "engine": "Snapdragon Optimized",
-        "active_modules": ["bian", "space", "fitch"]
+        "active_modules": ["bian", "space", "fitch", "audio"]
     }
 
 if __name__ == "__main__":

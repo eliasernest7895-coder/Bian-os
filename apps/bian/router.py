@@ -16,4 +16,3 @@ def create_photo_asset(photo: PhotoAsset, session: Session = Depends(get_session
 def list_photo_assets(session: Session = Depends(get_session)):
     photos = session.exec(select(PhotoAsset)).all()
     return photos
-
