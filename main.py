@@ -6,10 +6,11 @@ from apps.space.router import router as space_router
 from apps.fitch.router import router as fitch_router
 from apps.audio.router import router as audio_router
 from apps.echo.router import router as echo_router
+from apps.mesh_chat.router import router as mesh_chat_router
 
 app = FastAPI(
     title="Suite Estrada Core Engine",
-    version="1.2.0",
+    version="1.3.0",
     description="Backend soberano 100% local para la Suite Estrada."
 )
 
@@ -17,12 +18,13 @@ app = FastAPI(
 def on_startup():
     create_db_and_tables()
 
-# Routers de la Suite (5/12)
+# Routers Activos de la Suite (6/12)
 app.include_router(bian_router)
 app.include_router(space_router)
 app.include_router(fitch_router)
 app.include_router(audio_router)
 app.include_router(echo_router)
+app.include_router(mesh_chat_router)
 
 @app.get("/")
 async def root():
@@ -30,7 +32,7 @@ async def root():
         "status": "online",
         "mode": "offline_sovereign",
         "engine": "Snapdragon Optimized",
-        "active_modules": ["bian", "space", "fitch", "audio", "echo"]
+        "active_modules": ["bian", "space", "fitch", "audio", "echo", "mesh_chat"]
     }
 
 if __name__ == "__main__":
