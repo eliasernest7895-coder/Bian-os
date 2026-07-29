@@ -9,10 +9,11 @@ from apps.echo.router import router as echo_router
 from apps.mesh_chat.router import router as mesh_chat_router
 from apps.highway_net.router import router as highway_net_router
 from apps.mainstream.router import router as mainstream_router
+from apps.battery_guard.router import router as battery_guard_router
 
 app = FastAPI(
     title="Suite Estrada Core Engine",
-    version="1.5.0",
+    version="1.6.0",
     description="Backend soberano 100% local para la Suite Estrada."
 )
 
@@ -20,7 +21,7 @@ app = FastAPI(
 def on_startup():
     create_db_and_tables()
 
-# Routers Activos de la Suite (8/12 - 66% de la Suite)
+# Routers Activos de la Suite (9/12 - 75% de la Suite)
 app.include_router(bian_router)
 app.include_router(space_router)
 app.include_router(fitch_router)
@@ -29,6 +30,7 @@ app.include_router(echo_router)
 app.include_router(mesh_chat_router)
 app.include_router(highway_net_router)
 app.include_router(mainstream_router)
+app.include_router(battery_guard_router)
 
 @app.get("/")
 async def root():
@@ -38,7 +40,8 @@ async def root():
         "engine": "Snapdragon Optimized",
         "active_modules": [
             "bian", "space", "fitch", "audio", 
-            "echo", "mesh_chat", "highway_net", "mainstream"
+            "echo", "mesh_chat", "highway_net", "mainstream",
+            "battery_guard"
         ]
     }
 
