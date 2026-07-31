@@ -12,18 +12,19 @@ from apps.mainstream.router import router as mainstream_router
 from apps.battery_guard.router import router as battery_guard_router
 from apps.studio_studio.router import router as studio_studio_router
 from apps.learn_how.router import router as learn_how_router
+from apps.call_assistant.router import router as call_assistant_router
 
 app = FastAPI(
     title="Suite Estrada Core Engine",
-    version="1.8.0",
-    description="Backend soberano 100% local para la Suite Estrada."
+    version="2.0.0",
+    description="Backend soberano 100% local para las 12 Apps de la Suite Estrada."
 )
 
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
 
-# Routers Activos de la Suite (11/12 - 91.6% de la Suite)
+# Routers Activos de la Suite (12/12 - 100% COMPLETADO)
 app.include_router(bian_router)
 app.include_router(space_router)
 app.include_router(fitch_router)
@@ -35,6 +36,7 @@ app.include_router(mainstream_router)
 app.include_router(battery_guard_router)
 app.include_router(studio_studio_router)
 app.include_router(learn_how_router)
+app.include_router(call_assistant_router)
 
 @app.get("/")
 async def root():
@@ -45,7 +47,7 @@ async def root():
         "active_modules": [
             "bian", "space", "fitch", "audio", 
             "echo", "mesh_chat", "highway_net", "mainstream",
-            "battery_guard", "studio_studio", "learn_how"
+            "battery_guard", "studio_studio", "learn_how", "call_assistant"
         ]
     }
 
