@@ -1,5 +1,7 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 import uvicorn
+import os
 from core.database import create_db_and_tables
 from apps.bian.router import router as bian_router
 from apps.space.router import router as space_router
@@ -20,11 +22,15 @@ app = FastAPI(
     description="Backend soberano 100% local para las 12 Apps de la Suite Estrada."
 )
 
+# Crear directorio de almacenamiento si no existe y montarlo como estático
+os.makedirs("storage/bian", exist_ok=True)
+app.mount("/storage", StaticFiles(directory="storage"), name="storage")
+
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
 
-# Routers Activos de la Suite (12/12 - 100% COMPLETADO)
+# Routers Activos de la Suite
 app.include_router(bian_router)
 app.include_router(space_router)
 app.include_router(fitch_router)
