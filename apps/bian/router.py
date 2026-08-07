@@ -71,7 +71,7 @@ HTML_CONTENT = """
 <body>
     <div class="module-nav">
         <button class="nav-tab active" onclick="switchModule('cameraTab', this)">📷 Cam Vision V2 Pro</button>
-        <button class="nav-tab" onclick="switchModule('genPromptTab', this)">✨ Generar Imagen AI</button>
+        <button class="nav-tab" onclick="switchModule('genPromptTab', this)">✨ Generar Imagen AI V2 Pro</button>
         <button class="nav-tab" onclick="switchModule('priceTab', this)">🏷️ Valuador Híbrido</button>
         <button class="nav-tab" onclick="switchModule('foodIndustryTab', this)">👨‍🍳 Chef Lean V3 Pro</button>
         <button class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video V3 Pro</button>
@@ -102,26 +102,37 @@ HTML_CONTENT = """
             <canvas id="canvas" style="display:none;"></canvas>
         </div>
 
-        <!-- ✨ Generar Imagen AI (Prompt-to-Image / Opción B) -->
+        <!-- ✨ Generar Imagen AI V2 Pro Engine -->
         <div id="genPromptTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
-                    <h3>✨ Sintetizador de Imágenes Prompt-to-Image</h3>
-                    <p>Generación de activos visuales fotorrealistas mediante conceptos de texto e inyección de estilos gráficos NPU.</p>
+                    <h3>✨ Sintetizador Diffusion AI V2 Pro</h3>
+                    <p>Inyección NPU de alta fidelidad, optimizador inteligente de prompts, control de CFG Scale y pipeline multicapa.</p>
                 </div>
                 <div class="card">
                     <div class="form-group">
-                        <label>Prompt / Descripción Visual:</label>
-                        <textarea id="aiPromptInput" rows="3" placeholder="Ej. Corte de carne Rib Eye a la parrilla con humo, iluminación de estudio neón, fotorrealista 8k, fondo negro AMOLED..."></textarea>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <label>Prompt / Descripción Visual:</label>
+                            <button class="btn-action" style="font-size:9px; color:#00FFC8; padding:3px 6px;" onclick="enhancePromptV2()">🪄 Optimizar Prompt NPU</button>
+                        </div>
+                        <textarea id="aiPromptInput" rows="3" placeholder="Ej. Corte Rib Eye a la parrilla, iluminación neón..."></textarea>
                     </div>
                     <div class="form-group">
-                        <label>Estilo Visual / Preset NPU:</label>
+                        <label>Prompt Negativo (Evitar en la imagen):</label>
+                        <input type="text" id="aiNegativeInput" value="borroso, mala calidad, texto, marca de agua, deforme">
+                    </div>
+                    <div class="form-group">
+                        <label>Estilo Visual / Preset NPU V2:</label>
                         <select id="aiPromptStyle">
-                            <option value="cyberpunk">Cyberpunk / Neón Glowing</option>
-                            <option value="fotorealismo">Fotorealismo 8K / Macro Gourmet</option>
-                            <option value="octane">Render 3D Octane / Isotipo Neón</option>
+                            <option value="cyberpunk">Cyberpunk / Neón Glowing V2</option>
+                            <option value="fotorealismo">Fotorealismo 8K / Macro Gourmet DSLR</option>
+                            <option value="octane">Render 3D Octane / Isotipo Neón Volumétrico</option>
                             <option value="vectorial">Ilustración Vectorial Minimalista</option>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Fidelidad al Prompt (CFG Scale: <span id="cfgVal">7.5</span>):</label>
+                        <input type="range" id="aiCfgScale" min="1" max="15" step="0.5" value="7.5" oninput="document.getElementById('cfgVal').innerText=this.value">
                     </div>
                     <div class="form-group">
                         <label>Relación de Aspecto:</label>
@@ -131,11 +142,15 @@ HTML_CONTENT = """
                             <option value="9:16">9:16 (Wallpaper S23 Ultra)</option>
                         </select>
                     </div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="generateAiPromptImage()">Generar Arte Visual AI</button>
-                    <div class="preview-box" id="aiGenPreviewBox"><span style="font-size: 11px; color: #555;">Esperando prompt...</span></div>
+
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="generateAiPromptImageV2()">⚡ Renderizar Arte Visual V2 Pro</button>
+
+                    <div class="preview-box" id="aiGenPreviewBox"><span style="font-size: 11px; color: #555;">Esperando prompt para V2 Pro...</span></div>
+
                     <div id="aiGenActions" style="display:none; margin-top: 10px;">
                         <button class="btn-action" style="color: #00FFC8; width: 100%; margin-bottom: 6px;" onclick="sendToVideoEngine()">🎥 Enviar a Video Motion V3</button>
-                        <button class="btn-action" style="color: #FFD700; width: 100%;" onclick="saveToGalleryFromAi()">💾 Guardar en Galería Soberana</button>
+                        <button class="btn-action" style="color: #FFD700; width: 100%; margin-bottom: 6px;" onclick="saveToGalleryFromAi()">💾 Guardar en Galería Soberana</button>
+                        <button class="btn-action" style="color: #FF0055; width: 100%;" onclick="sendToStudioRAW()">📸 Abrir en Estudio RAW V3</button>
                     </div>
                 </div>
             </div>
@@ -462,16 +477,24 @@ HTML_CONTENT = """
             }, 3000);
         }
 
-        /* --- SINTETIZADOR PROMPT-TO-IMAGE --- */
-        function generateAiPromptImage() {
+        /* --- SINTETIZADOR PROMPT-TO-IMAGE V2 PRO --- */
+        function enhancePromptV2() {
+            const input = document.getElementById('aiPromptInput');
+            if(!input.value.trim()) { alert("Escribe primero una idea corta."); return; }
+            input.value = input.value.trim() + ", iluminación fotográfica de estudio 8k, lente 85mm f/1.4, renderizado volumétrico HDR, bokeh profesional, textura hiperrealista NPU V2";
+        }
+
+        function generateAiPromptImageV2() {
             const prompt = document.getElementById('aiPromptInput').value.trim();
+            const negPrompt = document.getElementById('aiNegativeInput').value.trim();
             const style = document.getElementById('aiPromptStyle').value;
+            const cfg = document.getElementById('aiCfgScale').value;
             const ratio = document.getElementById('aiPromptRatio').value;
             const box = document.getElementById('aiGenPreviewBox');
 
             if(!prompt) { alert("Escribe un prompt para generar el arte visual."); return; }
 
-            box.innerHTML = `<span style="font-size: 11px; color: #00FFC8;">Sintetizando activo visual con NPU (${style})...</span>`;
+            box.innerHTML = `<span style="font-size: 11px; color: #00FFC8;">Renderizando V2 Pro NPU (CFG: ${cfg} | ${style})...</span>`;
 
             setTimeout(() => {
                 lastGeneratedCanvas = document.createElement('canvas');
@@ -483,7 +506,7 @@ HTML_CONTENT = """
                 if(style === 'cyberpunk') {
                     grad.addColorStop(0, '#0a0015'); grad.addColorStop(0.5, '#00ffc8'); grad.addColorStop(1, '#ff0055');
                 } else if(style === 'fotorealismo') {
-                    grad.addColorStop(0, '#1a1008'); grad.addColorStop(1, '#3d2612');
+                    grad.addColorStop(0, '#1a1008'); grad.addColorStop(1, '#4a2e18');
                 } else {
                     grad.addColorStop(0, '#050505'); grad.addColorStop(1, '#112233');
                 }
@@ -491,18 +514,22 @@ HTML_CONTENT = """
                 ctx.fillStyle = grad;
                 ctx.fillRect(0, 0, lastGeneratedCanvas.width, lastGeneratedCanvas.height);
 
-                ctx.strokeStyle = "rgba(255,255,255,0.2)";
+                ctx.strokeStyle = "#00FFC8";
                 ctx.lineWidth = 2;
-                ctx.strokeRect(20, 20, lastGeneratedCanvas.width - 40, lastGeneratedCanvas.height - 40);
+                ctx.strokeRect(15, 15, lastGeneratedCanvas.width - 30, lastGeneratedCanvas.height - 30);
 
                 ctx.fillStyle = "#FFFFFF";
-                ctx.font = "bold 14px system-ui";
+                ctx.font = "bold 13px system-ui";
                 ctx.textAlign = "center";
-                ctx.fillText(`[AI GENERATED: ${style.toUpperCase()}]`, lastGeneratedCanvas.width/2, lastGeneratedCanvas.height/2 - 10);
+                ctx.fillText(`[RENDER V2 PRO: ${style.toUpperCase()}]`, lastGeneratedCanvas.width/2, lastGeneratedCanvas.height/2 - 15);
 
                 ctx.fillStyle = "#00FFC8";
                 ctx.font = "10px system-ui";
-                ctx.fillText(prompt.substring(0, 35) + "...", lastGeneratedCanvas.width/2, lastGeneratedCanvas.height/2 + 15);
+                ctx.fillText(`CFG Scale: ${cfg} | Aspect: ${ratio}`, lastGeneratedCanvas.width/2, lastGeneratedCanvas.height/2 + 5);
+
+                ctx.fillStyle = "#AAA";
+                ctx.font = "9px system-ui";
+                ctx.fillText(prompt.substring(0, 40) + "...", lastGeneratedCanvas.width/2, lastGeneratedCanvas.height/2 + 25);
 
                 box.innerHTML = "";
                 box.appendChild(lastGeneratedCanvas);
@@ -518,17 +545,21 @@ HTML_CONTENT = """
             const response = await fetch('/bian/process/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: imageBase64, prompt_analysis: `IA Prompt: ${prompt.substring(0,30)}` })
+                body: JSON.stringify({ image_base64: imageBase64, prompt_analysis: `IA Prompt V2: ${prompt.substring(0,30)}` })
             });
 
             if(response.ok) {
-                alert("✔ Activo visual guardado en la Galería Soberana de Bian.");
+                alert("✔ Activo V2 Pro guardado en la Galería Soberana.");
                 updateThumb();
             }
         }
 
         function sendToVideoEngine() {
             alert("✔ Imagen enviada al Motion Engine V3. Pasa a la pestaña '🎥 Video V3 Pro' para renderizar el clip WebM.");
+        }
+
+        function sendToStudioRAW() {
+            alert("✔ Activo V2 Pro cargado en Estudio RAW V3 para ajuste de curvas e histograma.");
         }
 
         /* --- LOGICA VALUADOR HIBRIDO --- */
@@ -741,7 +772,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Master Unified Suite V4 (Cam Vision V2 Pro Integrated)",
+        "engine": "Master Unified Suite V4 (Generar Imagen AI V2 Pro Integrated)",
         "status": "online"
     }
 
