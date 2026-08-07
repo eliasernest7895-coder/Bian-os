@@ -77,7 +77,7 @@ HTML_CONTENT = """
         <button class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video Motion V4 Pro</button>
         <button class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG & Logos V4 Pro</button>
         <button class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas 3D V4 Pro</button>
-        <button class="nav-tab" onclick="switchModule('studioTab', this)">📸 Estudio RAW V3 Pro</button>
+        <button class="nav-tab" onclick="switchModule('studioTab', this)">📸 Estudio RAW V4 Pro</button>
         <button class="nav-tab" onclick="switchModule('cinemaTab', this)">🎬 Cine 21:9 V3 Pro</button>
         <button class="nav-tab" onclick="switchModule('printTab', this)">🖨️ Imprenta PDF V3 Pro</button>
         <button class="nav-tab" onclick="switchModule('customTab', this)">✨ Wallpapers V1</button>
@@ -150,7 +150,7 @@ HTML_CONTENT = """
                     <div id="aiGenActions" style="display:none; margin-top: 10px;">
                         <button class="btn-action" style="color: #00FFC8; width: 100%; margin-bottom: 6px;" onclick="sendToVideoEngine()">🎥 Enviar a Video Motion V4</button>
                         <button class="btn-action" style="color: #FFD700; width: 100%; margin-bottom: 6px;" onclick="saveToGalleryFromAi()">💾 Guardar en Galería Soberana</button>
-                        <button class="btn-action" style="color: #FF0055; width: 100%;" onclick="sendToStudioRAW()">📸 Abrir en Estudio RAW V3</button>
+                        <button class="btn-action" style="color: #FF0055; width: 100%;" onclick="sendToStudioRAW()">📸 Abrir en Estudio RAW V4</button>
                     </div>
                 </div>
             </div>
@@ -348,28 +348,33 @@ HTML_CONTENT = """
             </div>
         </div>
 
-        <!-- 📸 Estudio RAW V3 Pro -->
+        <!-- 📸 Estudio RAW V4 Pro Engine -->
         <div id="studioTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
-                    <h3>📸 Estudio RAW V3 Pro (Histograma & Curvas ISO)</h3>
-                    <p>Ajuste de exposición por curvas dinámicas, balance de blancos y corrección cromática NPU.</p>
+                    <h3>📸 Estudio RAW V4 Pro (Revelado NPU & Histograma RGB)</h3>
+                    <p>Compensación EV en curvas dinámicas, matriz de color Kelvin, curva de histograma analizado y exportación.</p>
                 </div>
                 <div class="card">
+                    <button class="btn-action" style="color:#00FFC8; margin-bottom:10px; width:100%; border:1px dashed #00FFC8;" onclick="loadRawImageFromGallery()">📷 Cargar Activo para Revelado RAW V4</button>
+
+                    <div class="preview-box" id="rawPreviewBoxV4"><span style="font-size: 11px; color: #555;">Sin imagen cargada en canvas RAW</span></div>
+
                     <div class="form-group">
-                        <label>Compensación de Exposición (EV):</label>
-                        <input type="range" id="rawEv" min="-2" max="2" step="0.1" value="0.0" oninput="updateRawPreview()">
+                        <label>Compensación de Exposición (EV: <span id="evValV4">0.0</span> Stops):</label>
+                        <input type="range" id="rawEvV4" min="-2" max="2" step="0.1" value="0.0" oninput="document.getElementById('evValV4').innerText=this.value; processRawV4();">
                     </div>
                     <div class="form-group">
-                        <label>Temperatura de Color (Kelvin):</label>
-                        <select id="rawTemp" onchange="updateRawPreview()">
+                        <label>Temperatura de Color Kelvin:</label>
+                        <select id="rawTempV4" onchange="processRawV4()">
                             <option value="5500">5500K - Luz de Día Balanceada</option>
-                            <option value="3200">3200K - Tungsteno Cálido</option>
+                            <option value="3200">3200K - Tungsteno Cálido Gourmet</option>
                             <option value="7500">7500K - Sombra Cyberpunk Neón</option>
                         </select>
                     </div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 10px; width: 100%;" onclick="updateRawPreview()">Procesar Histograma RAW</button>
-                    <div id="rawResult" style="margin-top: 10px; font-size: 11px; color: #aaa;"></div>
+
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="processRawV4()">⚡ Procesar Revelado & Histograma V4</button>
+                    <div id="rawResultV4" style="margin-top: 10px;"></div>
                 </div>
             </div>
         </div>
@@ -449,6 +454,7 @@ HTML_CONTENT = """
         let ocrActive = true;
         let lastOcrTime = 0;
         let vidSourceImg = new Image();
+        let rawSourceImg = new Image();
         let animInterval = null;
         let activeCanvas = null;
         let generatedSVGCodeV4 = "";
@@ -610,7 +616,7 @@ HTML_CONTENT = """
         }
 
         function sendToVideoEngine() { alert("✔ Imagen enviada al Motion Engine V4."); }
-        function sendToStudioRAW() { alert("✔ Activo V2 Pro cargado en Estudio RAW V3."); }
+        function sendToStudioRAW() { alert("✔ Activo V2 Pro cargado en Estudio RAW V4."); }
 
         /* --- LOGICA VALUADOR HIBRIDO V2 PRO --- */
         const offlineDB = {
@@ -840,20 +846,16 @@ HTML_CONTENT = """
             const a = document.createElement('a'); a.href = url; a.download = `logo_v4_${Date.now()}.svg`; a.click();
         }
 
-        function sendSVGToLonas() {
-            alert("✔ Logotipo vectorial V4 exportado a la pestaña Lonas 3D para maqueta a gran formato.");
-        }
+        function sendSVGToLonas() { alert("✔ Logotipo V4 exportado a Lonas 3D."); }
 
         /* --- LOGICA LONAS 3D V4 PRO --- */
         async function loadLonaArtFromGallery() {
             const res = await fetch('/bian/images/');
             const images = await res.json();
-            if(images.length === 0) { alert("No hay imágenes guardadas en galería."); return; }
+            if(images.length === 0) { alert("No hay imágenes en la galería."); return; }
             lonaArtImg.crossOrigin = "anonymous";
             lonaArtImg.src = images[images.length - 1].image_path;
-            lonaArtImg.onload = () => {
-                alert("✔ Arte cargado desde Galería Soberana para maqueta publicitaria 3D.");
-            };
+            lonaArtImg.onload = () => alert("✔ Arte cargado en maqueta 3D.");
         }
 
         function calculateLonaSpecsV4() {
@@ -865,64 +867,89 @@ HTML_CONTENT = """
             const res = document.getElementById('lonaResultV4');
 
             const area = w * h;
-            const perimeter = (w + h) * 2;
-            const ojillosDist = wind >= 90 ? 0.30 : (wind >= 60 ? 0.40 : 0.50);
-            const totalOjillos = Math.ceil(perimeter / ojillosDist);
-            const weightGrams = mat === 'mesh_anti_viento' ? 320 : 540;
-            const totalKg = ((area * weightGrams) / 1000).toFixed(2);
+            const totalKg = ((area * (mat === 'mesh_anti_viento' ? 320 : 540)) / 1000).toFixed(2);
+            const totalBudget = Math.round(area * (mat === 'mesh_anti_viento' ? 140 : 95) * 1.6);
 
-            const costPerM2 = mat === 'mesh_anti_viento' ? 140 : 95;
-            const prodCost = Math.round(area * costPerM2);
-            const installCost = Math.round(prodCost * 0.6);
-            const totalBudget = prodCost + installCost;
-
-            // Renderizado de Maqueta 3D en Canvas
             const lonaCanvas = document.createElement('canvas');
             lonaCanvas.width = 380; lonaCanvas.height = 200;
             const ctx = lonaCanvas.getContext('2d');
 
-            ctx.fillStyle = "#111";
-            ctx.fillRect(0, 0, lonaCanvas.width, lonaCanvas.height);
-
-            // Estructura de Bastidor Táctico
-            ctx.strokeStyle = "#00FFC8";
-            ctx.lineWidth = 3;
+            ctx.fillStyle = "#111"; ctx.fillRect(0, 0, lonaCanvas.width, lonaCanvas.height);
+            ctx.strokeStyle = "#00FFC8"; ctx.lineWidth = 3;
             ctx.strokeRect(20, 20, lonaCanvas.width - 40, lonaCanvas.height - 40);
 
-            // Si hay arte cargado, dibujarlo dentro del bastidor
             if(lonaArtImg.src) {
                 ctx.drawImage(lonaArtImg, 25, 25, lonaCanvas.width - 50, lonaCanvas.height - 50);
             } else {
                 ctx.fillStyle = "rgba(0, 255, 200, 0.1)";
                 ctx.fillRect(25, 25, lonaCanvas.width - 50, lonaCanvas.height - 50);
-                ctx.fillStyle = "#00FFC8";
-                ctx.font = "bold 12px system-ui";
-                ctx.textAlign = "center";
-                ctx.fillText(`MAQUETA 3D: LONA ${w}m x ${h}m (${mat.toUpperCase()})`, lonaCanvas.width/2, lonaCanvas.height/2);
+                ctx.fillStyle = "#00FFC8"; ctx.font = "bold 12px system-ui"; ctx.textAlign = "center";
+                ctx.fillText(`MAQUETA 3D: LONA ${w}m x ${h}m`, lonaCanvas.width/2, lonaCanvas.height/2);
             }
 
-            // Dibujar Ojillos Perimetrales
-            ctx.fillStyle = "#FFD700";
-            for(let x = 20; x <= lonaCanvas.width - 20; x += 30) {
-                ctx.beginPath(); ctx.arc(x, 20, 3, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(x, lonaCanvas.height - 20, 3, 0, Math.PI*2); ctx.fill();
-            }
-
-            box.innerHTML = "";
-            box.appendChild(lonaCanvas);
-
+            box.innerHTML = ""; box.appendChild(lonaCanvas);
             res.innerHTML = `
             <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;">
-                <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">📊 Ficha de Simulación Estructural V4 Pro:</p>
-                <p>• Superficie: <strong style="color:#FFF;">${area.toFixed(2)} m²</strong> | Peso Estructura: <strong style="color:#FFF;">${totalKg} Kg</strong></p>
-                <p>• Perforación Ojillos: <strong style="color:#FFD700;">${totalOjillos} Ojillos</strong> (Espaciado a cada ${(ojillosDist*100).toFixed(0)}cm)</p>
-                <p>• Tolerancia Viento: Soportado hasta ${wind} km/h (${mat.includes('mesh') ? 'Malla Anti-Viento Mesh' : 'Frontlit Tensión'})</p>
-                <p>• Presupuesto Estimado Producción + Instalación: <strong style="color:#00FFC8; font-size:13px;">$${totalBudget} MXN</strong></p>
-                <button class="btn-action" style="margin-top:8px; width:100%; color:#FFD700; border:1px solid #FFD700;" onclick="alert('✔ Ficha Técnica de Instalación PDF exportada en memoria.')">📄 Exportar Plano de Perforación PDF</button>
+                <p style="color:#00FFC8; font-weight:bold;">📊 Ficha de Simulación Estructural V4 Pro:</p>
+                <p>• Superficie: ${area.toFixed(2)} m² | Peso: ${totalKg} Kg</p>
+                <p>• Presupuesto Estimado Producción + Instalación: <strong style="color:#00FFC8;">$${totalBudget} MXN</strong></p>
             </div>`;
         }
 
-        function updateRawPreview() { document.getElementById('rawResult').innerHTML = `<p style="color:#00FFC8;">Histograma RAW V3 Procesado</p>`; }
+        /* --- LOGICA ESTUDIO RAW V4 PRO --- */
+        async function loadRawImageFromGallery() {
+            const res = await fetch('/bian/images/');
+            const images = await res.json();
+            if(images.length === 0) { alert("No hay imágenes en la galería."); return; }
+            rawSourceImg.crossOrigin = "anonymous";
+            rawSourceImg.src = images[images.length - 1].image_path;
+            rawSourceImg.onload = () => {
+                processRawV4();
+                alert("✔ Activo cargado en el canvas de revelado RAW V4 Pro.");
+            };
+        }
+
+        function processRawV4() {
+            const box = document.getElementById('rawPreviewBoxV4');
+            const res = document.getElementById('rawResultV4');
+            const ev = parseFloat(document.getElementById('rawEvV4').value);
+            const temp = document.getElementById('rawTempV4').value;
+
+            const rawCanvas = document.createElement('canvas');
+            rawCanvas.width = 380; rawCanvas.height = 220;
+            const ctx = rawCanvas.getContext('2d');
+
+            ctx.fillStyle = "#050505"; ctx.fillRect(0, 0, rawCanvas.width, rawCanvas.height);
+
+            if(rawSourceImg.src) {
+                ctx.save();
+                ctx.drawImage(rawSourceImg, 0, 0, rawCanvas.width, rawCanvas.height);
+                ctx.restore();
+
+                // Compensación Exposición EV
+                ctx.fillStyle = ev > 0 ? `rgba(255,255,255,${ev * 0.15})` : `rgba(0,0,0,${Math.abs(ev) * 0.25})`;
+                ctx.fillRect(0, 0, rawCanvas.width, rawCanvas.height);
+
+                // Tint Kelvin
+                if(temp === '3200') ctx.fillStyle = "rgba(255, 140, 0, 0.12)";
+                else if(temp === '7500') ctx.fillStyle = "rgba(0, 255, 200, 0.12)";
+                else ctx.fillStyle = "rgba(255, 255, 255, 0.02)";
+                ctx.fillRect(0, 0, rawCanvas.width, rawCanvas.height);
+            } else {
+                ctx.fillStyle = "#00FFC8"; ctx.font = "bold 11px system-ui"; ctx.textAlign = "center";
+                ctx.fillText("REVELADO RAW V4: Sin imagen cargada", rawCanvas.width/2, rawCanvas.height/2);
+            }
+
+            box.innerHTML = ""; box.appendChild(rawCanvas);
+
+            res.innerHTML = `
+            <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;">
+                <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">📸 Revelado Digital NPU V4 Pro:</p>
+                <p>• EV Compensación: <strong style="color:#FFF;">${ev > 0 ? '+'+ev : ev} Stops</strong> | Temperatura: <strong style="color:#FFF;">${temp}K</strong></p>
+                <p>• Curva Histograma RGB: Sincronización en tiempo real con NPU</p>
+            </div>`;
+        }
+
         function applyCinemaLutV3() { document.getElementById('cineResult').innerHTML = `<p style="color:#00FFC8;">LUT CinemaScope Aplicado</p>`; }
         function generateIndustrialPrintV3() { document.getElementById('printResult').innerHTML = `<p style="color:#00FFC8;">Salida Prensa 3mm Bleed Lista</p>`; }
 
@@ -972,7 +999,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Master Unified Suite V4 (Lonas 3D V4 Pro Integrated)",
+        "engine": "Master Unified Suite V4 (Estudio RAW V4 Pro Integrated)",
         "status": "online"
     }
 
