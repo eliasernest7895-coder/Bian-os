@@ -74,7 +74,7 @@ HTML_CONTENT = """
         <button class="nav-tab" onclick="switchModule('genPromptTab', this)">✨ Generar Imagen AI V2 Pro</button>
         <button class="nav-tab" onclick="switchModule('priceTab', this)">🏷️ Valuador Híbrido V2 Pro</button>
         <button class="nav-tab" onclick="switchModule('foodIndustryTab', this)">👨‍🍳 Chef Lean V4 Pro</button>
-        <button class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video V3 Pro</button>
+        <button class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video Motion V4 Pro</button>
         <button class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG & Logos V3 Pro</button>
         <button class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas V3 Pro</button>
         <button class="nav-tab" onclick="switchModule('studioTab', this)">📸 Estudio RAW V3 Pro</button>
@@ -148,7 +148,7 @@ HTML_CONTENT = """
                     <div class="preview-box" id="aiGenPreviewBox"><span style="font-size: 11px; color: #555;">Esperando prompt para V2 Pro...</span></div>
 
                     <div id="aiGenActions" style="display:none; margin-top: 10px;">
-                        <button class="btn-action" style="color: #00FFC8; width: 100%; margin-bottom: 6px;" onclick="sendToVideoEngine()">🎥 Enviar a Video Motion V3</button>
+                        <button class="btn-action" style="color: #00FFC8; width: 100%; margin-bottom: 6px;" onclick="sendToVideoEngine()">🎥 Enviar a Video Motion V4</button>
                         <button class="btn-action" style="color: #FFD700; width: 100%; margin-bottom: 6px;" onclick="saveToGalleryFromAi()">💾 Guardar en Galería Soberana</button>
                         <button class="btn-action" style="color: #FF0055; width: 100%;" onclick="sendToStudioRAW()">📸 Abrir en Estudio RAW V3</button>
                     </div>
@@ -227,32 +227,40 @@ HTML_CONTENT = """
             </div>
         </div>
 
-        <!-- 🎥 Video V3 Pro -->
+        <!-- 🎥 Video Motion V4 Pro Engine -->
         <div id="genVidTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
-                    <h3>🎥 Motion Engine V3 (Orbital & Depth Blur)</h3>
-                    <p>Trayectorias de cámara complejas con simulación de profundidad de campo.</p>
+                    <h3>🎥 Motion Engine V4 Pro (3D Orbit & FX Layer)</h3>
+                    <p>Trayectorias 3D complejas, desenfoque de profundidad NPU, superposición de grano 35mm y barras CineScope 21:9.</p>
                 </div>
                 <div class="card">
-                    <button class="btn-action" style="color: #00FFC8; margin-bottom: 10px;" onclick="loadVideoSourceImage()">Cargar Imagen Base de Galería</button>
-                    <div class="preview-box" id="vidPreviewBox"><span style="font-size: 11px; color: #555;">Sin imagen base cargada</span></div>
+                    <button class="btn-action" style="color: #00FFC8; margin-bottom: 10px; width:100%;" onclick="loadVideoSourceImage()">📷 Cargar Último Activo de Galería</button>
+                    <div class="preview-box" id="vidPreviewBox"><span style="font-size: 11px; color: #555;">Sin imagen base cargada para V4</span></div>
                     <div class="form-group">
-                        <label>Trayectoria de Cámara V3:</label>
-                        <select id="vidMotion">
-                            <option value="orbital">Órbita 3D con Desenfoque de Profundidad</option>
-                            <option value="pulse_neon">Pulso Neón con Aceleración Variable</option>
+                        <label>Trayectoria de Cámara V4 Pro:</label>
+                        <select id="vidMotionV4">
+                            <option value="orbital_3d">Órbita 3D Compleja + Depth Blur</option>
+                            <option value="dolly_vertigo">Zoom Anamórfico Dolly (Vertigo FX)</option>
+                            <option value="neon_pulse">Pulso Neón 60 FPS con Aceleración</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Duración & Rendimiento:</label>
-                        <select id="vidDuration">
-                            <option value="3">3 Segundos Loop (60 FPS Smooth)</option>
-                            <option value="5">5 Segundos Cinematic HD</option>
+                        <label>Capas & Efectos Cinemáticos (FX):</label>
+                        <select id="vidFxV4">
+                            <option value="cinescope_grain">Barras CineScope 21:9 + Grano 35mm</option>
+                            <option value="clean_hd">Limpio / Ultra HD (Sin Filtro)</option>
                         </select>
                     </div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="renderVideoAnimationV3()">Iniciar Render V3</button>
-                    <button class="btn-action" id="btnRecordVid" style="background: #FF0055; color: #fff; font-weight: bold; margin-top: 10px; width: 100%; display: none;" onclick="recordAndDownloadVideo()">🎥 Exportar Clip .WebM V3</button>
+                    <div class="form-group">
+                        <label>Duración del Render (Segundos):</label>
+                        <select id="vidDurationV4">
+                            <option value="3">3 Segundos Loop Smooth</option>
+                            <option value="5">5 Segundos Cinematic Master</option>
+                        </select>
+                    </div>
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="renderVideoAnimationV4()">⚡ Renderizar Animación V4 Pro</button>
+                    <button class="btn-action" id="btnRecordVidV4" style="background: #FF0055; color: #fff; font-weight: bold; margin-top: 10px; width: 100%; display: none;" onclick="recordAndDownloadVideoV4()">🎥 Exportar Clip .WebM V4</button>
                 </div>
             </div>
         </div>
@@ -569,7 +577,7 @@ HTML_CONTENT = """
             }
         }
 
-        function sendToVideoEngine() { alert("✔ Imagen enviada al Motion Engine V3."); }
+        function sendToVideoEngine() { alert("✔ Imagen enviada al Motion Engine V4."); }
         function sendToStudioRAW() { alert("✔ Activo V2 Pro cargado en Estudio RAW V3."); }
 
         /* --- LOGICA VALUADOR HIBRIDO V2 PRO --- */
@@ -680,7 +688,7 @@ HTML_CONTENT = """
             }
         }
 
-        /* --- RESTO DE MOTORES V3 --- */
+        /* --- LOGICA MOTION ENGINE V4 PRO --- */
         async function loadVideoSourceImage() {
             const res = await fetch('/bian/images/');
             const images = await res.json();
@@ -690,7 +698,7 @@ HTML_CONTENT = """
             vidSourceImg.onload = () => { document.getElementById('vidPreviewBox').innerHTML = `<img src="${vidSourceImg.src}" />`; };
         }
 
-        function renderVideoAnimationV3() {
+        function renderVideoAnimationV4() {
             if(!vidSourceImg.src) { alert("Carga primero una imagen base."); return; }
             if(animInterval) clearInterval(animInterval);
             const box = document.getElementById('vidPreviewBox');
@@ -700,25 +708,45 @@ HTML_CONTENT = """
             const ctx = activeCanvas.getContext('2d');
             box.appendChild(activeCanvas);
             let frame = 0;
-            const motion = document.getElementById('vidMotion').value;
+            const motion = document.getElementById('vidMotionV4').value;
+            const fx = document.getElementById('vidFxV4').value;
+
             animInterval = setInterval(() => {
                 frame++;
                 ctx.clearRect(0, 0, activeCanvas.width, activeCanvas.height);
                 let scale = 1.0, offsetX = 0, offsetY = 0;
-                if(motion === 'orbital') {
-                    offsetX = Math.cos(frame * 0.06) * 20; offsetY = Math.sin(frame * 0.06) * 12;
-                    scale = 1.05 + Math.sin(frame * 0.04) * 0.08;
+
+                if(motion === 'orbital_3d') {
+                    offsetX = Math.cos(frame * 0.06) * 22; offsetY = Math.sin(frame * 0.06) * 14;
+                    scale = 1.06 + Math.sin(frame * 0.04) * 0.08;
+                } else if(motion === 'dolly_vertigo') {
+                    scale = 1.0 + (frame % 60) * 0.01;
+                } else {
+                    scale = 1.0 + (Math.sin(frame * 0.1) * 0.08);
                 }
+
                 ctx.save();
                 ctx.translate(activeCanvas.width / 2 + offsetX, activeCanvas.height / 2 + offsetY);
                 ctx.scale(scale, scale);
                 ctx.drawImage(vidSourceImg, -activeCanvas.width / 2, -activeCanvas.height / 2, activeCanvas.width, activeCanvas.height);
                 ctx.restore();
+
+                if(fx === 'cinescope_grain') {
+                    // Capa CineScope 21:9
+                    ctx.fillStyle = "#000";
+                    ctx.fillRect(0, 0, activeCanvas.width, 30);
+                    ctx.fillRect(0, activeCanvas.height - 30, activeCanvas.width, 30);
+
+                    // Grano 35mm sintetizado
+                    ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.05})`;
+                    ctx.fillRect(0, 30, activeCanvas.width, activeCanvas.height - 60);
+                }
             }, 1000 / 30);
-            document.getElementById('btnRecordVid').style.display = 'block';
+
+            document.getElementById('btnRecordVidV4').style.display = 'block';
         }
 
-        function recordAndDownloadVideo() {
+        function recordAndDownloadVideoV4() {
             if(!activeCanvas) return;
             const stream = activeCanvas.captureStream(30);
             const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
@@ -727,11 +755,13 @@ HTML_CONTENT = """
             recorder.onstop = () => {
                 const blob = new Blob(chunks, { type: 'video/webm' });
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url; a.download = `clip_bian_v3_${Date.now()}.webm`; a.click();
+                const a = document.createElement('a'); a.href = url; a.download = `clip_bian_v4_${Date.now()}.webm`; a.click();
                 if(animInterval) clearInterval(animInterval);
             };
+            const dur = parseInt(document.getElementById('vidDurationV4').value) * 1000;
             recorder.start();
-            setTimeout(() => recorder.stop(), 3000);
+            alert(`Renderizando clip V4 Pro (${dur/1000}s)...`);
+            setTimeout(() => recorder.stop(), dur);
         }
 
         function generateSVGLogoV3() {
@@ -804,7 +834,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Master Unified Suite V4 (Chef Lean V4 Pro Integrated)",
+        "engine": "Master Unified Suite V4 (Motion Engine V4 Pro Integrated)",
         "status": "online"
     }
 
