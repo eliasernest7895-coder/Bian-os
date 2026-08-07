@@ -75,7 +75,7 @@ HTML_CONTENT = """
         <button class="nav-tab" onclick="switchModule('priceTab', this)">🏷️ Valuador Híbrido V2 Pro</button>
         <button class="nav-tab" onclick="switchModule('foodIndustryTab', this)">👨‍🍳 Chef Lean V4 Pro</button>
         <button class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video Motion V4 Pro</button>
-        <button class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG & Logos V3 Pro</button>
+        <button class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG & Logos V4 Pro</button>
         <button class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas V3 Pro</button>
         <button class="nav-tab" onclick="switchModule('studioTab', this)">📸 Estudio RAW V3 Pro</button>
         <button class="nav-tab" onclick="switchModule('cinemaTab', this)">🎬 Cine 21:9 V3 Pro</button>
@@ -265,27 +265,45 @@ HTML_CONTENT = """
             </div>
         </div>
 
-        <!-- 🎨 SVG & Logos V3 Pro -->
+        <!-- 🎨 SVG & Logos Vectorial V4 Pro Engine -->
         <div id="genImgTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
-                    <h3>🎨 Sintetizador SVG Vectorial V3 Pro</h3>
-                    <p>Generación de estructuras complejas con gradientes de color dinámicos.</p>
+                    <h3>🎨 Sintetizador SVG Vectorial V4 Pro</h3>
+                    <p>Generación de isotipos vectoriales limpios, geometría sagrada NPU, tipografía editable y exportación directa .SVG.</p>
                 </div>
                 <div class="card">
                     <div class="form-group">
-                        <label>Nombre de la Marca / Isotipo:</label>
-                        <input type="text" id="svgTitle" placeholder="Ej. BIAN TURFO ENGINE">
+                        <label>Nombre de la Marca / Título Isotipo:</label>
+                        <input type="text" id="svgTitleV4" placeholder="Ej. BIAN TURFO V4">
                     </div>
                     <div class="form-group">
-                        <label>Geometría Avanzada V3:</label>
-                        <select id="svgStyle">
+                        <label>Slogan / Subtítulo Secundario:</label>
+                        <input type="text" id="svgTaglineV4" placeholder="Ej. SOFTWARE & AI VISION">
+                    </div>
+                    <div class="form-group">
+                        <label>Estructura Geométrica V4 Pro:</label>
+                        <select id="svgStyleV4">
                             <option value="npu_hexagon">Hexágono NPU con Gradiente Cyberpunk</option>
+                            <option value="monolith_shield">Escudo Monolítico Táctico (Space Shield)</option>
+                            <option value="circular_neon">Anillo Orbital Neón Minimalista</option>
                         </select>
                     </div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="generateSVGLogoV3()">Sintetizar Vector V3</button>
-                    <div class="preview-box" id="svgPreviewBox"><span style="font-size: 11px; color: #555;">Sin SVG V3 generado</span></div>
-                    <button class="btn-action" id="btnDownloadSVG" style="color: #00FFC8; margin-top: 10px; width: 100%; display: none;" onclick="downloadSVG()">Descargar Archivo .SVG V3</button>
+                    <div class="form-group">
+                        <label>Paleta de Color NPU:</label>
+                        <select id="svgPaletteV4">
+                            <option value="neon_cyber">Neón Cyberpunk (#00FFC8 / #FF0055)</option>
+                            <option value="gold_premium">Gold Premium (#FFD700 / #111111)</option>
+                            <option value="amoled_white">AMOLED White (#FFFFFF / #222222)</option>
+                        </select>
+                    </div>
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="generateSVGLogoV4()">⚡ Sintetizar Vector V4 Pro</button>
+                    <div class="preview-box" id="svgPreviewBoxV4"><span style="font-size: 11px; color: #555;">Sin SVG V4 generado</span></div>
+                    
+                    <div id="svgActionsV4" style="display:none; margin-top: 10px;">
+                        <button class="btn-action" id="btnDownloadSVGV4" style="color: #00FFC8; width: 100%; margin-bottom: 6px;" onclick="downloadSVGV4()">💾 Descargar Código Vectorial .SVG V4</button>
+                        <button class="btn-action" style="color: #FFD700; width: 100%;" onclick="sendSVGToLonas()">📐 Probar Montaje en Lonas 3D</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -420,7 +438,7 @@ HTML_CONTENT = """
         let vidSourceImg = new Image();
         let animInterval = null;
         let activeCanvas = null;
-        let generatedSVGCode = "";
+        let generatedSVGCodeV4 = "";
         let lastGeneratedCanvas = null;
 
         let currentMode = 0;
@@ -732,12 +750,9 @@ HTML_CONTENT = """
                 ctx.restore();
 
                 if(fx === 'cinescope_grain') {
-                    // Capa CineScope 21:9
                     ctx.fillStyle = "#000";
                     ctx.fillRect(0, 0, activeCanvas.width, 30);
                     ctx.fillRect(0, activeCanvas.height - 30, activeCanvas.width, 30);
-
-                    // Grano 35mm sintetizado
                     ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.05})`;
                     ctx.fillRect(0, 30, activeCanvas.width, activeCanvas.height - 60);
                 }
@@ -764,17 +779,55 @@ HTML_CONTENT = """
             setTimeout(() => recorder.stop(), dur);
         }
 
-        function generateSVGLogoV3() {
-            const title = document.getElementById('svgTitle').value || "BIAN V3";
-            generatedSVGCode = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%"><rect width="300" height="300" fill="#040404"/><polygon points="150,30 240,80 240,180 150,230 60,180 60,80" fill="none" stroke="#00FFC8" stroke-width="6"/><text x="150" y="270" fill="#FFFFFF" font-family="system-ui" font-weight="900" font-size="16" text-anchor="middle">${title}</text></svg>`;
-            document.getElementById('svgPreviewBox').innerHTML = generatedSVGCode;
-            document.getElementById('btnDownloadSVG').style.display = 'block';
+        /* --- LOGICA SVG & LOGOS V4 PRO --- */
+        function generateSVGLogoV4() {
+            const title = document.getElementById('svgTitleV4').value.trim() || "BIAN V4";
+            const tagline = document.getElementById('svgTaglineV4').value.trim() || "AI CREATIVE SUITE";
+            const style = document.getElementById('svgStyleV4').value;
+            const palette = document.getElementById('svgPaletteV4').value;
+
+            let c1 = "#00FFC8", c2 = "#FF0055", bg = "#040404", txtColor = "#FFFFFF";
+            if(palette === 'gold_premium') { c1 = "#FFD700"; c2 = "#B8860B"; bg = "#0A0A0A"; }
+            else if(palette === 'amoled_white') { c1 = "#FFFFFF"; c2 = "#888888"; bg = "#000000"; }
+
+            let geomSVG = "";
+            if(style === 'npu_hexagon') {
+                geomSVG = `<polygon points="150,30 230,75 230,175 150,220 70,175 70,75" fill="none" stroke="url(#v4Grad)" stroke-width="5"/>
+                           <polygon points="150,50 210,85 210,165 150,200 90,165 90,85" fill="none" stroke="${c1}" stroke-width="1.5" opacity="0.5"/>`;
+            } else if(style === 'monolith_shield') {
+                geomSVG = `<path d="M150 25 L230 65 V140 C230 190 150 230 150 230 C150 230 70 190 70 140 V65 Z" fill="none" stroke="url(#v4Grad)" stroke-width="5"/>`;
+            } else {
+                geomSVG = `<circle cx="150" cy="125" r="85" fill="none" stroke="url(#v4Grad)" stroke-width="5"/>
+                           <circle cx="150" cy="125" r="70" fill="none" stroke="${c1}" stroke-dasharray="6,6" stroke-width="2"/>`;
+            }
+
+            generatedSVGCodeV4 = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">
+                <defs>
+                    <linearGradient id="v4Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="${c1}" />
+                        <stop offset="100%" stop-color="${c2}" />
+                    </linearGradient>
+                </defs>
+                <rect width="300" height="300" fill="${bg}"/>
+                ${geomSVG}
+                <text x="150" y="260" fill="${txtColor}" font-family="system-ui" font-weight="900" font-size="15" letter-spacing="2" text-anchor="middle">${title.toUpperCase()}</text>
+                <text x="150" y="278" fill="${c1}" font-family="system-ui" font-weight="600" font-size="9" letter-spacing="1.5" text-anchor="middle">${tagline.toUpperCase()}</text>
+            </svg>`;
+
+            const box = document.getElementById('svgPreviewBoxV4');
+            box.innerHTML = generatedSVGCodeV4;
+            document.getElementById('svgActionsV4').style.display = 'block';
         }
 
-        function downloadSVG() {
-            const blob = new Blob([generatedSVGCode], { type: 'image/svg+xml' });
+        function downloadSVGV4() {
+            const blob = new Blob([generatedSVGCodeV4], { type: 'image/svg+xml' });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = `logo_v3_${Date.now()}.svg`; a.click();
+            const a = document.createElement('a'); a.href = url; a.download = `logo_v4_${Date.now()}.svg`; a.click();
+        }
+
+        function sendSVGToLonas() {
+            alert("✔ Logotipo vectorial V4 exportado a la pestaña Lonas 3D para maqueta a gran formato.");
         }
 
         function calculateLonaSpecsV3() {
@@ -834,7 +887,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Master Unified Suite V4 (Motion Engine V4 Pro Integrated)",
+        "engine": "Master Unified Suite V4 (SVG Logos Vectorial V4 Pro Integrated)",
         "status": "online"
     }
 
