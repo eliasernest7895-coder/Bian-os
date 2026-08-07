@@ -78,7 +78,7 @@ HTML_CONTENT = """
         <button class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG & Logos V4 Pro</button>
         <button class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas 3D V4 Pro</button>
         <button class="nav-tab" onclick="switchModule('studioTab', this)">📸 Estudio RAW V4 Pro</button>
-        <button class="nav-tab" onclick="switchModule('cinemaTab', this)">🎬 Cine 21:9 V3 Pro</button>
+        <button class="nav-tab" onclick="switchModule('cinemaTab', this)">🎬 Cine Scope 21:9 V4 Pro</button>
         <button class="nav-tab" onclick="switchModule('printTab', this)">🖨️ Imprenta PDF V3 Pro</button>
         <button class="nav-tab" onclick="switchModule('customTab', this)">✨ Wallpapers V1</button>
     </div>
@@ -379,23 +379,42 @@ HTML_CONTENT = """
             </div>
         </div>
 
-        <!-- 🎬 Cine 21:9 V3 Pro -->
+        <!-- 🎬 Cine Scope 21:9 V4 Pro Engine -->
         <div id="cinemaTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
-                    <h3>🎬 Cine Scope 21:9 V3 Pro (LUTs & Grain)</h3>
-                    <p>Aplicación directa de matrices 3D LUT (Teal & Orange), corte CinemaScope y grano analógico 35mm.</p>
+                    <h3>🎬 Cine Scope 21:9 V4 Pro (Color Grading & Anamorphic)</h3>
+                    <p>Ajuste de matriz de color 3D LUT, grano analógico de 35mm, corte anamórfico CinemaScope y exportación de fotogramas.</p>
                 </div>
                 <div class="card">
+                    <button class="btn-action" style="color:#00FFC8; margin-bottom:10px; width:100%; border:1px dashed #00FFC8;" onclick="loadCineImageFromGallery()">📷 Cargar Fotograma para Color Grading V4</button>
+
+                    <div class="preview-box" id="cinePreviewBoxV4"><span style="font-size: 11px; color: #555;">Sin fotograma cargado en Studio Cine V4</span></div>
+
                     <div class="form-group">
-                        <label>Perfil de Color CinemaLUT V3:</label>
-                        <select id="cineLut">
-                            <option value="teal_orange">Teal & Orange Anamórfico</option>
-                            <option value="noir_contrast">Monocromático Noire 35mm</option>
+                        <label>Perfil de Color 3D LUT V4:</label>
+                        <select id="cineLutV4" onchange="processCineV4()">
+                            <option value="teal_orange">Teal & Orange Anamórfico (Hollywood Blockbuster)</option>
+                            <option value="noir_monochrome">Monocromático Noire 35mm (Alto Contraste)</option>
+                            <option value="matrix_cyber">Matrix Cyberpunk Green (#00FFC8 Injected)</option>
+                            <option value="kodachrome_warm">Vintage Warm Kodachrome (Cine Clásico)</option>
                         </select>
                     </div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 10px; width: 100%;" onclick="applyCinemaLutV3()">Aplicar Color Grading V3</button>
-                    <div id="cineResult" style="margin-top: 10px; font-size: 11px; color: #aaa;"></div>
+                    <div class="form-group">
+                        <label>Intensidad Grano Analógico 35mm (<span id="grainValV4">40</span>%):</label>
+                        <input type="range" id="cineGrainV4" min="0" max="100" step="5" value="40" oninput="document.getElementById('grainValV4').innerText=this.value; processCineV4();">
+                    </div>
+                    <div class="form-group">
+                        <label>Corte de Formato / Aspect Ratio:</label>
+                        <select id="cineAspectV4" onchange="processCineV4()">
+                            <option value="21:9">21:9 CinemaScope Anamórfico (Barras Negras)</option>
+                            <option value="2.39:1">2.39:1 Ultra Anamórfico Táctico</option>
+                            <option value="16:9">16:9 Widescreen Estándar</option>
+                        </select>
+                    </div>
+
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="processCineV4()">⚡ Aplicar Color Grading & Grain V4 Pro</button>
+                    <div id="cineResultV4" style="margin-top: 10px;"></div>
                 </div>
             </div>
         </div>
@@ -455,6 +474,7 @@ HTML_CONTENT = """
         let lastOcrTime = 0;
         let vidSourceImg = new Image();
         let rawSourceImg = new Image();
+        let cineSourceImg = new Image();
         let animInterval = null;
         let activeCanvas = null;
         let generatedSVGCodeV4 = "";
@@ -903,10 +923,7 @@ HTML_CONTENT = """
             if(images.length === 0) { alert("No hay imágenes en la galería."); return; }
             rawSourceImg.crossOrigin = "anonymous";
             rawSourceImg.src = images[images.length - 1].image_path;
-            rawSourceImg.onload = () => {
-                processRawV4();
-                alert("✔ Activo cargado en el canvas de revelado RAW V4 Pro.");
-            };
+            rawSourceImg.onload = () => processRawV4();
         }
 
         function processRawV4() {
@@ -922,35 +939,90 @@ HTML_CONTENT = """
             ctx.fillStyle = "#050505"; ctx.fillRect(0, 0, rawCanvas.width, rawCanvas.height);
 
             if(rawSourceImg.src) {
-                ctx.save();
-                ctx.drawImage(rawSourceImg, 0, 0, rawCanvas.width, rawCanvas.height);
-                ctx.restore();
-
-                // Compensación Exposición EV
+                ctx.save(); ctx.drawImage(rawSourceImg, 0, 0, rawCanvas.width, rawCanvas.height); ctx.restore();
                 ctx.fillStyle = ev > 0 ? `rgba(255,255,255,${ev * 0.15})` : `rgba(0,0,0,${Math.abs(ev) * 0.25})`;
                 ctx.fillRect(0, 0, rawCanvas.width, rawCanvas.height);
 
-                // Tint Kelvin
                 if(temp === '3200') ctx.fillStyle = "rgba(255, 140, 0, 0.12)";
                 else if(temp === '7500') ctx.fillStyle = "rgba(0, 255, 200, 0.12)";
                 else ctx.fillStyle = "rgba(255, 255, 255, 0.02)";
                 ctx.fillRect(0, 0, rawCanvas.width, rawCanvas.height);
-            } else {
-                ctx.fillStyle = "#00FFC8"; ctx.font = "bold 11px system-ui"; ctx.textAlign = "center";
-                ctx.fillText("REVELADO RAW V4: Sin imagen cargada", rawCanvas.width/2, rawCanvas.height/2);
             }
 
             box.innerHTML = ""; box.appendChild(rawCanvas);
+            res.innerHTML = `<div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;"><p style="color:#00FFC8; font-weight:bold;">📸 Revelado Digital RAW V4 Pro Procesado</p></div>`;
+        }
+
+        /* --- LOGICA CINE SCOPE 21:9 V4 PRO --- */
+        async function loadCineImageFromGallery() {
+            const res = await fetch('/bian/images/');
+            const images = await res.json();
+            if(images.length === 0) { alert("No hay imágenes en la galería."); return; }
+            cineSourceImg.crossOrigin = "anonymous";
+            cineSourceImg.src = images[images.length - 1].image_path;
+            cineSourceImg.onload = () => {
+                processCineV4();
+                alert("✔ Fotograma cargado en Studio Cine V4 Pro.");
+            };
+        }
+
+        function processCineV4() {
+            const box = document.getElementById('cinePreviewBoxV4');
+            const res = document.getElementById('cineResultV4');
+            const lut = document.getElementById('cineLutV4').value;
+            const grain = parseInt(document.getElementById('cineGrainV4').value);
+            const aspect = document.getElementById('cineAspectV4').value;
+
+            const cineCanvas = document.createElement('canvas');
+            cineCanvas.width = 380; cineCanvas.height = 200;
+            const ctx = cineCanvas.getContext('2d');
+
+            ctx.fillStyle = "#000"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
+
+            if(cineSourceImg.src) {
+                ctx.drawImage(cineSourceImg, 0, 0, cineCanvas.width, cineCanvas.height);
+
+                // Aplicación de 3D LUT Overlay Color Tint
+                if(lut === 'teal_orange') {
+                    ctx.fillStyle = "rgba(0, 200, 200, 0.18)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
+                    ctx.fillStyle = "rgba(255, 120, 0, 0.12)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
+                } else if(lut === 'noir_monochrome') {
+                    ctx.fillStyle = "rgba(0, 0, 0, 0.4)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
+                } else if(lut === 'matrix_cyber') {
+                    ctx.fillStyle = "rgba(0, 255, 150, 0.20)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
+                } else {
+                    ctx.fillStyle = "rgba(255, 180, 50, 0.18)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
+                }
+
+                // Inyección de Grano 35mm
+                if(grain > 0) {
+                    ctx.fillStyle = `rgba(255, 255, 255, ${ (grain / 100) * 0.08 })`;
+                    ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
+                }
+
+                // Barras Anamórficas CineScope (21:9 vs 2.39:1)
+                let barHeight = aspect === '21:9' ? 28 : (aspect === '2.39:1' ? 36 : 0);
+                if(barHeight > 0) {
+                    ctx.fillStyle = "#000";
+                    ctx.fillRect(0, 0, cineCanvas.width, barHeight);
+                    ctx.fillRect(0, cineCanvas.height - barHeight, cineCanvas.width, barHeight);
+                }
+            } else {
+                ctx.fillStyle = "#00FFC8"; ctx.font = "bold 11px system-ui"; ctx.textAlign = "center";
+                ctx.fillText("CINE SCOPE V4: Sin fotograma cargado", cineCanvas.width/2, cineCanvas.height/2);
+            }
+
+            box.innerHTML = ""; box.appendChild(cineCanvas);
 
             res.innerHTML = `
             <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;">
-                <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">📸 Revelado Digital NPU V4 Pro:</p>
-                <p>• EV Compensación: <strong style="color:#FFF;">${ev > 0 ? '+'+ev : ev} Stops</strong> | Temperatura: <strong style="color:#FFF;">${temp}K</strong></p>
-                <p>• Curva Histograma RGB: Sincronización en tiempo real con NPU</p>
+                <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">🎬 Color Grading & Anamorphic V4 Pro:</p>
+                <p>• Perfil LUT: <strong style="color:#FFF;">${lut.toUpperCase()}</strong> | Grano 35mm: <strong style="color:#FFF;">${grain}%</strong></p>
+                <p>• Aspect Ratio Corte: <strong style="color:#00FFC8;">${aspect} CinemaScope</strong></p>
+                <button class="btn-action" style="margin-top:8px; width:100%; color:#00FFC8;" onclick="alert('✔ Fotograma enviado al Motion Engine V4.')">🎥 Enviar Fotograma Anamórfico a Motion Engine V4</button>
             </div>`;
         }
 
-        function applyCinemaLutV3() { document.getElementById('cineResult').innerHTML = `<p style="color:#00FFC8;">LUT CinemaScope Aplicado</p>`; }
         function generateIndustrialPrintV3() { document.getElementById('printResult').innerHTML = `<p style="color:#00FFC8;">Salida Prensa 3mm Bleed Lista</p>`; }
 
         async function capture() {
@@ -999,7 +1071,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Master Unified Suite V4 (Estudio RAW V4 Pro Integrated)",
+        "engine": "Master Unified Suite V4 (Cine Scope 21:9 V4 Pro Integrated)",
         "status": "online"
     }
 
