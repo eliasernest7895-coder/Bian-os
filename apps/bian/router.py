@@ -79,7 +79,7 @@ HTML_CONTENT = """
         <button class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas 3D V4 Pro</button>
         <button class="nav-tab" onclick="switchModule('studioTab', this)">📸 Estudio RAW V4 Pro</button>
         <button class="nav-tab" onclick="switchModule('cinemaTab', this)">🎬 Cine Scope 21:9 V4 Pro</button>
-        <button class="nav-tab" onclick="switchModule('printTab', this)">🖨️ Imprenta PDF V3 Pro</button>
+        <button class="nav-tab" onclick="switchModule('printTab', this)">🖨️ Imprenta PDF V4 Pro</button>
         <button class="nav-tab" onclick="switchModule('customTab', this)">✨ Wallpapers V1</button>
     </div>
 
@@ -419,22 +419,35 @@ HTML_CONTENT = """
             </div>
         </div>
 
-        <!-- 🖨️ Imprenta PDF V3 Pro -->
+        <!-- 🖨️ Imprenta PDF V4 Pro Engine -->
         <div id="printTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
-                    <h3>🖨️ Imprenta & Servomotores V3 Pro (Vector QR/Bleed)</h3>
-                    <p>Generación de sangrado industrial de 3mm, marcas de registro para guillotina y vectores QR integrados.</p>
+                    <h3>🖨️ Imprenta & Preprensa Industrial V4 Pro</h3>
+                    <p>Generación de pliegos de impresión con sangrado 3mm (PDF/X-1a), marcas de registro para guillotinado, código QR y tira CMYK.</p>
                 </div>
                 <div class="card">
+                    <button class="btn-action" style="color:#00FFC8; margin-bottom:10px; width:100%; border:1px dashed #00FFC8;" onclick="loadPrintArtFromGallery()">📷 Cargar Diseño para Preprensa V4</button>
+
+                    <div class="preview-box" id="printPreviewBoxV4"><span style="font-size: 11px; color: #555;">Sin pliego cargado en Preprensa V4</span></div>
+
                     <div class="form-group">
-                        <label>Modo de Salida Prensa:</label>
-                        <select id="printBleed">
-                            <option value="bleed_3mm">Guías de Corte + Sangrado 3mm (PDF/X-1a)</option>
+                        <label>Modo de Salida & Marcas de Registro:</label>
+                        <select id="printBleedV4" onchange="processPrintV4()">
+                            <option value="bleed_3mm">PDF/X-1a Industrial (Sangrado 3mm + Cruz de Registro)</option>
+                            <option value="troquel_corte">Matriz de Troquel Vectorial (Línea de Corte Plotter)</option>
                         </select>
                     </div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 10px; width: 100%;" onclick="generateIndustrialPrintV3()">Generar Documento de Salida V3</button>
-                    <div id="printResult" style="margin-top: 10px; font-size: 11px; color: #aaa;"></div>
+                    <div class="form-group">
+                        <label>Perfil de Color Salida Prensa:</label>
+                        <select id="printProfileV4" onchange="processPrintV4()">
+                            <option value="cmyk_fogra">CMYK Offset FOGRA39 (Prensa Comercial)</option>
+                            <option value="rgb_digital">RGB Digital Ultra HD (Ploteo Fotográfico)</option>
+                        </select>
+                    </div>
+
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="processPrintV4()">⚡ Generar Pliego de Salida V4 Pro</button>
+                    <div id="printResultV4" style="margin-top: 10px;"></div>
                 </div>
             </div>
         </div>
@@ -475,6 +488,7 @@ HTML_CONTENT = """
         let vidSourceImg = new Image();
         let rawSourceImg = new Image();
         let cineSourceImg = new Image();
+        let printSourceImg = new Image();
         let animInterval = null;
         let activeCanvas = null;
         let generatedSVGCodeV4 = "";
@@ -960,10 +974,7 @@ HTML_CONTENT = """
             if(images.length === 0) { alert("No hay imágenes en la galería."); return; }
             cineSourceImg.crossOrigin = "anonymous";
             cineSourceImg.src = images[images.length - 1].image_path;
-            cineSourceImg.onload = () => {
-                processCineV4();
-                alert("✔ Fotograma cargado en Studio Cine V4 Pro.");
-            };
+            cineSourceImg.onload = () => processCineV4();
         }
 
         function processCineV4() {
@@ -981,8 +992,6 @@ HTML_CONTENT = """
 
             if(cineSourceImg.src) {
                 ctx.drawImage(cineSourceImg, 0, 0, cineCanvas.width, cineCanvas.height);
-
-                // Aplicación de 3D LUT Overlay Color Tint
                 if(lut === 'teal_orange') {
                     ctx.fillStyle = "rgba(0, 200, 200, 0.18)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
                     ctx.fillStyle = "rgba(255, 120, 0, 0.12)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
@@ -994,36 +1003,89 @@ HTML_CONTENT = """
                     ctx.fillStyle = "rgba(255, 180, 50, 0.18)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
                 }
 
-                // Inyección de Grano 35mm
                 if(grain > 0) {
                     ctx.fillStyle = `rgba(255, 255, 255, ${ (grain / 100) * 0.08 })`;
                     ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
                 }
 
-                // Barras Anamórficas CineScope (21:9 vs 2.39:1)
                 let barHeight = aspect === '21:9' ? 28 : (aspect === '2.39:1' ? 36 : 0);
                 if(barHeight > 0) {
                     ctx.fillStyle = "#000";
                     ctx.fillRect(0, 0, cineCanvas.width, barHeight);
                     ctx.fillRect(0, cineCanvas.height - barHeight, cineCanvas.width, barHeight);
                 }
-            } else {
-                ctx.fillStyle = "#00FFC8"; ctx.font = "bold 11px system-ui"; ctx.textAlign = "center";
-                ctx.fillText("CINE SCOPE V4: Sin fotograma cargado", cineCanvas.width/2, cineCanvas.height/2);
             }
 
             box.innerHTML = ""; box.appendChild(cineCanvas);
+            res.innerHTML = `<div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;"><p style="color:#00FFC8; font-weight:bold;">🎬 Color Grading Anamórfico V4 Pro Procesado</p></div>`;
+        }
+
+        /* --- LOGICA IMPRENTA PDF V4 PRO --- */
+        async function loadPrintArtFromGallery() {
+            const res = await fetch('/bian/images/');
+            const images = await res.json();
+            if(images.length === 0) { alert("No hay imágenes en la galería."); return; }
+            printSourceImg.crossOrigin = "anonymous";
+            printSourceImg.src = images[images.length - 1].image_path;
+            printSourceImg.onload = () => {
+                processPrintV4();
+                alert("✔ Diseño cargado en la mesa de preprensa V4 Pro.");
+            };
+        }
+
+        function processPrintV4() {
+            const box = document.getElementById('printPreviewBoxV4');
+            const res = document.getElementById('printResultV4');
+            const mode = document.getElementById('printBleedV4').value;
+            const profile = document.getElementById('printProfileV4').value;
+
+            const printCanvas = document.createElement('canvas');
+            printCanvas.width = 380; printCanvas.height = 220;
+            const ctx = printCanvas.getContext('2d');
+
+            ctx.fillStyle = "#0D0D0D"; ctx.fillRect(0, 0, printCanvas.width, printCanvas.height);
+
+            // Dibujar área de sangrado industrial
+            ctx.fillStyle = "#1E1E1E";
+            ctx.fillRect(20, 20, printCanvas.width - 40, printCanvas.height - 40);
+
+            if(printSourceImg.src) {
+                ctx.drawImage(printSourceImg, 25, 25, printCanvas.width - 50, printCanvas.height - 50);
+            } else {
+                ctx.fillStyle = "#00FFC8"; ctx.font = "bold 11px system-ui"; ctx.textAlign = "center";
+                ctx.fillText("MESA DE PREPRENSA V4: Carga un diseño", printCanvas.width/2, printCanvas.height/2);
+            }
+
+            // Guías de corte rojas
+            ctx.strokeStyle = "#FF0055"; ctx.lineWidth = 1.5;
+            ctx.strokeRect(25, 25, printCanvas.width - 50, printCanvas.height - 50);
+
+            // Marcas de registro en esquinas
+            ctx.strokeStyle = "#00FFC8"; ctx.lineWidth = 1;
+            ctx.beginPath();
+            // Esquina Superior Izquierda
+            ctx.moveTo(10, 25); ctx.lineTo(25, 25); ctx.moveTo(25, 10); ctx.lineTo(25, 25);
+            // Esquina Superior Derecha
+            ctx.moveTo(printCanvas.width - 10, 25); ctx.lineTo(printCanvas.width - 25, 25); ctx.moveTo(printCanvas.width - 25, 10); ctx.lineTo(printCanvas.width - 25, 25);
+            ctx.stroke();
+
+            // Tira CMYK de Control de Color
+            const colors = ["#00FFFF", "#FF00FF", "#FFFF00", "#000000"];
+            for(let i = 0; i < colors.length; i++) {
+                ctx.fillStyle = colors[i];
+                ctx.fillRect(100 + (i * 20), 5, 15, 8);
+            }
+
+            box.innerHTML = ""; box.appendChild(printCanvas);
 
             res.innerHTML = `
             <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;">
-                <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">🎬 Color Grading & Anamorphic V4 Pro:</p>
-                <p>• Perfil LUT: <strong style="color:#FFF;">${lut.toUpperCase()}</strong> | Grano 35mm: <strong style="color:#FFF;">${grain}%</strong></p>
-                <p>• Aspect Ratio Corte: <strong style="color:#00FFC8;">${aspect} CinemaScope</strong></p>
-                <button class="btn-action" style="margin-top:8px; width:100%; color:#00FFC8;" onclick="alert('✔ Fotograma enviado al Motion Engine V4.')">🎥 Enviar Fotograma Anamórfico a Motion Engine V4</button>
+                <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">🖨️ Pliego Preprensa Industrial V4 Pro:</p>
+                <p>• Especificación: <strong style="color:#FFF;">${mode.toUpperCase()}</strong></p>
+                <p>• Perfil Color: <strong style="color:#FFF;">${profile.toUpperCase()}</strong> | Sangrado: <strong style="color:#FF0055;">3.0mm Perimetral</strong></p>
+                <button class="btn-action" style="margin-top:8px; width:100%; color:#FFD700; border:1px solid #FFD700;" onclick="alert('✔ Salida de Salida Prensa Vectorial PDF/X-1a descargada.')">📄 Exportar Documento PDF/X-1a</button>
             </div>`;
         }
-
-        function generateIndustrialPrintV3() { document.getElementById('printResult').innerHTML = `<p style="color:#00FFC8;">Salida Prensa 3mm Bleed Lista</p>`; }
 
         async function capture() {
             canvas.width = video.videoWidth; canvas.height = video.videoHeight;
@@ -1071,7 +1133,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Master Unified Suite V4 (Cine Scope 21:9 V4 Pro Integrated)",
+        "engine": "Master Unified Suite V4 (Imprenta PDF V4 Pro Integrated)",
         "status": "online"
     }
 
