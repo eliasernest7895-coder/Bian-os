@@ -12,7 +12,7 @@ router = APIRouter(prefix="/bian", tags=["Bian AI Vision Pro"])
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Detección V2 Pro Engine"
+    prompt_analysis: str = "Detección V3 Ultra Pro"
 
 HTML_CONTENT = """
 <!DOCTYPE html>
@@ -20,7 +20,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bian AI Vision & Creative Suite - Master V4 Complete</title>
+    <title>Bian AI Vision & Creative Suite - Master V5 Ultra</title>
     <script src="https://unpkg.com/tesseract.js@v4.0.2/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -40,11 +40,15 @@ HTML_CONTENT = """
 
         video { width: 100%; height: 100%; object-fit: cover; }
         
-        /* HUD CAM VISION V2 PRO */
-        .hud-overlay { position: absolute; border: 2px solid #00FFC8; width: 75%; height: 55%; top: 15%; left: 12.5%; border-radius: 18px; box-shadow: 0 0 20px rgba(0,255,200,0.3); pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 12px; }
-        .hud-top { display: flex; justify-content: space-between; font-size: 10px; color: #00FFC8; background: rgba(0,0,0,0.75); padding: 4px 8px; border-radius: 6px; }
-        .ocr-box { font-size: 11px; color: #FFF; background: rgba(0,0,0,0.8); padding: 6px 10px; border-radius: 6px; border-left: 3px solid #00FFC8; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        /* HUD CAM VISION V3 ULTRA PRO */
+        .hud-overlay { position: absolute; border: 2px solid #00FFC8; width: 80%; height: 60%; top: 12%; left: 10%; border-radius: 20px; box-shadow: 0 0 25px rgba(0,255,200,0.4); pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; }
+        .hud-top { display: flex; justify-content: space-between; font-size: 10px; color: #00FFC8; background: rgba(0,0,0,0.8); padding: 5px 10px; border-radius: 6px; }
+        .ocr-box { font-size: 11px; color: #FFF; background: rgba(0,0,0,0.85); padding: 8px 12px; border-radius: 8px; border-left: 3px solid #00FFC8; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         
+        /* Bounding Box flotante simulado */
+        .bounding-box { position: absolute; border: 1px dashed #FF0055; width: 45%; height: 30%; top: 30%; left: 28%; pointer-events: none; border-radius: 6px; display: flex; align-items: flex-start; justify-content: flex-end; padding: 4px; }
+        .bounding-tag { background: rgba(255,0,85,0.8); color: #fff; font-size: 8px; padding: 2px 4px; border-radius: 3px; font-weight: bold; }
+
         .controls { padding: 14px 20px; background: rgba(13,13,13,0.95); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #222; }
         .btn-shutter { width: 64px; height: 64px; border-radius: 50%; background: #fff; border: 4px solid #00FFC8; cursor: pointer; }
         .thumb-preview { width: 44px; height: 44px; border-radius: 8px; border: 2px solid #00FFC8; background: #111; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; }
@@ -70,7 +74,7 @@ HTML_CONTENT = """
 </head>
 <body>
     <div class="module-nav">
-        <button class="nav-tab active" onclick="switchModule('cameraTab', this)">📷 Cam Vision V2 Pro</button>
+        <button class="nav-tab active" onclick="switchModule('cameraTab', this)">📷 Cam Vision V3 Pro</button>
         <button class="nav-tab" onclick="switchModule('genPromptTab', this)">✨ Generar Imagen AI V2 Pro</button>
         <button class="nav-tab" onclick="switchModule('priceTab', this)">🏷️ Valuador Híbrido V2 Pro</button>
         <button class="nav-tab" onclick="switchModule('foodIndustryTab', this)">👨‍🍳 Chef Lean V4 Pro</button>
@@ -80,24 +84,27 @@ HTML_CONTENT = """
         <button class="nav-tab" onclick="switchModule('studioTab', this)">📸 Estudio RAW V4 Pro</button>
         <button class="nav-tab" onclick="switchModule('cinemaTab', this)">🎬 Cine Scope 21:9 V4 Pro</button>
         <button class="nav-tab" onclick="switchModule('printTab', this)">🖨️ Imprenta PDF V4 Pro</button>
-        <button class="nav-tab" onclick="switchModule('customTab', this)">✨ Wallpapers & Stickers V2 Pro</button>
+        <button class="nav-tab" onclick="switchModule('customTab', this)">✨ Wallpapers V2 Pro</button>
     </div>
 
     <div class="header">
-        <span style="font-weight: 700; font-size: 13px;" id="moduleTitle">BIAN AI VISION PRO</span>
+        <span style="font-weight: 700; font-size: 13px;" id="moduleTitle">BIAN V5 MASTER SUITE</span>
         <span class="badge" id="netBadge">RED: AUDITANDO...</span>
     </div>
 
     <div class="main-container">
-        <!-- 📷 1. Cam Vision V2 Pro -->
+        <!-- 📷 1. Cam Vision V3 Ultra Pro -->
         <div id="cameraTab" class="module-view active">
             <video id="webcam" autoplay playsinline></video>
             <div class="hud-overlay">
                 <div class="hud-top">
-                    <span id="modeLabel">MODO: OCR CONTINUO</span>
-                    <span>NPU V2 ACTIVE</span>
+                    <span id="modeLabel">MODO: MULTIMODAL NPU V3</span>
+                    <span>S23 ULTRA 1080P</span>
                 </div>
-                <div class="ocr-box" id="ocrResult">Escaneando entorno en vivo...</div>
+                <div class="bounding-box">
+                    <span class="bounding-tag" id="targetTag">OBJETIVO DETECTADO</span>
+                </div>
+                <div class="ocr-box" id="ocrResult">Cam Vision V3: Analizando entorno y texturas...</div>
             </div>
             <canvas id="canvas" style="display:none;"></canvas>
         </div>
@@ -156,7 +163,7 @@ HTML_CONTENT = """
             </div>
         </div>
 
-        <!-- 🏷️ 3. Cotizador & Valuador Híbrido V2 Pro -->
+        <!-- 🏷️ 3. Valuador Híbrido V2 Pro -->
         <div id="priceTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
@@ -191,7 +198,7 @@ HTML_CONTENT = """
             </div>
         </div>
 
-        <!-- 👨‍🍳 4. Chef Lean & Asistente Gastronómico V4 Pro -->
+        <!-- 👨‍🍳 4. Chef Lean V4 Pro -->
         <div id="foodIndustryTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
@@ -265,7 +272,7 @@ HTML_CONTENT = """
             </div>
         </div>
 
-        <!-- 🎨 6. SVG & Logos Vectorial V4 Pro -->
+        <!-- 🎨 6. SVG & Logos V4 Pro -->
         <div id="genImgTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
@@ -490,7 +497,7 @@ HTML_CONTENT = """
         </div>
     </div>
 
-    <!-- Controls para Cam Vision V2 Pro -->
+    <!-- Controls para Cam Vision V3 Pro -->
     <div class="controls" id="bottomControls">
         <button class="btn-action" style="font-size:10px;" onclick="toggleMode()">MODO</button>
         <button class="btn-action" style="font-size:10px;" onclick="toggleFlash()">FLASH</button>
@@ -561,7 +568,7 @@ HTML_CONTENT = """
             const controls = document.getElementById('bottomControls');
             if (tabId === 'cameraTab') {
                 controls.style.display = 'flex';
-                document.getElementById('moduleTitle').innerText = 'BIAN AI VISION PRO';
+                document.getElementById('moduleTitle').innerText = 'BIAN V5 MASTER SUITE';
             } else {
                 controls.style.display = 'none';
                 document.getElementById('moduleTitle').innerText = btn.innerText;
@@ -571,9 +578,10 @@ HTML_CONTENT = """
         function toggleMode() {
             currentMode = (currentMode + 1) % modes.length;
             document.getElementById('modeLabel').innerText = "MODO: " + modes[currentMode];
+            document.getElementById('targetTag').innerText = modes[currentMode];
         }
 
-        function toggleFlash() { alert("Linterna táctica activada/desactivada (NPU V2)"); }
+        function toggleFlash() { alert("Linterna táctica activada/desactivada (NPU V3)"); }
 
         async function startRealtimeOCR() {
             setInterval(async () => {
@@ -594,9 +602,9 @@ HTML_CONTENT = """
                     const ret = await worker.recognize(canvas);
                     const text = ret.data.text.trim();
                     if (text.length > 2) {
-                        document.getElementById('ocrResult').innerText = "Texto: " + text.substring(0, 40) + "...";
+                        document.getElementById('ocrResult').innerText = "Objetivo Detectado: " + text.substring(0, 35) + "...";
                     } else {
-                        document.getElementById('ocrResult').innerText = "IA Vision (" + modes[currentMode] + "): Analizando...";
+                        document.getElementById('ocrResult').innerText = "Cam Vision V3 (" + modes[currentMode] + "): Escaneando...";
                     }
                     await worker.terminate();
                 } catch(e) { console.error("OCR Error:", e); }
@@ -1195,7 +1203,7 @@ HTML_CONTENT = """
             const response = await fetch('/bian/process/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: imageBase64, prompt_analysis: `Captura Cam Vision V2 Pro: ${modes[currentMode]}` })
+                body: JSON.stringify({ image_base64: imageBase64, prompt_analysis: `Captura Cam Vision V3 Pro: ${modes[currentMode]}` })
             });
             if(response.ok) { const saved = await response.json(); updateThumb(saved.image_path); }
         }
@@ -1212,10 +1220,10 @@ HTML_CONTENT = """
             document.getElementById('galleryModal').style.display = 'flex';
             const res = await fetch('/bian/images/');
             const images = await res.json();
-            document.getElementById('galleryGrid').innerHTML = images.map(img => `<div class="gallery-item"><img src="${img.image_path}" /></div>`).join('');
+            document.getElementById('galleryGrid', images).innerHTML = images.map(img => `<div class="gallery-item"><img src="${img.image_path}" /></div>`).join('');
         }
 
-        function closeGallery() { document.getElementById('galleryModal').style.display = 'none'; }
+        function closeGallery() { document.getElementById('galleryModal'].style.display = 'none'; }
         function toggleOCRMode() {
             ocrActive = !ocrActive;
             document.getElementById('ocrResult').innerText = ocrActive ? "OCR Auto Activado" : "OCR Pausado";
@@ -1233,7 +1241,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Master Unified Suite V4 (100% Fully Powered & Active)",
+        "engine": "Bian V5 Master Suite (Cam Vision V3 Ultra Pro Active)",
         "status": "online"
     }
 
@@ -1244,7 +1252,7 @@ def process_image(payload: ImageCaptureRequest, session: Session = Depends(get_s
     
     header, encoded = payload.image_base64.split(",", 1)
     data = base64.b64decode(encoded)
-    with open(filename, "wb") as f:
+    with open(filename, "wb5" if False else "wb") as f:
         f.write(data)
         
     db_image = ProcessedImage(image_path=f"/{filename}", prompt_analysis=payload.prompt_analysis)
