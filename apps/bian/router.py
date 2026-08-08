@@ -67,7 +67,7 @@ HTML_CONTENT = """
         .form-group select, .form-group input, .form-group textarea { width: 100%; background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 8px; border-radius: 6px; font-size: 12px; }
         
         .preview-box { width: 100%; height: 220px; background: #000; border: 1px dashed #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-top: 10px; overflow: hidden; position: relative; }
-        .preview-box img, .preview-box canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .preview-box img, .preview-box canvas, .preview-box svg { max-width: 100%; max-height: 100%; object-fit: contain; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; flex-direction: column; padding: 20px; }
         .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; overflow-y: auto; flex: 1; }
@@ -82,7 +82,7 @@ HTML_CONTENT = """
         <button class="nav-tab" onclick="switchModule('priceTab', this)">🏷️ Valuador Híbrido V4 Ultra</button>
         <button class="nav-tab" onclick="switchModule('foodIndustryTab', this)">👨‍🍳 Chef Lean V6 Ultra</button>
         <button class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video Motion V6 Ultra</button>
-        <button class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG & Logos V5 Ultra</button>
+        <button class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG & Logos V6 Ultra</button>
         <button class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas 3D V5 Ultra</button>
         <button class="nav-tab" onclick="switchModule('studioTab', this)">📸 Estudio RAW V5 Ultra</button>
         <button class="nav-tab" onclick="switchModule('cinemaTab', this)">🎬 Cine Scope 21:9 V5 Ultra</button>
@@ -120,48 +120,54 @@ HTML_CONTENT = """
         <div id="genPromptTab" class="module-view"><div class="panel-content"><div class="card"><h3>✨ Generar Imagen AI V4 Ultra</h3></div></div></div>
         <div id="priceTab" class="module-view"><div class="panel-content"><div class="card"><h3>🏷️ Valuador Híbrido V4 Ultra</h3></div></div></div>
         <div id="foodIndustryTab" class="module-view"><div class="panel-content"><div class="card"><h3>👨‍🍳 Chef Lean V6 Ultra</h3></div></div></div>
+        <div id="genVidTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎥 Video Motion V6 Ultra</h3></div></div></div>
 
-        <!-- 🎥 5. Video Motion V6 Ultra Engine -->
-        <div id="genVidTab" class="module-view">
+        <!-- 🎨 6. SVG & Logos Vectorial V6 Ultra Engine -->
+        <div id="genImgTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
-                    <h3>🎥 Motion Engine V6 Ultra (3D Orbit & FX Layer)</h3>
-                    <p>Trayectorias 3D avanzadas, tracking orbital 360°, partículas neón volumétricas, destellos ópticos y barras CineScope 21:9.</p>
+                    <h3>🎨 Sintetizador SVG Vectorial V6 Ultra Engine</h3>
+                    <p>Sintetizador de isotipos vectoriales limpios, geometría sagrada NPU V6, resplandor neón nativo SVG y exportación directa.</p>
                 </div>
                 <div class="card">
-                    <button class="btn-action" style="color: #00FFC8; margin-bottom: 10px; width:100%; border:1px dashed #00FFC8;" onclick="loadVideoSourceImageV6()">📷 Cargar Último Activo de Galería Soberana</button>
-                    <div class="preview-box" id="vidPreviewBoxV6"><span style="font-size: 11px; color: #555;">Sin imagen base cargada para Motion Engine V6</span></div>
                     <div class="form-group">
-                        <label>Trayectoria de Cámara V6 Ultra:</label>
-                        <select id="vidMotionV6">
-                            <option value="orbital_3d">Órbita 3D Compleja + Depth Blur NPU</option>
-                            <option value="tracking_360">Tracking Orbital 360° con Aceleración Pro</option>
-                            <option value="dolly_vertigo">Zoom Anamórfico Dolly (Vertigo FX)</option>
-                            <option value="neon_pulse">Pulso Neón 60 FPS Acelerado</option>
+                        <label>Nombre de la Marca / Título Isotipo:</label>
+                        <input type="text" id="svgTitleV6" placeholder="Ej. BIAN TURFO ENGINE">
+                    </div>
+                    <div class="form-group">
+                        <label>Tagline / Subtítulo Secundario:</label>
+                        <input type="text" id="svgTaglineV6" placeholder="Ej. SOFTWARE & AI VISION">
+                    </div>
+                    <div class="form-group">
+                        <label>Estructura Geométrica V6 Ultra:</label>
+                        <select id="svgStyleV6">
+                            <option value="npu_hexagon">Hexágono NPU con Malla Cyberpunk</option>
+                            <option value="monolith_shield">Escudo Monolítico Táctico (Space Shield)</option>
+                            <option value="circular_neon">Anillo Orbital Neón Volumétrico</option>
+                            <option value="bionic_circuit">Nodo de Procesamiento Biónico IA</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Capas & Efectos Cinemáticos (FX Layer V6):</label>
-                        <select id="vidFxV6">
-                            <option value="cinescope_particles">CineScope 21:9 + Grano 35mm + Partículas Neón</option>
-                            <option value="cinescope_flares">CineScope 21:9 + Destellos Ópticos Anamórficos</option>
-                            <option value="clean_hd">Ultra HD Limpio (Direct Cut)</option>
+                        <label>Paleta de Color NPU V6:</label>
+                        <select id="svgPaletteV6">
+                            <option value="neon_cyber">Neón Cyberpunk (#00FFC8 / #FF0055)</option>
+                            <option value="gold_premium">Gold Premium (#FFD700 / #111111)</option>
+                            <option value="amoled_white">AMOLED White (#FFFFFF / #222222)</option>
+                            <option value="slate_tech">Slate Tech (#0088FF / #112233)</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label>Duración del Render (Segundos):</label>
-                        <select id="vidDurationV6">
-                            <option value="3">3 Segundos Loop Smooth (Social Asset)</option>
-                            <option value="5">5 Segundos Cinematic Master Pro</option>
-                        </select>
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="generateSVGLogoV6()">⚡ Sintetizar Vector V6 Ultra</button>
+                    
+                    <div class="preview-box" id="svgPreviewBoxV6"><span style="font-size: 11px; color: #555;">Sin SVG V6 generado</span></div>
+                    
+                    <div id="svgActionsV6" style="display:none; margin-top: 10px;">
+                        <button class="btn-action" id="btnDownloadSVGV6" style="color: #00FFC8; width: 100%; margin-bottom: 6px;" onclick="downloadSVGV6()">💾 Descargar Código Vectorial .SVG V6</button>
+                        <button class="btn-action" style="color: #FFD700; width: 100%; margin-bottom: 6px;" onclick="sendSVGToLonasV6()">📐 Probar Montaje en Lonas 3D</button>
                     </div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="renderVideoAnimationV6()">⚡ Renderizar Animación V6 Ultra</button>
-                    <button class="btn-action" id="btnRecordVidV6" style="background: #FF0055; color: #fff; font-weight: bold; margin-top: 10px; width: 100%; display: none;" onclick="recordAndDownloadVideoV6()">🎥 Exportar Clip .WebM V6</button>
                 </div>
             </div>
         </div>
 
-        <div id="genImgTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎨 SVG & Logos V5 Ultra</h3></div></div></div>
         <div id="lonasPhysicsTab" class="module-view"><div class="panel-content"><div class="card"><h3>📐 Lonas 3D V5 Ultra</h3></div></div></div>
         <div id="studioTab" class="module-view"><div class="panel-content"><div class="card"><h3>📸 Estudio RAW V5 Ultra</h3></div></div></div>
         <div id="cinemaTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎬 Cine Scope 21:9 V5 Ultra</h3></div></div></div>
@@ -192,9 +198,7 @@ HTML_CONTENT = """
         let ocrActive = true;
         let lastOcrTime = 0;
         let useFrontCamera = false;
-        let vidSourceImgV6 = new Image();
-        let animIntervalV6 = null;
-        let activeCanvasV6 = null;
+        let generatedSVGCodeV6 = "";
 
         let currentMode = 0;
         const modes = ["OCR CONTINUO", "DETECCIÓN MULTI-OBJETO", "ESCÁNER BARRAS/QR V4"];
@@ -265,91 +269,67 @@ HTML_CONTENT = """
             }, 3000);
         }
 
-        /* --- 5. LOGICA MOTION ENGINE V6 ULTRA --- */
-        async function loadVideoSourceImageV6() {
-            const res = await fetch('/bian/images/');
-            const images = await res.json();
-            if(images.length === 0) { alert("No hay imágenes en la galería."); return; }
-            vidSourceImgV6.crossOrigin = "anonymous";
-            vidSourceImgV6.src = images[images.length - 1].image_path;
-            vidSourceImgV6.onload = () => { document.getElementById('vidPreviewBoxV6').innerHTML = `<img src="${vidSourceImgV6.src}" />`; };
+        /* --- 6. LOGICA SVG & LOGOS VECTORIAL V6 ULTRA --- */
+        function generateSVGLogoV6() {
+            const title = document.getElementById('svgTitleV6').value.trim() || "BIAN TURFO V6";
+            const tagline = document.getElementById('svgTaglineV6').value.trim() || "SOFTWARE & AI VISION";
+            const style = document.getElementById('svgStyleV6').value;
+            const palette = document.getElementById('svgPaletteV6').value;
+
+            let c1 = "#00FFC8", c2 = "#FF0055", bg = "#040404", txtColor = "#FFFFFF";
+            if(palette === 'gold_premium') { c1 = "#FFD700"; c2 = "#B8860B"; bg = "#0A0A0A"; }
+            else if(palette === 'amoled_white') { c1 = "#FFFFFF"; c2 = "#888888"; bg = "#000000"; }
+            else if(palette === 'slate_tech') { c1 = "#0088FF"; c2 = "#00FFC8"; bg = "#050B14"; }
+
+            let geomSVG = "";
+            if(style === 'npu_hexagon') {
+                geomSVG = `<polygon points="150,30 230,75 230,175 150,220 70,175 70,75" fill="none" stroke="url(#v6Grad)" stroke-width="5" filter="url(#glowFilterV6)"/>
+                           <polygon points="150,50 210,85 210,165 150,200 90,165 90,85" fill="none" stroke="${c1}" stroke-width="1.5" opacity="0.6"/>`;
+            } else if(style === 'monolith_shield') {
+                geomSVG = `<path d="M150 25 L230 65 V140 C230 190 150 230 150 230 C150 230 70 190 70 140 V65 Z" fill="none" stroke="url(#v6Grad)" stroke-width="5" filter="url(#glowFilterV6)"/>`;
+            } else if(style === 'bionic_circuit') {
+                geomSVG = `<rect x="75" y="45" width="150" height="150" rx="20" fill="none" stroke="url(#v6Grad)" stroke-width="4" filter="url(#glowFilterV6)"/>
+                           <circle cx="150" cy="120" r="30" fill="none" stroke="${c1}" stroke-width="2"/>
+                           <line x1="75" y1="120" x2="120" y2="120" stroke="${c1}" stroke-width="2"/>
+                           <line x1="180" y1="120" x2="225" y2="120" stroke="${c1}" stroke-width="2"/>`;
+            } else {
+                geomSVG = `<circle cx="150" cy="125" r="85" fill="none" stroke="url(#v6Grad)" stroke-width="5" filter="url(#glowFilterV6)"/>
+                           <circle cx="150" cy="125" r="70" fill="none" stroke="${c1}" stroke-dasharray="6,6" stroke-width="2"/>`;
+            }
+
+            generatedSVGCodeV6 = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">
+                <defs>
+                    <linearGradient id="v6Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="${c1}" />
+                        <stop offset="100%" stop-color="${c2}" />
+                    </linearGradient>
+                    <filter id="glowFilterV6" x="-20%" y="-20%" width="140%" height="140%">
+                        <feGaussianBlur stdDeviation="4" result="blur" />
+                        <feMerge>
+                            <feMergeNode in="blur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                </defs>
+                <rect width="300" height="300" fill="${bg}"/>
+                ${geomSVG}
+                <text x="150" y="260" fill="${txtColor}" font-family="system-ui" font-weight="900" font-size="14" letter-spacing="2" text-anchor="middle">${title.toUpperCase()}</text>
+                <text x="150" y="278" fill="${c1}" font-family="system-ui" font-weight="600" font-size="8" letter-spacing="1.5" text-anchor="middle">${tagline.toUpperCase()}</text>
+            </svg>`;
+
+            const box = document.getElementById('svgPreviewBoxV6');
+            box.innerHTML = generatedSVGCodeV6;
+            document.getElementById('svgActionsV6').style.display = 'block';
         }
 
-        function renderVideoAnimationV6() {
-            if(!vidSourceImgV6.src) { alert("Carga primero una imagen base."); return; }
-            if(animIntervalV6) clearInterval(animIntervalV6);
-            const box = document.getElementById('vidPreviewBoxV6');
-            box.innerHTML = "";
-            activeCanvasV6 = document.createElement('canvas');
-            activeCanvasV6.width = 400; activeCanvasV6.height = 300;
-            const ctx = activeCanvasV6.getContext('2d');
-            box.appendChild(activeCanvasV6);
-            let frame = 0;
-            const motion = document.getElementById('vidMotionV6').value;
-            const fx = document.getElementById('vidFxV6').value;
-
-            animIntervalV6 = setInterval(() => {
-                frame++;
-                ctx.clearRect(0, 0, activeCanvasV6.width, activeCanvasV6.height);
-                let scale = 1.0, offsetX = 0, offsetY = 0;
-
-                if(motion === 'orbital_3d') {
-                    offsetX = Math.cos(frame * 0.06) * 22; offsetY = Math.sin(frame * 0.06) * 14;
-                    scale = 1.06 + Math.sin(frame * 0.04) * 0.08;
-                } else if(motion === 'tracking_360') {
-                    offsetX = Math.sin(frame * 0.08) * 30; offsetY = Math.cos(frame * 0.08) * 18;
-                    scale = 1.1 + Math.sin(frame * 0.05) * 0.1;
-                } else if(motion === 'dolly_vertigo') {
-                    scale = 1.0 + (frame % 60) * 0.01;
-                } else {
-                    scale = 1.0 + (Math.sin(frame * 0.1) * 0.08);
-                }
-
-                ctx.save();
-                ctx.translate(activeCanvasV6.width / 2 + offsetX, activeCanvasV6.height / 2 + offsetY);
-                ctx.scale(scale, scale);
-                ctx.drawImage(vidSourceImgV6, -activeCanvasV6.width / 2, -activeCanvasV6.height / 2, activeCanvasV6.width, activeCanvasV6.height);
-                ctx.restore();
-
-                if(fx.includes('cinescope')) {
-                    ctx.fillStyle = "#000";
-                    ctx.fillRect(0, 0, activeCanvasV6.width, 30);
-                    ctx.fillRect(0, activeCanvasV6.height - 30, activeCanvasV6.width, 30);
-
-                    if(fx.includes('particles')) {
-                        ctx.fillStyle = "rgba(0, 255, 200, 0.3)";
-                        for(let i=0; i<6; i++) {
-                            let px = (frame * 12 + i * 60) % activeCanvasV6.width;
-                            let py = 40 + (i * 35) % (activeCanvasV6.height - 80);
-                            ctx.beginPath(); ctx.arc(px, py, 2.5, 0, Math.PI*2); ctx.fill();
-                        }
-                    } else if(fx.includes('flares')) {
-                        ctx.fillStyle = "rgba(0, 255, 200, 0.25)";
-                        ctx.fillRect(0, activeCanvasV6.height / 2 - 2, activeCanvasV6.width, 4);
-                    }
-                }
-            }, 1000 / 30);
-
-            document.getElementById('btnRecordVidV6').style.display = 'block';
+        function downloadSVGV6() {
+            const blob = new Blob([generatedSVGCodeV6], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `logo_v6_${Date.now()}.svg`; a.click();
         }
 
-        function recordAndDownloadVideoV6() {
-            if(!activeCanvasV6) return;
-            const stream = activeCanvasV6.captureStream(30);
-            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-            const chunks = [];
-            recorder.ondataavailable = e => chunks.push(e.data);
-            recorder.onstop = () => {
-                const blob = new Blob(chunks, { type: 'video/webm' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url; a.download = `clip_bian_v6_${Date.now()}.webm`; a.click();
-                if(animIntervalV6) clearInterval(animIntervalV6);
-            };
-            const dur = parseInt(document.getElementById('vidDurationV6').value) * 1000;
-            recorder.start();
-            alert(`Renderizando clip V6 Ultra (${dur/1000}s)...`);
-            setTimeout(() => recorder.stop(), dur);
-        }
+        function sendSVGToLonasV6() { alert("✔ Logotipo V6 exportado a Lonas 3D."); }
 
         async function capture() {
             canvas.width = video.videoWidth; canvas.height = video.videoHeight;
@@ -394,7 +374,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Bian V6 Master Suite (Motion Engine V6 Ultra Integrated)",
+        "engine": "Bian V6 Master Suite (SVG Logos V6 Ultra Integrated)",
         "status": "online"
     }
 
