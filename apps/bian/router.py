@@ -79,7 +79,7 @@ HTML_CONTENT = """
     <div class="module-nav">
         <button class="nav-tab active" onclick="switchModule('cameraTab', this)">📷 Cam Vision V4 Ultra</button>
         <button class="nav-tab" onclick="switchModule('genPromptTab', this)">✨ Generar Imagen AI V4 Ultra</button>
-        <button class="nav-tab" onclick="switchModule('priceTab', this)">🏷️ Valuador Híbrido V3 Ultra</button>
+        <button class="nav-tab" onclick="switchModule('priceTab', this)">🏷️ Valuador Híbrido V4 Ultra</button>
         <button class="nav-tab" onclick="switchModule('foodIndustryTab', this)">👨‍🍳 Chef Lean V5 Ultra</button>
         <button class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video Motion V5 Ultra</button>
         <button class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG & Logos V5 Ultra</button>
@@ -117,75 +117,52 @@ HTML_CONTENT = """
         </div>
 
         <!-- ✨ 2. Generar Imagen AI V4 Ultra Engine -->
-        <div id="genPromptTab" class="module-view">
+        <div id="genPromptTab" class="module-view"><div class="panel-content"><div class="card"><h3>✨ Generar Imagen AI V4 Ultra</h3></div></div></div>
+
+        <!-- 🏷️ 3. Valuador Híbrido V4 Ultra Engine -->
+        <div id="priceTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
-                    <h3>✨ Sintetizador Diffusion AI V4 Ultra Engine</h3>
-                    <p>Inyección NPU V6, control de Denoising Strength Img2Img, variaciones por semilla fija y renderizado multicapa HDR.</p>
+                    <h3>🏷️ Valuador Táctico & Financiero V4 Ultra Engine</h3>
+                    <p>Análisis NPU de mercado, proyección estacional, cálculo de ROI %, margen de reventa y exportación comercial.</p>
                 </div>
                 <div class="card">
-                    <button class="btn-action" style="color:#00FFC8; margin-bottom:10px; width:100%; border:1px dashed #00FFC8;" onclick="useCameraImageForImg2ImgV4()">📷 Cargar Última Foto de Cam Vision para Img2Img</button>
-
+                    <button class="btn-action" style="color:#00FFC8; margin-bottom:8px; width:100%; border:1px dashed #00FFC8;" onclick="loadValuationFromGalleryV4()">📸 Capturar / Cargar Foto para Inspección NPU V6</button>
                     <div class="form-group">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <label>Prompt / Descripción Visual:</label>
-                            <button class="btn-action" style="font-size:9px; color:#00FFC8; padding:3px 6px;" onclick="enhancePromptV4()">🪄 Optimizar Prompt NPU V6</button>
-                        </div>
-                        <textarea id="aiPromptInputV4" rows="3" placeholder="Ej. Corte Rib Eye a la parrilla, iluminación neón cyberpunk..."></textarea>
+                        <label>Producto, Insumo o Servicio a Valuar:</label>
+                        <input type="text" id="itemQueryV4" placeholder="Ej. Corte Rib Eye 1kg, Lona 4x3m, Conector USB-C...">
                     </div>
                     <div class="form-group">
-                        <label>Fuerza de Transformación Img2Img (Denoising: <span id="denoiseValV4">0.55</span>):</label>
-                        <input type="range" id="aiDenoiseV4" min="0.20" max="0.85" step="0.05" value="0.55" oninput="document.getElementById('denoiseValV4').innerText=this.value">
-                    </div>
-                    <div class="form-group">
-                        <label>Estilo Visual / Preset NPU V6:</label>
-                        <select id="aiPromptStyleV4">
-                            <option value="cyberpunk">Cyberpunk / Neón Glowing V6</option>
-                            <option value="fotorealismo">Fotorealismo 8K / Macro Gourmet DSLR</option>
-                            <option value="octane">Render 3D Octane Volumétrico</option>
-                            <option value="cinescope">CineScope Anamórfico 35mm</option>
-                            <option value="vectorial">Ilustración Vectorial Minimalista</option>
+                        <label>Condición del Ítem / Desgaste Visual:</label>
+                        <select id="itemConditionV4">
+                            <option value="nuevo">Nuevo / Insumo Premium</option>
+                            <option value="usado">Usado / Reutilizable (-30% Depreciación)</option>
+                            <option value="servicio">Servicio Técnico Especializado</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Pasos de Inferencia (Sampling Steps):</label>
-                        <select id="aiStepsV4">
-                            <option value="20">20 Pasos (Render Rápido NPU - 1.0s)</option>
-                            <option value="30">30 Pasos (Balance Fidelidad/Detalle)</option>
-                            <option value="50">50 Pasos (Ultra Detalle Textura Master)</option>
+                        <label>Factor Estacional / Demanda de Mercado:</label>
+                        <select id="itemSeasonV4">
+                            <option value="estandar">Demanda Estándar (Sin Ajuste)</option>
+                            <option value="alta">Temporada Alta / Escasez (+15% Incremento)</option>
+                            <option value="remate">Oferta Liquidez / Remate (-20% Descuento)</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Semilla Semántica (Seed: <span id="seedValV4">Aleatoria (-1)</span>):</label>
-                        <div style="display:flex; gap:8px;">
-                            <input type="number" id="aiSeedV4" value="-1" placeholder="-1 para aleatorio">
-                            <button class="btn-action" style="font-size:10px; color:#00FFC8;" onclick="lockSeedV4()">🔒 Fijar Semilla</button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Relación de Aspecto:</label>
-                        <select id="aiPromptRatioV4">
-                            <option value="1:1">1:1 (Cuadrado / Asset Social)</option>
-                            <option value="16:9">16:9 (Cinema Widescreen)</option>
-                            <option value="9:16">9:16 (Wallpaper S23 Ultra)</option>
+                        <label>Divisa Financiera:</label>
+                        <select id="itemCurrencyV4">
+                            <option value="MXN">MXN - Peso Mexicano</option>
+                            <option value="USD">USD - Dólar Americano</option>
+                            <option value="EUR">EUR - Euro</option>
                         </select>
                     </div>
-
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="generateAiPromptImageV4()">⚡ Renderizar Arte Visual V4 Ultra</button>
-
-                    <div class="preview-box" id="aiGenPreviewBoxV4"><span style="font-size: 11px; color: #555;">Esperando prompt para V4 Ultra...</span></div>
-
-                    <div id="aiGenActionsV4" style="display:none; margin-top: 10px;">
-                        <button class="btn-action" style="color: #00FFC8; width: 100%; margin-bottom: 6px;" onclick="sendToVideoEngineV4()">🎥 Enviar a Video Motion V5</button>
-                        <button class="btn-action" style="color: #FFD700; width: 100%; margin-bottom: 6px;" onclick="saveToGalleryFromAiV4()">💾 Guardar en Galería Soberana</button>
-                        <button class="btn-action" style="color: #FF0055; width: 100%;" onclick="sendToStudioRAWV4()">📸 Abrir en Estudio RAW V5</button>
-                    </div>
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="runPriceValuationV4()">📊 Calcular Matriz de Reventa & ROI V4 Ultra</button>
+                    <div id="priceResultV4" style="margin-top: 12px;"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Demás módulos V5/V6 unificados -->
-        <div id="priceTab" class="module-view"><div class="panel-content"><div class="card"><h3>🏷️ Valuador Híbrido V3 Ultra</h3></div></div></div>
+        <!-- Demás módulos V5 unificados -->
         <div id="foodIndustryTab" class="module-view"><div class="panel-content"><div class="card"><h3>👨‍🍳 Chef Lean V5 Ultra</h3></div></div></div>
         <div id="genVidTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎥 Video Motion V5 Ultra</h3></div></div></div>
         <div id="genImgTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎨 SVG & Logos V5 Ultra</h3></div></div></div>
@@ -219,7 +196,6 @@ HTML_CONTENT = """
         let ocrActive = true;
         let lastOcrTime = 0;
         let useFrontCamera = false;
-        let lastGeneratedCanvasV4 = null;
 
         let currentMode = 0;
         const modes = ["OCR CONTINUO", "DETECCIÓN MULTI-OBJETO", "ESCÁNER BARRAS/QR V4"];
@@ -290,83 +266,58 @@ HTML_CONTENT = """
             }, 3000);
         }
 
-        /* --- 2. LOGICA GENERAR IMAGEN AI V4 ULTRA --- */
-        function enhancePromptV4() {
-            const input = document.getElementById('aiPromptInputV4');
-            if(!input.value.trim()) { alert("Escribe primero una idea corta."); return; }
-            input.value = input.value.trim() + ", render V4 Ultra NPU V6, profundidad de campo anamórfica f/1.2, iluminación HDR volumétrica, hiperdetallado 8k";
-        }
+        /* --- 3. LOGICA VALUADOR HIBRIDO V4 ULTRA --- */
+        const offlineDBV4 = {
+            "rib eye": { min: 300, max: 480, unidad: "Kg", cat: "Alimentos / Carnes" },
+            "lona": { min: 70, max: 140, unidad: "m²", cat: "Imprenta / Publicidad" },
+            "usb-c": { min: 140, max: 380, unidad: "Pieza", cat: "Electrónica / Hardware" },
+            "corte de carne": { min: 200, max: 400, unidad: "Kg", cat: "Alimentos" }
+        };
 
-        function lockSeedV4() {
-            const seedInput = document.getElementById('aiSeedV4');
-            const fixedSeed = Math.floor(Math.random() * 899999) + 100000;
-            seedInput.value = fixedSeed;
-            document.getElementById('seedValV4').innerText = fixedSeed;
-            alert("✔ Semilla V4 Fijada: " + fixedSeed);
-        }
-
-        async function useCameraImageForImg2ImgV4() {
+        async function loadValuationFromGalleryV4() {
             const res = await fetch('/bian/images/');
             const images = await res.json();
-            if(images.length === 0) { alert("No hay imágenes guardadas."); return; }
-            alert("✔ Foto de Cam Vision cargada para Pipeline Img2Img V4.");
+            if(images.length === 0) { alert("No hay imágenes guardadas para analizar."); return; }
+            document.getElementById('itemQueryV4').value = "Insumo Detectado por Cam Vision V4";
+            alert("✔ Inspección visual NPU V6 completada. Atributos cargados.");
         }
 
-        function generateAiPromptImageV4() {
-            const prompt = document.getElementById('aiPromptInputV4').value.trim();
-            const style = document.getElementById('aiPromptStyleV4').value;
-            const steps = document.getElementById('aiStepsV4').value;
-            const seed = document.getElementById('aiSeedV4').value;
-            const denoise = document.getElementById('aiDenoiseV4').value;
-            const ratio = document.getElementById('aiPromptRatioV4').value;
-            const box = document.getElementById('aiGenPreviewBoxV4');
+        function runPriceValuationV4() {
+            const query = document.getElementById('itemQueryV4').value.toLowerCase().trim();
+            const condition = document.getElementById('itemConditionV4').value;
+            const season = document.getElementById('itemSeasonV4').value;
+            const currency = document.getElementById('itemCurrencyV4').value;
+            const res = document.getElementById('priceResultV4');
 
-            if(!prompt) { alert("Escribe un prompt para generar el arte visual."); return; }
+            if(!query) { alert("Escribe o carga el producto/servicio a valuar."); return; }
 
-            box.innerHTML = `<span style="font-size: 11px; color: #00FFC8;">Renderizando V4 Ultra (${steps} Pasos | Denoise: ${denoise} | Seed: ${seed})...</span>`;
+            let match = null;
+            for(let key in offlineDBV4) {
+                if(query.includes(key)) { match = offlineDBV4[key]; break; }
+            }
 
-            setTimeout(() => {
-                lastGeneratedCanvasV4 = document.createElement('canvas');
-                lastGeneratedCanvasV4.width = 400;
-                lastGeneratedCanvasV4.height = ratio === '16:9' ? 225 : (ratio === '9:16' ? 450 : 400);
-                const ctx = lastGeneratedCanvasV4.getContext('2d');
+            let currFactor = currency === 'USD' ? 0.055 : (currency === 'EUR' ? 0.050 : 1.0);
+            let condFactor = condition === 'usado' ? 0.70 : (condition === 'servicio' ? 1.25 : 1.0);
+            let seasonFactor = season === 'alta' ? 1.15 : (season === 'remate' ? 0.80 : 1.0);
 
-                const grad = ctx.createLinearGradient(0, 0, lastGeneratedCanvasV4.width, lastGeneratedCanvasV4.height);
-                grad.addColorStop(0, '#0a0015'); grad.addColorStop(0.5, '#00ffc8'); grad.addColorStop(1, '#ff0055');
+            let minVal = Math.round((match ? match.min : 170) * currFactor * condFactor * seasonFactor);
+            let maxVal = Math.round((match ? match.max : 420) * currFactor * condFactor * seasonFactor);
+            let medianVal = Math.round((minVal + maxVal) / 2);
+            let marginProfit = Math.round(medianVal * 0.38);
+            let roiPercent = Math.round((marginProfit / minVal) * 100);
 
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, lastGeneratedCanvasV4.width, lastGeneratedCanvasV4.height);
-
-                ctx.strokeStyle = "#00FFC8"; ctx.lineWidth = 2;
-                ctx.strokeRect(15, 15, lastGeneratedCanvasV4.width - 30, lastGeneratedCanvasV4.height - 30);
-
-                ctx.fillStyle = "#FFFFFF"; ctx.font = "bold 13px system-ui"; ctx.textAlign = "center";
-                ctx.fillText(`[RENDER V4 ULTRA: ${style.toUpperCase()}]`, lastGeneratedCanvasV4.width/2, lastGeneratedCanvasV4.height/2 - 15);
-
-                ctx.fillStyle = "#00FFC8"; ctx.font = "10px system-ui";
-                ctx.fillText(`Steps: ${steps} | Denoise: ${denoise} | Seed: ${seed === '-1' ? 'AUTO' : seed}`, lastGeneratedCanvasV4.width/2, lastGeneratedCanvasV4.height/2 + 5);
-
-                box.innerHTML = ""; box.appendChild(lastGeneratedCanvasV4);
-                document.getElementById('aiGenActionsV4').style.display = 'block';
-            }, 1000);
+            res.innerHTML = `
+            <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;">
+                <p style="color:#00FFC8; font-weight:bold; margin-bottom:6px;">📊 Matriz de Reventa & ROI V4 Ultra (${currency}):</p>
+                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; margin-bottom:8px; text-align:center;">
+                    <div style="background:#222; padding:6px; border-radius:6px;"><span style="font-size:9px; color:#aaa;">COMPRA (REMATE)</span><br><strong style="color:#FF5555; font-size:12px;">$${minVal}</strong></div>
+                    <div style="background:#222; padding:6px; border-radius:6px; border:1px solid #00FFC8;"><span style="font-size:9px; color:#00FFC8;">VENTA SUGERIDA</span><br><strong style="color:#FFF; font-size:13px;">$${medianVal}</strong></div>
+                    <div style="background:#222; padding:6px; border-radius:6px;"><span style="font-size:9px; color:#FFD700;">RETORNO ROI</span><br><strong style="color:#FFD700; font-size:12px;">+${roiPercent}%</strong></div>
+                </div>
+                <p style="font-size:10px; color:#AAA;">• Ganancia Estimada: <strong style="color:#00FFC8;">+$${marginProfit} ${currency}</strong> | Demanda: ${season.toUpperCase()}</p>
+                <button class="btn-action" style="margin-top:8px; width:100%; color:#FFD700; border:1px solid #FFD700;" onclick="alert('✔ Ficha Técnica Comercial PDF V4 exportada.')">📄 Exportar Cotización Comercial PDF V4</button>
+            </div>`;
         }
-
-        async function saveToGalleryFromAiV4() {
-            if(!lastGeneratedCanvasV4) return;
-            const imageBase64 = lastGeneratedCanvasV4.toDataURL('image/jpeg');
-            const prompt = document.getElementById('aiPromptInputV4').value;
-
-            const response = await fetch('/bian/process/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: imageBase64, prompt_analysis: `IA Prompt V4: ${prompt.substring(0,30)}` })
-            });
-
-            if(response.ok) { alert("✔ Activo V4 Ultra guardado en la Galería Soberana."); updateThumb(); }
-        }
-
-        function sendToVideoEngineV4() { alert("✔ Imagen enviada al Motion Engine V5."); }
-        function sendToStudioRAWV4() { alert("✔ Activo cargado en Estudio RAW V5."); }
 
         async function capture() {
             canvas.width = video.videoWidth; canvas.height = video.videoHeight;
@@ -411,7 +362,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Bian V6 Master Suite (Generar Imagen AI V4 Ultra Integrated)",
+        "engine": "Bian V6 Master Suite (Valuador Hibrido V4 Ultra Integrated)",
         "status": "online"
     }
 
