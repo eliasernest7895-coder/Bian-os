@@ -67,7 +67,7 @@ HTML_CONTENT = """
         .form-group select, .form-group input, .form-group textarea { width: 100%; background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 8px; border-radius: 6px; font-size: 12px; }
         
         .preview-box { width: 100%; height: 220px; background: #000; border: 1px dashed #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-top: 10px; overflow: hidden; position: relative; }
-        .preview-box img, .preview-box canvas, .preview-box svg { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .preview-box img, .preview-box canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; flex-direction: column; padding: 20px; }
         .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; overflow-y: auto; flex: 1; }
@@ -83,7 +83,7 @@ HTML_CONTENT = """
         <button class="nav-tab" onclick="switchModule('foodIndustryTab', this)">👨‍🍳 Chef Lean V6 Ultra</button>
         <button class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video Motion V6 Ultra</button>
         <button class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG & Logos V6 Ultra</button>
-        <button class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas 3D V5 Ultra</button>
+        <button class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas 3D V6 Ultra</button>
         <button class="nav-tab" onclick="switchModule('studioTab', this)">📸 Estudio RAW V5 Ultra</button>
         <button class="nav-tab" onclick="switchModule('cinemaTab', this)">🎬 Cine Scope 21:9 V5 Ultra</button>
         <button class="nav-tab" onclick="switchModule('printTab', this)">🖨️ Imprenta PDF V5 Ultra</button>
@@ -121,54 +121,48 @@ HTML_CONTENT = """
         <div id="priceTab" class="module-view"><div class="panel-content"><div class="card"><h3>🏷️ Valuador Híbrido V4 Ultra</h3></div></div></div>
         <div id="foodIndustryTab" class="module-view"><div class="panel-content"><div class="card"><h3>👨‍🍳 Chef Lean V6 Ultra</h3></div></div></div>
         <div id="genVidTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎥 Video Motion V6 Ultra</h3></div></div></div>
+        <div id="genImgTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎨 SVG & Logos V6 Ultra</h3></div></div></div>
 
-        <!-- 🎨 6. SVG & Logos Vectorial V6 Ultra Engine -->
-        <div id="genImgTab" class="module-view">
+        <!-- 📐 7. Lonas 3D V6 Ultra Engine -->
+        <div id="lonasPhysicsTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
-                    <h3>🎨 Sintetizador SVG Vectorial V6 Ultra Engine</h3>
-                    <p>Sintetizador de isotipos vectoriales limpios, geometría sagrada NPU V6, resplandor neón nativo SVG y exportación directa.</p>
+                    <h3>📐 Lonas 3D & Simulación Eólica V6 Ultra Engine</h3>
+                    <p>Simulación de resistencia mecánica ante viento, maqueta visual 3D, matriz de materiales y Ficha Técnica de Instalación.</p>
                 </div>
                 <div class="card">
+                    <button class="btn-action" style="color:#00FFC8; margin-bottom:8px; width:100%; border:1px dashed #00FFC8;" onclick="loadLonaArtFromGalleryV6()">🖼️ Cargar Isotipo / Imagen de Galería para Maqueta 3D</button>
                     <div class="form-group">
-                        <label>Nombre de la Marca / Título Isotipo:</label>
-                        <input type="text" id="svgTitleV6" placeholder="Ej. BIAN TURFO ENGINE">
+                        <label>Dimensiones (Ancho x Alto en Metros):</label>
+                        <div style="display:flex; gap:8px;">
+                            <input type="number" id="lonaWValV6" value="4.0" step="0.5">
+                            <input type="number" id="lonaHValV6" value="3.0" step="0.5">
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label>Tagline / Subtítulo Secundario:</label>
-                        <input type="text" id="svgTaglineV6" placeholder="Ej. SOFTWARE & AI VISION">
-                    </div>
-                    <div class="form-group">
-                        <label>Estructura Geométrica V6 Ultra:</label>
-                        <select id="svgStyleV6">
-                            <option value="npu_hexagon">Hexágono NPU con Malla Cyberpunk</option>
-                            <option value="monolith_shield">Escudo Monolítico Táctico (Space Shield)</option>
-                            <option value="circular_neon">Anillo Orbital Neón Volumétrico</option>
-                            <option value="bionic_circuit">Nodo de Procesamiento Biónico IA</option>
+                        <label>Tipo de Material Publicitario:</label>
+                        <select id="lonaMaterialV6">
+                            <option value="13oz_frontlit">Lona Frontlit Promocional 13oz</option>
+                            <option value="mesh_anti_viento">Lona Mesh Microperforada (Anti-Viento Carga Alta)</option>
+                            <option value="backlight_caja">Lona Backlight Traslúcida (Caja de Luz Neón)</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Paleta de Color NPU V6:</label>
-                        <select id="svgPaletteV6">
-                            <option value="neon_cyber">Neón Cyberpunk (#00FFC8 / #FF0055)</option>
-                            <option value="gold_premium">Gold Premium (#FFD700 / #111111)</option>
-                            <option value="amoled_white">AMOLED White (#FFFFFF / #222222)</option>
-                            <option value="slate_tech">Slate Tech (#0088FF / #112233)</option>
+                        <label>Simulación de Viento / Tensión Eólica NPU V6:</label>
+                        <select id="windSpeedV6">
+                            <option value="40">Viento Moderado (40 km/h - Tensión Estándar)</option>
+                            <option value="60">Ráfaga Fuerte (60 km/h - Refuerzo de Esquinas)</option>
+                            <option value="90">Tormenta Crítica (90 km/h - Ojillos Dobles a cada 30cm)</option>
                         </select>
                     </div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="generateSVGLogoV6()">⚡ Sintetizar Vector V6 Ultra</button>
-                    
-                    <div class="preview-box" id="svgPreviewBoxV6"><span style="font-size: 11px; color: #555;">Sin SVG V6 generado</span></div>
-                    
-                    <div id="svgActionsV6" style="display:none; margin-top: 10px;">
-                        <button class="btn-action" id="btnDownloadSVGV6" style="color: #00FFC8; width: 100%; margin-bottom: 6px;" onclick="downloadSVGV6()">💾 Descargar Código Vectorial .SVG V6</button>
-                        <button class="btn-action" style="color: #FFD700; width: 100%; margin-bottom: 6px;" onclick="sendSVGToLonasV6()">📐 Probar Montaje en Lonas 3D</button>
-                    </div>
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="calculateLonaSpecsV6()">⚡ Renderizar Maqueta 3D & Simulación V6</button>
+
+                    <div class="preview-box" id="lonaPreviewBoxV6"><span style="font-size: 11px; color: #555;">Sin maqueta 3D renderizada</span></div>
+                    <div id="lonaResultV6" style="margin-top: 10px;"></div>
                 </div>
             </div>
         </div>
 
-        <div id="lonasPhysicsTab" class="module-view"><div class="panel-content"><div class="card"><h3>📐 Lonas 3D V5 Ultra</h3></div></div></div>
         <div id="studioTab" class="module-view"><div class="panel-content"><div class="card"><h3>📸 Estudio RAW V5 Ultra</h3></div></div></div>
         <div id="cinemaTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎬 Cine Scope 21:9 V5 Ultra</h3></div></div></div>
         <div id="printTab" class="module-view"><div class="panel-content"><div class="card"><h3>🖨️ Imprenta PDF V5 Ultra</h3></div></div></div>
@@ -198,7 +192,7 @@ HTML_CONTENT = """
         let ocrActive = true;
         let lastOcrTime = 0;
         let useFrontCamera = false;
-        let generatedSVGCodeV6 = "";
+        let lonaArtImgV6 = new Image();
 
         let currentMode = 0;
         const modes = ["OCR CONTINUO", "DETECCIÓN MULTI-OBJETO", "ESCÁNER BARRAS/QR V4"];
@@ -269,67 +263,69 @@ HTML_CONTENT = """
             }, 3000);
         }
 
-        /* --- 6. LOGICA SVG & LOGOS VECTORIAL V6 ULTRA --- */
-        function generateSVGLogoV6() {
-            const title = document.getElementById('svgTitleV6').value.trim() || "BIAN TURFO V6";
-            const tagline = document.getElementById('svgTaglineV6').value.trim() || "SOFTWARE & AI VISION";
-            const style = document.getElementById('svgStyleV6').value;
-            const palette = document.getElementById('svgPaletteV6').value;
+        /* --- 7. LOGICA LONAS 3D V6 ULTRA --- */
+        async function loadLonaArtFromGalleryV6() {
+            const res = await fetch('/bian/images/');
+            const images = await res.json();
+            if(images.length === 0) { alert("No hay imágenes en la galería."); return; }
+            lonaArtImgV6.crossOrigin = "anonymous";
+            lonaArtImgV6.src = images[images.length - 1].image_path;
+            lonaArtImgV6.onload = () => alert("✔ Arte cargado en maqueta 3D V6 Ultra.");
+        }
 
-            let c1 = "#00FFC8", c2 = "#FF0055", bg = "#040404", txtColor = "#FFFFFF";
-            if(palette === 'gold_premium') { c1 = "#FFD700"; c2 = "#B8860B"; bg = "#0A0A0A"; }
-            else if(palette === 'amoled_white') { c1 = "#FFFFFF"; c2 = "#888888"; bg = "#000000"; }
-            else if(palette === 'slate_tech') { c1 = "#0088FF"; c2 = "#00FFC8"; bg = "#050B14"; }
+        function calculateLonaSpecsV6() {
+            const w = parseFloat(document.getElementById('lonaWValV6').value) || 4.0;
+            const h = parseFloat(document.getElementById('lonaHValV6').value) || 3.0;
+            const mat = document.getElementById('lonaMaterialV6').value;
+            const wind = parseInt(document.getElementById('windSpeedV6').value);
+            const box = document.getElementById('lonaPreviewBoxV6');
+            const res = document.getElementById('lonaResultV6');
 
-            let geomSVG = "";
-            if(style === 'npu_hexagon') {
-                geomSVG = `<polygon points="150,30 230,75 230,175 150,220 70,175 70,75" fill="none" stroke="url(#v6Grad)" stroke-width="5" filter="url(#glowFilterV6)"/>
-                           <polygon points="150,50 210,85 210,165 150,200 90,165 90,85" fill="none" stroke="${c1}" stroke-width="1.5" opacity="0.6"/>`;
-            } else if(style === 'monolith_shield') {
-                geomSVG = `<path d="M150 25 L230 65 V140 C230 190 150 230 150 230 C150 230 70 190 70 140 V65 Z" fill="none" stroke="url(#v6Grad)" stroke-width="5" filter="url(#glowFilterV6)"/>`;
-            } else if(style === 'bionic_circuit') {
-                geomSVG = `<rect x="75" y="45" width="150" height="150" rx="20" fill="none" stroke="url(#v6Grad)" stroke-width="4" filter="url(#glowFilterV6)"/>
-                           <circle cx="150" cy="120" r="30" fill="none" stroke="${c1}" stroke-width="2"/>
-                           <line x1="75" y1="120" x2="120" y2="120" stroke="${c1}" stroke-width="2"/>
-                           <line x1="180" y1="120" x2="225" y2="120" stroke="${c1}" stroke-width="2"/>`;
+            const area = w * h;
+            const perimeter = (w + h) * 2;
+            const ojillosDist = wind >= 90 ? 0.30 : (wind >= 60 ? 0.40 : 0.50);
+            const totalOjillos = Math.ceil(perimeter / ojillosDist);
+            const weightGrams = mat === 'mesh_anti_viento' ? 320 : 540;
+            const totalKg = ((area * weightGrams) / 1000).toFixed(2);
+
+            const costPerM2 = mat === 'mesh_anti_viento' ? 140 : 95;
+            const prodCost = Math.round(area * costPerM2);
+            const installCost = Math.round(prodCost * 0.6);
+            const totalBudget = prodCost + installCost;
+
+            const lonaCanvas = document.createElement('canvas');
+            lonaCanvas.width = 380; lonaCanvas.height = 200;
+            const ctx = lonaCanvas.getContext('2d');
+
+            ctx.fillStyle = "#111"; ctx.fillRect(0, 0, lonaCanvas.width, lonaCanvas.height);
+            ctx.strokeStyle = "#00FFC8"; ctx.lineWidth = 3;
+            ctx.strokeRect(20, 20, lonaCanvas.width - 40, lonaCanvas.height - 40);
+
+            if(lonaArtImgV6.src) {
+                ctx.drawImage(lonaArtImgV6, 25, 25, lonaCanvas.width - 50, lonaCanvas.height - 50);
             } else {
-                geomSVG = `<circle cx="150" cy="125" r="85" fill="none" stroke="url(#v6Grad)" stroke-width="5" filter="url(#glowFilterV6)"/>
-                           <circle cx="150" cy="125" r="70" fill="none" stroke="${c1}" stroke-dasharray="6,6" stroke-width="2"/>`;
+                ctx.fillStyle = "rgba(0, 255, 200, 0.1)";
+                ctx.fillRect(25, 25, lonaCanvas.width - 50, lonaCanvas.height - 50);
+                ctx.fillStyle = "#00FFC8"; ctx.font = "bold 12px system-ui"; ctx.textAlign = "center";
+                ctx.fillText(`MAQUETA 3D V6: LONA ${w}m x ${h}m`, lonaCanvas.width/2, lonaCanvas.height/2);
             }
 
-            generatedSVGCodeV6 = `
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">
-                <defs>
-                    <linearGradient id="v6Grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="${c1}" />
-                        <stop offset="100%" stop-color="${c2}" />
-                    </linearGradient>
-                    <filter id="glowFilterV6" x="-20%" y="-20%" width="140%" height="140%">
-                        <feGaussianBlur stdDeviation="4" result="blur" />
-                        <feMerge>
-                            <feMergeNode in="blur"/>
-                            <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                    </filter>
-                </defs>
-                <rect width="300" height="300" fill="${bg}"/>
-                ${geomSVG}
-                <text x="150" y="260" fill="${txtColor}" font-family="system-ui" font-weight="900" font-size="14" letter-spacing="2" text-anchor="middle">${title.toUpperCase()}</text>
-                <text x="150" y="278" fill="${c1}" font-family="system-ui" font-weight="600" font-size="8" letter-spacing="1.5" text-anchor="middle">${tagline.toUpperCase()}</text>
-            </svg>`;
+            ctx.fillStyle = "#FFD700";
+            for(let x = 20; x <= lonaCanvas.width - 20; x += 30) {
+                ctx.beginPath(); ctx.arc(x, 20, 3, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x, lonaCanvas.height - 20, 3, 0, Math.PI*2); ctx.fill();
+            }
 
-            const box = document.getElementById('svgPreviewBoxV6');
-            box.innerHTML = generatedSVGCodeV6;
-            document.getElementById('svgActionsV6').style.display = 'block';
+            box.innerHTML = ""; box.appendChild(lonaCanvas);
+            res.innerHTML = `
+            <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;">
+                <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">📊 Ficha de Simulación Estructural V6 Ultra:</p>
+                <p>• Superficie: <strong style="color:#FFF;">${area.toFixed(2)} m²</strong> | Peso Est.: <strong style="color:#FFF;">${totalKg} Kg</strong></p>
+                <p>• Perforación Ojillos: <strong style="color:#FFD700;">${totalOjillos} Ojillos Metálicos</strong> (Cada ${(ojillosDist*100).toFixed(0)}cm)</p>
+                <p>• Tolerancia Viento: Soporta ráfagas de hasta ${wind} km/h</p>
+                <p>• Presupuesto Estimado: <strong style="color:#00FFC8; font-size:13px;">$${totalBudget} MXN</strong></p>
+            </div>`;
         }
-
-        function downloadSVGV6() {
-            const blob = new Blob([generatedSVGCodeV6], { type: 'image/svg+xml' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = `logo_v6_${Date.now()}.svg`; a.click();
-        }
-
-        function sendSVGToLonasV6() { alert("✔ Logotipo V6 exportado a Lonas 3D."); }
 
         async function capture() {
             canvas.width = video.videoWidth; canvas.height = video.videoHeight;
@@ -374,7 +370,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Bian V6 Master Suite (SVG Logos V6 Ultra Integrated)",
+        "engine": "Bian V6 Master Suite (Lonas 3D V6 Ultra Integrated)",
         "status": "online"
     }
 
