@@ -67,7 +67,7 @@ HTML_CONTENT = """
         .form-group select, .form-group input, .form-group textarea { width: 100%; background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 8px; border-radius: 6px; font-size: 12px; }
         
         .preview-box { width: 100%; height: 220px; background: #000; border: 1px dashed #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-top: 10px; overflow: hidden; position: relative; }
-        .preview-box img, .preview-box canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .preview-box img, .preview-box canvas, .preview-box svg { max-width: 100%; max-height: 100%; object-fit: contain; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; flex-direction: column; padding: 20px; }
         .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; overflow-y: auto; flex: 1; }
@@ -86,8 +86,8 @@ HTML_CONTENT = """
         <button class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas 3D V6 Ultra</button>
         <button class="nav-tab" onclick="switchModule('studioTab', this)">📸 Estudio RAW V6 Ultra</button>
         <button class="nav-tab" onclick="switchModule('cinemaTab', this)">🎬 Cine Scope 21:9 V6 Ultra</button>
-        <button class="nav-tab" onclick="switchModule('printTab', this)">🖨️ Imprenta PDF V5 Ultra</button>
-        <button class="nav-tab" onclick="switchModule('customTab', this)">✨ Wallpapers V3 Ultra</button>
+        <button class="nav-tab" onclick="switchModule('printTab', this)">🖨️ Imprenta PDF V6 Ultra</button>
+        <button class="nav-tab" onclick="switchModule('customTab', this)">✨ Wallpapers V4 Ultra</button>
     </div>
 
     <div class="header">
@@ -116,14 +116,313 @@ HTML_CONTENT = """
             <canvas id="canvas" style="display:none;"></canvas>
         </div>
 
-        <!-- Demás módulos unificados -->
-        <div id="genPromptTab" class="module-view"><div class="panel-content"><div class="card"><h3>✨ Generar Imagen AI V4 Ultra</h3></div></div></div>
-        <div id="priceTab" class="module-view"><div class="panel-content"><div class="card"><h3>🏷️ Valuador Híbrido V4 Ultra</h3></div></div></div>
-        <div id="foodIndustryTab" class="module-view"><div class="panel-content"><div class="card"><h3>👨‍🍳 Chef Lean V6 Ultra</h3></div></div></div>
-        <div id="genVidTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎥 Video Motion V6 Ultra</h3></div></div></div>
-        <div id="genImgTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎨 SVG & Logos V6 Ultra</h3></div></div></div>
-        <div id="lonasPhysicsTab" class="module-view"><div class="panel-content"><div class="card"><h3>📐 Lonas 3D V6 Ultra</h3></div></div></div>
-        <div id="studioTab" class="module-view"><div class="panel-content"><div class="card"><h3>📸 Estudio RAW V6 Ultra</h3></div></div></div>
+        <!-- ✨ 2. Generar Imagen AI V4 Ultra Engine -->
+        <div id="genPromptTab" class="module-view">
+            <div class="panel-content">
+                <div class="card">
+                    <h3>✨ Sintetizador Diffusion AI V4 Ultra Engine</h3>
+                    <p>Inyección NPU V6, control de Denoising Strength Img2Img, variaciones por semilla fija y renderizado multicapa HDR.</p>
+                </div>
+                <div class="card">
+                    <button class="btn-action" style="color:#00FFC8; margin-bottom:10px; width:100%; border:1px dashed #00FFC8;" onclick="useCameraImageForImg2ImgV4()">📷 Cargar Última Foto de Cam Vision para Img2Img</button>
+
+                    <div class="form-group">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <label>Prompt / Descripción Visual:</label>
+                            <button class="btn-action" style="font-size:9px; color:#00FFC8; padding:3px 6px;" onclick="enhancePromptV4()">🪄 Optimizar Prompt NPU V6</button>
+                        </div>
+                        <textarea id="aiPromptInputV4" rows="3" placeholder="Ej. Corte Rib Eye a la parrilla, iluminación neón cyberpunk..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Fuerza de Transformación Img2Img (Denoising: <span id="denoiseValV4">0.55</span>):</label>
+                        <input type="range" id="aiDenoiseV4" min="0.20" max="0.85" step="0.05" value="0.55" oninput="document.getElementById('denoiseValV4').innerText=this.value">
+                    </div>
+                    <div class="form-group">
+                        <label>Estilo Visual / Preset NPU V6:</label>
+                        <select id="aiPromptStyleV4">
+                            <option value="cyberpunk">Cyberpunk / Neón Glowing V6</option>
+                            <option value="fotorealismo">Fotorealismo 8K / Macro Gourmet DSLR</option>
+                            <option value="octane">Render 3D Octane Volumétrico</option>
+                            <option value="cinescope">CineScope Anamórfico 35mm</option>
+                            <option value="vectorial">Ilustración Vectorial Minimalista</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Pasos de Inferencia (Sampling Steps):</label>
+                        <select id="aiStepsV4">
+                            <option value="20">20 Pasos (Render Rápido NPU - 1.0s)</option>
+                            <option value="30">30 Pasos (Balance Fidelidad/Detalle)</option>
+                            <option value="50">50 Pasos (Ultra Detalle Textura Master)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Semilla Semántica (Seed: <span id="seedValV4">Aleatoria (-1)</span>):</label>
+                        <div style="display:flex; gap:8px;">
+                            <input type="number" id="aiSeedV4" value="-1" placeholder="-1 para aleatorio">
+                            <button class="btn-action" style="font-size:10px; color:#00FFC8;" onclick="lockSeedV4()">🔒 Fijar Semilla</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Relación de Aspecto:</label>
+                        <select id="aiPromptRatioV4">
+                            <option value="1:1">1:1 (Cuadrado / Asset Social)</option>
+                            <option value="16:9">16:9 (Cinema Widescreen)</option>
+                            <option value="9:16">9:16 (Wallpaper S23 Ultra)</option>
+                        </select>
+                    </div>
+
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="generateAiPromptImageV4()">⚡ Renderizar Arte Visual V4 Ultra</button>
+
+                    <div class="preview-box" id="aiGenPreviewBoxV4"><span style="font-size: 11px; color: #555;">Esperando prompt para V4 Ultra...</span></div>
+
+                    <div id="aiGenActionsV4" style="display:none; margin-top: 10px;">
+                        <button class="btn-action" style="color: #00FFC8; width: 100%; margin-bottom: 6px;" onclick="sendToVideoEngineV4()">🎥 Enviar a Video Motion V6</button>
+                        <button class="btn-action" style="color: #FFD700; width: 100%; margin-bottom: 6px;" onclick="saveToGalleryFromAiV4()">💾 Guardar en Galería Soberana</button>
+                        <button class="btn-action" style="color: #FF0055; width: 100%;" onclick="sendToStudioRAWV4()">📸 Abrir en Estudio RAW V6</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🏷️ 3. Valuador Híbrido V4 Ultra Engine -->
+        <div id="priceTab" class="module-view">
+            <div class="panel-content">
+                <div class="card">
+                    <h3>🏷️ Valuador Táctico & Financiero V4 Ultra Engine</h3>
+                    <p>Análisis NPU de mercado, proyección estacional, cálculo de ROI %, margen de reventa y exportación comercial.</p>
+                </div>
+                <div class="card">
+                    <button class="btn-action" style="color:#00FFC8; margin-bottom:8px; width:100%; border:1px dashed #00FFC8;" onclick="loadValuationFromGalleryV4()">📸 Capturar / Cargar Foto para Inspección NPU V6</button>
+                    <div class="form-group">
+                        <label>Producto, Insumo o Servicio a Valuar:</label>
+                        <input type="text" id="itemQueryV4" placeholder="Ej. Corte Rib Eye 1kg, Lona 4x3m, Conector USB-C...">
+                    </div>
+                    <div class="form-group">
+                        <label>Condición del Ítem / Desgaste Visual:</label>
+                        <select id="itemConditionV4">
+                            <option value="nuevo">Nuevo / Insumo Premium</option>
+                            <option value="usado">Usado / Reutilizable (-30% Depreciación)</option>
+                            <option value="servicio">Servicio Técnico Especializado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Factor Estacional / Demanda de Mercado:</label>
+                        <select id="itemSeasonV4">
+                            <option value="estandar">Demanda Estándar (Sin Ajuste)</option>
+                            <option value="alta">Temporada Alta / Escasez (+15% Incremento)</option>
+                            <option value="remate">Oferta Liquidez / Remate (-20% Descuento)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Divisa Financiera:</label>
+                        <select id="itemCurrencyV4">
+                            <option value="MXN">MXN - Peso Mexicano</option>
+                            <option value="USD">USD - Dólar Americano</option>
+                            <option value="EUR">EUR - Euro</option>
+                        </select>
+                    </div>
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="runPriceValuationV4()">📊 Calcular Matriz de Reventa & ROI V4 Ultra</button>
+                    <div id="priceResultV4" style="margin-top: 12px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 👨‍🍳 4. Chef Lean V6 Ultra Engine -->
+        <div id="foodIndustryTab" class="module-view">
+            <div class="panel-content">
+                <div class="card">
+                    <h3>👨‍🍳 Chef Lean & Operación Gastronómica V6 Ultra Engine</h3>
+                    <p>Inspección NPU de porcionado, matriz de rendimiento por lote cárnico, costeo directo y auditoría de desperdicio cero.</p>
+                </div>
+                <div class="card">
+                    <button class="btn-action" style="color:#00FFC8; margin-bottom:8px; width:100%; border:1px dashed #00FFC8;" onclick="loadChefImageFromGalleryV6()">📷 Cargar Inspección Visual desde Galería NPU V6</button>
+                    <div class="form-group">
+                        <label>Herramienta Operativa Gastronómica V6:</label>
+                        <select id="chefToolV6">
+                            <option value="limpieza_carnes">🥩 Limpieza & Desgüese Cárnico (Turno Temprano 4 AM - 9 AM)</option>
+                            <option value="estandar_receta">📜 Estandarización de Receta & Porcionado Lean</option>
+                            <option value="margen_costo">💰 Matriz de Costeo Táctico & Margen de Venta</option>
+                            <option value="norma_251">🏷️ Trazabilidad de Cadena de Frío NOM-251</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Peso Bruto Inicial Recibido (Kg):</label>
+                        <input type="number" id="chefWeightV6" value="3.5" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>Costo Insumo Base ($ MXN / Kg):</label>
+                        <input type="number" id="chefCostKgV6" value="220" step="5">
+                    </div>
+                    <div class="form-group">
+                        <label>Gramaje por Porción Objetivo (Gramos):</label>
+                        <input type="number" id="chefPortionGramsV6" value="220" step="10">
+                    </div>
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="runChefLeanEngineV6()">⚡ Ejecutar Diagnóstico Operativo Chef Lean V6</button>
+                    <div id="chefResultV6" style="margin-top: 12px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🎥 5. Video Motion V6 Ultra Engine -->
+        <div id="genVidTab" class="module-view">
+            <div class="panel-content">
+                <div class="card">
+                    <h3>🎥 Motion Engine V6 Ultra (3D Orbit & FX Layer)</h3>
+                    <p>Trayectorias 3D avanzadas, tracking orbital 360°, partículas neón volumétricas, destellos ópticos y barras CineScope 21:9.</p>
+                </div>
+                <div class="card">
+                    <button class="btn-action" style="color: #00FFC8; margin-bottom: 10px; width:100%; border:1px dashed #00FFC8;" onclick="loadVideoSourceImageV6()">📷 Cargar Último Activo de Galería Soberana</button>
+                    <div class="preview-box" id="vidPreviewBoxV6"><span style="font-size: 11px; color: #555;">Sin imagen base cargada para Motion Engine V6</span></div>
+                    <div class="form-group">
+                        <label>Trayectoria de Cámara V6 Ultra:</label>
+                        <select id="vidMotionV6">
+                            <option value="orbital_3d">Órbita 3D Compleja + Depth Blur NPU</option>
+                            <option value="tracking_360">Tracking Orbital 360° con Aceleración Pro</option>
+                            <option value="dolly_vertigo">Zoom Anamórfico Dolly (Vertigo FX)</option>
+                            <option value="neon_pulse">Pulso Neón 60 FPS Acelerado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Capas & Efectos Cinemáticos (FX Layer V6):</label>
+                        <select id="vidFxV6">
+                            <option value="cinescope_particles">CineScope 21:9 + Grano 35mm + Partículas Neón</option>
+                            <option value="cinescope_flares">CineScope 21:9 + Destellos Ópticos Anamórficos</option>
+                            <option value="clean_hd">Ultra HD Limpio (Direct Cut)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Duración del Render (Segundos):</label>
+                        <select id="vidDurationV6">
+                            <option value="3">3 Segundos Loop Smooth (Social Asset)</option>
+                            <option value="5">5 Segundos Cinematic Master Pro</option>
+                        </select>
+                    </div>
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="renderVideoAnimationV6()">⚡ Renderizar Animación V6 Ultra</button>
+                    <button class="btn-action" id="btnRecordVidV6" style="background: #FF0055; color: #fff; font-weight: bold; margin-top: 10px; width: 100%; display: none;" onclick="recordAndDownloadVideoV6()">🎥 Exportar Clip .WebM V6</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🎨 6. SVG & Logos Vectorial V6 Ultra Engine -->
+        <div id="genImgTab" class="module-view">
+            <div class="panel-content">
+                <div class="card">
+                    <h3>🎨 Sintetizador SVG Vectorial V6 Ultra Engine</h3>
+                    <p>Sintetizador de isotipos vectoriales limpios, geometría sagrada NPU V6, resplandor neón nativo SVG y exportación directa.</p>
+                </div>
+                <div class="card">
+                    <div class="form-group">
+                        <label>Nombre de la Marca / Título Isotipo:</label>
+                        <input type="text" id="svgTitleV6" placeholder="Ej. BIAN TURFO ENGINE">
+                    </div>
+                    <div class="form-group">
+                        <label>Tagline / Subtítulo Secundario:</label>
+                        <input type="text" id="svgTaglineV6" placeholder="Ej. SOFTWARE & AI VISION">
+                    </div>
+                    <div class="form-group">
+                        <label>Estructura Geométrica V6 Ultra:</label>
+                        <select id="svgStyleV6">
+                            <option value="npu_hexagon">Hexágono NPU con Malla Cyberpunk</option>
+                            <option value="monolith_shield">Escudo Monolítico Táctico (Space Shield)</option>
+                            <option value="circular_neon">Anillo Orbital Neón Volumétrico</option>
+                            <option value="bionic_circuit">Nodo de Procesamiento Biónico IA</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Paleta de Color NPU V6:</label>
+                        <select id="svgPaletteV6">
+                            <option value="neon_cyber">Neón Cyberpunk (#00FFC8 / #FF0055)</option>
+                            <option value="gold_premium">Gold Premium (#FFD700 / #111111)</option>
+                            <option value="amoled_white">AMOLED White (#FFFFFF / #222222)</option>
+                            <option value="slate_tech">Slate Tech (#0088FF / #112233)</option>
+                        </select>
+                    </div>
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="generateSVGLogoV6()">⚡ Sintetizar Vector V6 Ultra</button>
+                    
+                    <div class="preview-box" id="svgPreviewBoxV6"><span style="font-size: 11px; color: #555;">Sin SVG V6 generado</span></div>
+                    
+                    <div id="svgActionsV6" style="display:none; margin-top: 10px;">
+                        <button class="btn-action" id="btnDownloadSVGV6" style="color: #00FFC8; width: 100%; margin-bottom: 6px;" onclick="downloadSVGV6()">💾 Descargar Código Vectorial .SVG V6</button>
+                        <button class="btn-action" style="color: #FFD700; width: 100%; margin-bottom: 6px;" onclick="sendSVGToLonasV6()">📐 Probar Montaje en Lonas 3D</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 📐 7. Lonas 3D V6 Ultra Engine -->
+        <div id="lonasPhysicsTab" class="module-view">
+            <div class="panel-content">
+                <div class="card">
+                    <h3>📐 Lonas 3D & Simulación Eólica V6 Ultra Engine</h3>
+                    <p>Simulación de resistencia mecánica ante viento, maqueta visual 3D, matriz de materiales y Ficha Técnica de Instalación.</p>
+                </div>
+                <div class="card">
+                    <button class="btn-action" style="color:#00FFC8; margin-bottom:8px; width:100%; border:1px dashed #00FFC8;" onclick="loadLonaArtFromGalleryV6()">🖼️ Cargar Isotipo / Imagen de Galería para Maqueta 3D</button>
+                    <div class="form-group">
+                        <label>Dimensiones (Ancho x Alto en Metros):</label>
+                        <div style="display:flex; gap:8px;">
+                            <input type="number" id="lonaWValV6" value="4.0" step="0.5">
+                            <input type="number" id="lonaHValV6" value="3.0" step="0.5">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Material Publicitario:</label>
+                        <select id="lonaMaterialV6">
+                            <option value="13oz_frontlit">Lona Frontlit Promocional 13oz</option>
+                            <option value="mesh_anti_viento">Lona Mesh Microperforada (Anti-Viento Carga Alta)</option>
+                            <option value="backlight_caja">Lona Backlight Traslúcida (Caja de Luz Neón)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Simulación de Viento / Tensión Eólica NPU V6:</label>
+                        <select id="windSpeedV6">
+                            <option value="40">Viento Moderado (40 km/h - Tensión Estándar)</option>
+                            <option value="60">Ráfaga Fuerte (60 km/h - Refuerzo de Esquinas)</option>
+                            <option value="90">Tormenta Crítica (90 km/h - Ojillos Dobles a cada 30cm)</option>
+                        </select>
+                    </div>
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="calculateLonaSpecsV6()">⚡ Renderizar Maqueta 3D & Simulación V6</button>
+
+                    <div class="preview-box" id="lonaPreviewBoxV6"><span style="font-size: 11px; color: #555;">Sin maqueta 3D renderizada</span></div>
+                    <div id="lonaResultV6" style="margin-top: 10px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 📸 8. Estudio RAW V6 Ultra Engine -->
+        <div id="studioTab" class="module-view">
+            <div class="panel-content">
+                <div class="card">
+                    <h3>📸 Estudio RAW V6 Ultra (Revelado NPU & Histograma RGB)</h3>
+                    <p>Compensación EV en curvas dinámicas, matriz Kelvin, curva de histograma analizado y clarificación NPU V6.</p>
+                </div>
+                <div class="card">
+                    <button class="btn-action" style="color:#00FFC8; margin-bottom:10px; width:100%; border:1px dashed #00FFC8;" onclick="loadRawImageFromGalleryV6()">📷 Cargar Activo para Revelado RAW V6</button>
+
+                    <div class="preview-box" id="rawPreviewBoxV6"><span style="font-size: 11px; color: #555;">Sin imagen cargada en canvas RAW V6</span></div>
+
+                    <div class="form-group">
+                        <label>Compensación de Exposición (EV: <span id="evValV6">0.0</span> Stops):</label>
+                        <input type="range" id="rawEvV6" min="-2" max="2" step="0.1" value="0.0" oninput="document.getElementById('evValV6').innerText=this.value; processRawV6();">
+                    </div>
+                    <div class="form-group">
+                        <label>Temperatura de Color Kelvin:</label>
+                        <select id="rawTempV6" onchange="processRawV6()">
+                            <option value="5500">5500K - Luz de Día Balanceada</option>
+                            <option value="3200">3200K - Tungsteno Cálido Gourmet</option>
+                            <option value="7500">7500K - Sombra Cyberpunk Neón</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Clarificación de Textura / Sharpening NPU (<span id="sharpValV6">50</span>%):</label>
+                        <input type="range" id="rawSharpV6" min="0" max="100" step="5" value="50" oninput="document.getElementById('sharpValV6').innerText=this.value; processRawV6();">
+                    </div>
+
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="processRawV6()">⚡ Procesar Revelado & Histograma V6 Ultra</button>
+                    <div id="rawResultV6" style="margin-top: 10px;"></div>
+                </div>
+            </div>
+        </div>
 
         <!-- 🎬 9. Cine Scope 21:9 V6 Ultra Engine -->
         <div id="cinemaTab" class="module-view">
@@ -170,8 +469,76 @@ HTML_CONTENT = """
             </div>
         </div>
 
-        <div id="printTab" class="module-view"><div class="panel-content"><div class="card"><h3>🖨️ Imprenta PDF V5 Ultra</h3></div></div></div>
-        <div id="customTab" class="module-view"><div class="panel-content"><div class="card"><h3>✨ Wallpapers V3 Ultra</h3></div></div></div>
+        <!-- 🖨️ 10. Imprenta PDF V6 Ultra Engine -->
+        <div id="printTab" class="module-view">
+            <div class="panel-content">
+                <div class="card">
+                    <h3>🖨️ Imprenta & Preprensa Industrial V6 Ultra Engine</h3>
+                    <p>Generación de pliegos de impresión con sangrado 3mm (PDF/X-1a), marcas de registro para guillotinado, código QR y tira CMYK.</p>
+                </div>
+                <div class="card">
+                    <button class="btn-action" style="color:#00FFC8; margin-bottom:10px; width:100%; border:1px dashed #00FFC8;" onclick="loadPrintArtFromGalleryV6()">📷 Cargar Diseño para Preprensa V6</button>
+
+                    <div class="preview-box" id="printPreviewBoxV6"><span style="font-size: 11px; color: #555;">Sin pliego cargado en Preprensa V6</span></div>
+
+                    <div class="form-group">
+                        <label>Modo de Salida & Marcas de Registro:</label>
+                        <select id="printBleedV6" onchange="processPrintV6()">
+                            <option value="bleed_3mm">PDF/X-1a Industrial (Sangrado 3mm + Cruz de Registro)</option>
+                            <option value="troquel_corte">Matriz de Troquel Vectorial (Línea de Corte Plotter)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Perfil de Color Salida Prensa:</label>
+                        <select id="printProfileV6" onchange="processPrintV6()">
+                            <option value="cmyk_fogra">CMYK Offset FOGRA39 (Prensa Comercial)</option>
+                            <option value="rgb_digital">RGB Digital Ultra HD (Ploteo Fotográfico)</option>
+                        </select>
+                    </div>
+
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="processPrintV6()">⚡ Generar Pliego de Salida V6 Ultra</button>
+                    <div id="printResultV6" style="margin-top: 10px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ✨ 11. Wallpapers AMOLED & Stickers Die-Cut V4 Ultra Engine -->
+        <div id="customTab" class="module-view">
+            <div class="panel-content">
+                <div class="card">
+                    <h3>✨ Wallpapers AMOLED & Stickers Die-Cut V4 Ultra Engine</h3>
+                    <p>Diseño de fondos optimizados para paneles S23 Ultra (Deep Black #000000), efectos neón NPU y troquelado de vinil.</p>
+                </div>
+                <div class="card">
+                    <button class="btn-action" style="color:#00FFC8; margin-bottom:10px; width:100%; border:1px dashed #00FFC8;" onclick="loadCustomArtFromGalleryV4()">📷 Cargar Arte de Galería para Wallpaper/Sticker V6</button>
+
+                    <div class="form-group">
+                        <label>Tipo de Arte Objetivo:</label>
+                        <select id="customTypeV4" onchange="renderCustomV4()">
+                            <option value="wallpaper_amoled">Wallpaper QHD+ Deep Black AMOLED (9:16)</option>
+                            <option value="sticker_vinil">Sticker Troquelado (Borde Blanco 4px + Vinil)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Estilo / Inyección Neón V4 Ultra:</label>
+                        <select id="customStyleV4" onchange="renderCustomV4()">
+                            <option value="cyber_grid">Cyberpunk Grid (#00FFC8 / #FF0055)</option>
+                            <option value="gold_monolith">Gold Monolith (#FFD700 / Deep Dark)</option>
+                            <option value="circuit_glow">Circuito Integrado NPU Glow</option>
+                            <option value="minimal_clean">Minimalista Limpio (Ultra Black)</option>
+                        </select>
+                    </div>
+
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="renderCustomV4()">⚡ Sintetizar Activo V4 Ultra</button>
+
+                    <div class="preview-box" id="customPreviewBoxV4"><span style="font-size: 11px; color: #555;">Esperando sintetizar activo V4 Ultra...</span></div>
+
+                    <div id="customActionsV4" style="display:none; margin-top: 10px;">
+                        <button class="btn-action" style="color: #00FFC8; width: 100%; margin-bottom: 6px;" onclick="downloadCustomAssetV4()">💾 Descargar Activo HD .PNG V4</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Controls -->
@@ -197,7 +564,18 @@ HTML_CONTENT = """
         let ocrActive = true;
         let lastOcrTime = 0;
         let useFrontCamera = false;
+        
+        let lastGeneratedCanvasV4 = null;
+        let vidSourceImgV6 = new Image();
+        let animIntervalV6 = null;
+        let activeCanvasV6 = null;
+        let generatedSVGCodeV6 = "";
+        let lonaArtImgV6 = new Image();
+        let rawSourceImgV6 = new Image();
         let cineSourceImgV6 = new Image();
+        let printSourceImgV6 = new Image();
+        let customSourceImgV4 = new Image();
+        let lastCustomCanvasV4 = null;
 
         let currentMode = 0;
         const modes = ["OCR CONTINUO", "DETECCIÓN MULTI-OBJETO", "ESCÁNER BARRAS/QR V4"];
@@ -268,78 +646,85 @@ HTML_CONTENT = """
             }, 3000);
         }
 
-        /* --- 9. LOGICA CINE SCOPE 21:9 V6 ULTRA --- */
-        async function loadCineImageFromGalleryV6() {
+        /* --- 11. LOGICA WALLPAPERS & STICKERS V4 ULTRA --- */
+        async function loadCustomArtFromGalleryV4() {
             const res = await fetch('/bian/images/');
             const images = await res.json();
             if(images.length === 0) { alert("No hay imágenes en la galería."); return; }
-            cineSourceImgV6.crossOrigin = "anonymous";
-            cineSourceImgV6.src = images[images.length - 1].image_path;
-            cineSourceImgV6.onload = () => processCineV6();
+            customSourceImgV4.crossOrigin = "anonymous";
+            customSourceImgV4.src = images[images.length - 1].image_path;
+            customSourceImgV4.onload = () => {
+                renderCustomV4();
+                alert("✔ Arte cargado en el Canvas V4 Ultra.");
+            };
         }
 
-        function processCineV6() {
-            const box = document.getElementById('cinePreviewBoxV6');
-            const res = document.getElementById('cineResultV6');
-            const lut = document.getElementById('cineLutV6').value;
-            const grain = parseInt(document.getElementById('cineGrainV6').value);
-            const flare = parseInt(document.getElementById('cineFlareV6').value);
-            const aspect = document.getElementById('cineAspectV6').value;
+        function renderCustomV4() {
+            const box = document.getElementById('customPreviewBoxV4');
+            const type = document.getElementById('customTypeV4').value;
+            const style = document.getElementById('customStyleV4').value;
 
-            const cineCanvas = document.createElement('canvas');
-            cineCanvas.width = 380; cineCanvas.height = 200;
-            const ctx = cineCanvas.getContext('2d');
+            lastCustomCanvasV4 = document.createElement('canvas');
+            lastCustomCanvasV4.width = 300;
+            lastCustomCanvasV4.height = type === 'wallpaper_amoled' ? 450 : 300;
+            const ctx = lastCustomCanvasV4.getContext('2d');
 
-            ctx.fillStyle = "#000"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
+            ctx.fillStyle = "#000000"; ctx.fillRect(0, 0, lastCustomCanvasV4.width, lastCustomCanvasV4.height);
 
-            if(cineSourceImgV6.src) {
-                ctx.drawImage(cineSourceImgV6, 0, 0, cineCanvas.width, cineCanvas.height);
+            if(type === 'wallpaper_amoled') {
+                if(style === 'cyber_grid') {
+                    ctx.strokeStyle = "rgba(0, 255, 200, 0.15)"; ctx.lineWidth = 1;
+                    for(let x = 0; x < lastCustomCanvasV4.width; x += 20) {
+                        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, lastCustomCanvasV4.height); ctx.stroke();
+                    }
+                    for(let y = 0; y < lastCustomCanvasV4.height; y += 20) {
+                        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(lastCustomCanvasV4.width, y); ctx.stroke();
+                    }
+                } else if(style === 'circuit_glow') {
+                    ctx.strokeStyle = "rgba(255, 215, 0, 0.2)"; ctx.lineWidth = 1.5;
+                    ctx.strokeRect(30, 30, lastCustomCanvasV4.width - 60, lastCustomCanvasV4.height - 60);
+                }
 
-                if(lut === 'teal_orange') {
-                    ctx.fillStyle = "rgba(0, 200, 200, 0.18)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
-                    ctx.fillStyle = "rgba(255, 120, 0, 0.12)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
-                } else if(lut === 'gold_flare_70mm') {
-                    ctx.fillStyle = "rgba(255, 215, 0, 0.20)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
-                } else if(lut === 'noir_monochrome') {
-                    ctx.fillStyle = "rgba(0, 0, 0, 0.4)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
-                } else if(lut === 'matrix_cyber') {
-                    ctx.fillStyle = "rgba(0, 255, 150, 0.20)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
+                if(customSourceImgV4.src) {
+                    ctx.drawImage(customSourceImgV4, 25, 75, lastCustomCanvasV4.width - 50, 300);
                 } else {
-                    ctx.fillStyle = "rgba(255, 180, 50, 0.18)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
-                }
-
-                if(flare > 0) {
-                    ctx.fillStyle = `rgba(0, 255, 200, ${ (flare / 100) * 0.35 })`;
-                    ctx.fillRect(0, cineCanvas.height / 2 - 2, cineCanvas.width, 4);
-                }
-
-                if(grain > 0) {
-                    ctx.fillStyle = `rgba(255, 255, 255, ${ (grain / 100) * 0.08 })`;
-                    ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
-                }
-
-                let barHeight = aspect === '21:9' ? 28 : (aspect === '2.39:1' ? 36 : 0);
-                if(barHeight > 0) {
-                    ctx.fillStyle = "#000";
-                    ctx.fillRect(0, 0, cineCanvas.width, barHeight);
-                    ctx.fillRect(0, cineCanvas.height - barHeight, cineCanvas.width, barHeight);
+                    ctx.fillStyle = "#00FFC8"; ctx.font = "bold 13px system-ui"; ctx.textAlign = "center";
+                    ctx.fillText("WALLPAPER AMOLED V4 (9:16)", lastCustomCanvasV4.width/2, lastCustomCanvasV4.height/2);
                 }
             } else {
-                ctx.fillStyle = "#00FFC8"; ctx.font = "bold 11px system-ui"; ctx.textAlign = "center";
-                ctx.fillText("CINE SCOPE V6 ULTRA: Carga un fotograma", cineCanvas.width/2, cineCanvas.height/2);
+                ctx.fillStyle = "rgba(15, 15, 15, 0.8)";
+                ctx.fillRect(0, 0, lastCustomCanvasV4.width, lastCustomCanvasV4.height);
+
+                if(customSourceImgV4.src) {
+                    ctx.fillStyle = "#FFFFFF";
+                    ctx.beginPath();
+                    ctx.arc(lastCustomCanvasV4.width/2, lastCustomCanvasV4.height/2, 95, 0, Math.PI*2);
+                    ctx.fill();
+
+                    ctx.drawImage(customSourceImgV4, 60, 60, 180, 180);
+                } else {
+                    ctx.fillStyle = "#FFFFFF";
+                    ctx.beginPath();
+                    ctx.arc(lastCustomCanvasV4.width/2, lastCustomCanvasV4.height/2, 85, 0, Math.PI*2);
+                    ctx.fill();
+
+                    ctx.fillStyle = "#000"; ctx.font = "bold 12px system-ui"; ctx.textAlign = "center";
+                    ctx.fillText("STICKER TROQUELADO V4", lastCustomCanvasV4.width/2, lastCustomCanvasV4.height/2);
+                }
             }
 
-            box.innerHTML = ""; box.appendChild(cineCanvas);
-
-            res.innerHTML = `
-            <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;">
-                <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">🎬 Color Grading Anamórfico V6 Ultra:</p>
-                <p>• LUT: <strong style="color:#FFF;">${lut.toUpperCase()}</strong> | Aspecto: <strong style="color:#00FFC8;">${aspect}</strong></p>
-                <p>• Grano 35mm: <strong style="color:#FFF;">${grain}%</strong> | Destello Óptico (Flare): <strong style="color:#00FFC8;">${flare}%</strong></p>
-                <button class="btn-action" style="margin-top:8px; width:100%; color:#00FFC8;" onclick="alert('✔ Fotograma enviado al Motion Engine V6 Ultra.')">🎥 Enviar Fotograma Anamórfico a Motion Engine V6</button>
-            </div>`;
+            box.innerHTML = "";
+            box.appendChild(lastCustomCanvasV4);
+            document.getElementById('customActionsV4').style.display = 'block';
         }
 
+        function downloadCustomAssetV4() {
+            if(!lastCustomCanvasV4) return;
+            const url = lastCustomCanvasV4.toDataURL('image/png');
+            const a = document.createElement('a'); a.href = url; a.download = `activo_v4_${Date.now()}.png`; a.click();
+        }
+
+        /* --- CONTROLADORES DE CAPTURA & GALERIA --- */
         async function capture() {
             canvas.width = video.videoWidth; canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
@@ -383,7 +768,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Bian V6 Master Suite (Cine Scope 21:9 V6 Ultra Integrated)",
+        "engine": "Bian V6 Master Suite (100% Fully Powered & Active)",
         "status": "online"
     }
 
