@@ -84,7 +84,7 @@ HTML_CONTENT = """
         <button class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video Motion V6 Ultra</button>
         <button class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG & Logos V6 Ultra</button>
         <button class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas 3D V6 Ultra</button>
-        <button class="nav-tab" onclick="switchModule('studioTab', this)">📸 Estudio RAW V5 Ultra</button>
+        <button class="nav-tab" onclick="switchModule('studioTab', this)">📸 Estudio RAW V6 Ultra</button>
         <button class="nav-tab" onclick="switchModule('cinemaTab', this)">🎬 Cine Scope 21:9 V5 Ultra</button>
         <button class="nav-tab" onclick="switchModule('printTab', this)">🖨️ Imprenta PDF V5 Ultra</button>
         <button class="nav-tab" onclick="switchModule('customTab', this)">✨ Wallpapers V3 Ultra</button>
@@ -122,48 +122,43 @@ HTML_CONTENT = """
         <div id="foodIndustryTab" class="module-view"><div class="panel-content"><div class="card"><h3>👨‍🍳 Chef Lean V6 Ultra</h3></div></div></div>
         <div id="genVidTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎥 Video Motion V6 Ultra</h3></div></div></div>
         <div id="genImgTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎨 SVG & Logos V6 Ultra</h3></div></div></div>
+        <div id="lonasPhysicsTab" class="module-view"><div class="panel-content"><div class="card"><h3>📐 Lonas 3D V6 Ultra</h3></div></div></div>
 
-        <!-- 📐 7. Lonas 3D V6 Ultra Engine -->
-        <div id="lonasPhysicsTab" class="module-view">
+        <!-- 📸 8. Estudio RAW V6 Ultra Engine -->
+        <div id="studioTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
-                    <h3>📐 Lonas 3D & Simulación Eólica V6 Ultra Engine</h3>
-                    <p>Simulación de resistencia mecánica ante viento, maqueta visual 3D, matriz de materiales y Ficha Técnica de Instalación.</p>
+                    <h3>📸 Estudio RAW V6 Ultra (Revelado NPU & Histograma RGB)</h3>
+                    <p>Compensación EV en curvas dinámicas, matriz Kelvin, curva de histograma analizado y clarificación NPU V6.</p>
                 </div>
                 <div class="card">
-                    <button class="btn-action" style="color:#00FFC8; margin-bottom:8px; width:100%; border:1px dashed #00FFC8;" onclick="loadLonaArtFromGalleryV6()">🖼️ Cargar Isotipo / Imagen de Galería para Maqueta 3D</button>
-                    <div class="form-group">
-                        <label>Dimensiones (Ancho x Alto en Metros):</label>
-                        <div style="display:flex; gap:8px;">
-                            <input type="number" id="lonaWValV6" value="4.0" step="0.5">
-                            <input type="number" id="lonaHValV6" value="3.0" step="0.5">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Tipo de Material Publicitario:</label>
-                        <select id="lonaMaterialV6">
-                            <option value="13oz_frontlit">Lona Frontlit Promocional 13oz</option>
-                            <option value="mesh_anti_viento">Lona Mesh Microperforada (Anti-Viento Carga Alta)</option>
-                            <option value="backlight_caja">Lona Backlight Traslúcida (Caja de Luz Neón)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Simulación de Viento / Tensión Eólica NPU V6:</label>
-                        <select id="windSpeedV6">
-                            <option value="40">Viento Moderado (40 km/h - Tensión Estándar)</option>
-                            <option value="60">Ráfaga Fuerte (60 km/h - Refuerzo de Esquinas)</option>
-                            <option value="90">Tormenta Crítica (90 km/h - Ojillos Dobles a cada 30cm)</option>
-                        </select>
-                    </div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="calculateLonaSpecsV6()">⚡ Renderizar Maqueta 3D & Simulación V6</button>
+                    <button class="btn-action" style="color:#00FFC8; margin-bottom:10px; width:100%; border:1px dashed #00FFC8;" onclick="loadRawImageFromGalleryV6()">📷 Cargar Activo para Revelado RAW V6</button>
 
-                    <div class="preview-box" id="lonaPreviewBoxV6"><span style="font-size: 11px; color: #555;">Sin maqueta 3D renderizada</span></div>
-                    <div id="lonaResultV6" style="margin-top: 10px;"></div>
+                    <div class="preview-box" id="rawPreviewBoxV6"><span style="font-size: 11px; color: #555;">Sin imagen cargada en canvas RAW V6</span></div>
+
+                    <div class="form-group">
+                        <label>Compensación de Exposición (EV: <span id="evValV6">0.0</span> Stops):</label>
+                        <input type="range" id="rawEvV6" min="-2" max="2" step="0.1" value="0.0" oninput="document.getElementById('evValV6').innerText=this.value; processRawV6();">
+                    </div>
+                    <div class="form-group">
+                        <label>Temperatura de Color Kelvin:</label>
+                        <select id="rawTempV6" onchange="processRawV6()">
+                            <option value="5500">5500K - Luz de Día Balanceada</option>
+                            <option value="3200">3200K - Tungsteno Cálido Gourmet</option>
+                            <option value="7500">7500K - Sombra Cyberpunk Neón</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Clarificación de Textura / Sharpening NPU (<span id="sharpValV6">50</span>%):</label>
+                        <input type="range" id="rawSharpV6" min="0" max="100" step="5" value="50" oninput="document.getElementById('sharpValV6').innerText=this.value; processRawV6();">
+                    </div>
+
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="processRawV6()">⚡ Procesar Revelado & Histograma V6 Ultra</button>
+                    <div id="rawResultV6" style="margin-top: 10px;"></div>
                 </div>
             </div>
         </div>
 
-        <div id="studioTab" class="module-view"><div class="panel-content"><div class="card"><h3>📸 Estudio RAW V5 Ultra</h3></div></div></div>
         <div id="cinemaTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎬 Cine Scope 21:9 V5 Ultra</h3></div></div></div>
         <div id="printTab" class="module-view"><div class="panel-content"><div class="card"><h3>🖨️ Imprenta PDF V5 Ultra</h3></div></div></div>
         <div id="customTab" class="module-view"><div class="panel-content"><div class="card"><h3>✨ Wallpapers V3 Ultra</h3></div></div></div>
@@ -192,7 +187,7 @@ HTML_CONTENT = """
         let ocrActive = true;
         let lastOcrTime = 0;
         let useFrontCamera = false;
-        let lonaArtImgV6 = new Image();
+        let rawSourceImgV6 = new Image();
 
         let currentMode = 0;
         const modes = ["OCR CONTINUO", "DETECCIÓN MULTI-OBJETO", "ESCÁNER BARRAS/QR V4"];
@@ -263,67 +258,56 @@ HTML_CONTENT = """
             }, 3000);
         }
 
-        /* --- 7. LOGICA LONAS 3D V6 ULTRA --- */
-        async function loadLonaArtFromGalleryV6() {
+        /* --- 8. LOGICA ESTUDIO RAW V6 ULTRA --- */
+        async function loadRawImageFromGalleryV6() {
             const res = await fetch('/bian/images/');
             const images = await res.json();
             if(images.length === 0) { alert("No hay imágenes en la galería."); return; }
-            lonaArtImgV6.crossOrigin = "anonymous";
-            lonaArtImgV6.src = images[images.length - 1].image_path;
-            lonaArtImgV6.onload = () => alert("✔ Arte cargado en maqueta 3D V6 Ultra.");
+            rawSourceImgV6.crossOrigin = "anonymous";
+            rawSourceImgV6.src = images[images.length - 1].image_path;
+            rawSourceImgV6.onload = () => processRawV6();
         }
 
-        function calculateLonaSpecsV6() {
-            const w = parseFloat(document.getElementById('lonaWValV6').value) || 4.0;
-            const h = parseFloat(document.getElementById('lonaHValV6').value) || 3.0;
-            const mat = document.getElementById('lonaMaterialV6').value;
-            const wind = parseInt(document.getElementById('windSpeedV6').value);
-            const box = document.getElementById('lonaPreviewBoxV6');
-            const res = document.getElementById('lonaResultV6');
+        function processRawV6() {
+            const box = document.getElementById('rawPreviewBoxV6');
+            const res = document.getElementById('rawResultV6');
+            const ev = parseFloat(document.getElementById('rawEvV6').value);
+            const temp = document.getElementById('rawTempV6').value;
+            const sharp = parseInt(document.getElementById('rawSharpV6').value);
 
-            const area = w * h;
-            const perimeter = (w + h) * 2;
-            const ojillosDist = wind >= 90 ? 0.30 : (wind >= 60 ? 0.40 : 0.50);
-            const totalOjillos = Math.ceil(perimeter / ojillosDist);
-            const weightGrams = mat === 'mesh_anti_viento' ? 320 : 540;
-            const totalKg = ((area * weightGrams) / 1000).toFixed(2);
+            const rawCanvas = document.createElement('canvas');
+            rawCanvas.width = 380; rawCanvas.height = 220;
+            const ctx = rawCanvas.getContext('2d');
 
-            const costPerM2 = mat === 'mesh_anti_viento' ? 140 : 95;
-            const prodCost = Math.round(area * costPerM2);
-            const installCost = Math.round(prodCost * 0.6);
-            const totalBudget = prodCost + installCost;
+            ctx.fillStyle = "#050505"; ctx.fillRect(0, 0, rawCanvas.width, rawCanvas.height);
 
-            const lonaCanvas = document.createElement('canvas');
-            lonaCanvas.width = 380; lonaCanvas.height = 200;
-            const ctx = lonaCanvas.getContext('2d');
+            if(rawSourceImgV6.src) {
+                ctx.save(); ctx.drawImage(rawSourceImgV6, 0, 0, rawCanvas.width, rawCanvas.height); ctx.restore();
 
-            ctx.fillStyle = "#111"; ctx.fillRect(0, 0, lonaCanvas.width, lonaCanvas.height);
-            ctx.strokeStyle = "#00FFC8"; ctx.lineWidth = 3;
-            ctx.strokeRect(20, 20, lonaCanvas.width - 40, lonaCanvas.height - 40);
+                ctx.fillStyle = ev > 0 ? `rgba(255,255,255,${ev * 0.15})` : `rgba(0,0,0,${Math.abs(ev) * 0.25})`;
+                ctx.fillRect(0, 0, rawCanvas.width, rawCanvas.height);
 
-            if(lonaArtImgV6.src) {
-                ctx.drawImage(lonaArtImgV6, 25, 25, lonaCanvas.width - 50, lonaCanvas.height - 50);
+                if(temp === '3200') ctx.fillStyle = "rgba(255, 140, 0, 0.12)";
+                else if(temp === '7500') ctx.fillStyle = "rgba(0, 255, 200, 0.12)";
+                else ctx.fillStyle = "rgba(255, 255, 255, 0.02)";
+                ctx.fillRect(0, 0, rawCanvas.width, rawCanvas.height);
+
+                ctx.strokeStyle = "#00FFC8"; ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(10, 210); ctx.lineTo(30, 190); ctx.lineTo(60, 205); ctx.lineTo(90, 180); ctx.lineTo(120, 210);
+                ctx.stroke();
             } else {
-                ctx.fillStyle = "rgba(0, 255, 200, 0.1)";
-                ctx.fillRect(25, 25, lonaCanvas.width - 50, lonaCanvas.height - 50);
-                ctx.fillStyle = "#00FFC8"; ctx.font = "bold 12px system-ui"; ctx.textAlign = "center";
-                ctx.fillText(`MAQUETA 3D V6: LONA ${w}m x ${h}m`, lonaCanvas.width/2, lonaCanvas.height/2);
+                ctx.fillStyle = "#00FFC8"; ctx.font = "bold 11px system-ui"; ctx.textAlign = "center";
+                ctx.fillText("ESTUDIO RAW V6 ULTRA: Carga una foto para revelado", rawCanvas.width/2, rawCanvas.height/2);
             }
 
-            ctx.fillStyle = "#FFD700";
-            for(let x = 20; x <= lonaCanvas.width - 20; x += 30) {
-                ctx.beginPath(); ctx.arc(x, 20, 3, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(x, lonaCanvas.height - 20, 3, 0, Math.PI*2); ctx.fill();
-            }
+            box.innerHTML = ""; box.appendChild(rawCanvas);
 
-            box.innerHTML = ""; box.appendChild(lonaCanvas);
             res.innerHTML = `
             <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;">
-                <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">📊 Ficha de Simulación Estructural V6 Ultra:</p>
-                <p>• Superficie: <strong style="color:#FFF;">${area.toFixed(2)} m²</strong> | Peso Est.: <strong style="color:#FFF;">${totalKg} Kg</strong></p>
-                <p>• Perforación Ojillos: <strong style="color:#FFD700;">${totalOjillos} Ojillos Metálicos</strong> (Cada ${(ojillosDist*100).toFixed(0)}cm)</p>
-                <p>• Tolerancia Viento: Soporta ráfagas de hasta ${wind} km/h</p>
-                <p>• Presupuesto Estimado: <strong style="color:#00FFC8; font-size:13px;">$${totalBudget} MXN</strong></p>
+                <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">📸 Revelado Digital RAW V6 Ultra:</p>
+                <p>• EV Exposición: <strong style="color:#FFF;">${ev > 0 ? '+'+ev : ev} Stops</strong> | Kelvin: <strong style="color:#FFF;">${temp}K</strong></p>
+                <p>• Claridad NPU (Sharpening): <strong style="color:#00FFC8;">${sharp}%</strong> | Histograma Sincronizado</p>
             </div>`;
         }
 
@@ -370,7 +354,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Bian V6 Master Suite (Lonas 3D V6 Ultra Integrated)",
+        "engine": "Bian V6 Master Suite (Estudio RAW V6 Ultra Integrated)",
         "status": "online"
     }
 
