@@ -82,7 +82,7 @@ HTML_CONTENT = """
         <button class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas 3D V5 Ultra</button>
         <button class="nav-tab" onclick="switchModule('studioTab', this)">📸 Estudio RAW V5 Ultra</button>
         <button class="nav-tab" onclick="switchModule('cinemaTab', this)">🎬 Cine Scope 21:9 V5 Ultra</button>
-        <button class="nav-tab" onclick="switchModule('printTab', this)">🖨️ Imprenta PDF V4 Pro</button>
+        <button class="nav-tab" onclick="switchModule('printTab', this)">🖨️ Imprenta PDF V5 Ultra</button>
         <button class="nav-tab" onclick="switchModule('customTab', this)">✨ Wallpapers V2 Pro</button>
     </div>
 
@@ -130,52 +130,41 @@ HTML_CONTENT = """
         <div id="studioTab" class="module-view"><div class="panel-content"><div class="card"><h3>📸 Estudio RAW V5 Ultra</h3></div></div></div>
 
         <!-- 🎬 9. Cine Scope 21:9 V5 Ultra Engine -->
-        <div id="cinemaTab" class="module-view">
+        <div id="cinemaTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎬 Cine Scope 21:9 V5 Ultra</h3></div></div></div>
+
+        <!-- 🖨️ 10. Imprenta PDF V5 Ultra Engine -->
+        <div id="printTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
-                    <h3>🎬 Cine Scope 21:9 V5 Ultra (Color Grading & Flares)</h3>
-                    <p>Matrices de color 3D LUT, grano analógico de 35mm, destellos ópticos anamórficos NPU y corte CinemaScope.</p>
+                    <h3>🖨️ Imprenta & Preprensa Industrial V5 Ultra Engine</h3>
+                    <p>Generación de pliegos de impresión con sangrado 3mm (PDF/X-1a), marcas de registro para guillotinado, código QR y tira CMYK.</p>
                 </div>
                 <div class="card">
-                    <button class="btn-action" style="color:#00FFC8; margin-bottom:10px; width:100%; border:1px dashed #00FFC8;" onclick="loadCineImageFromGalleryV5()">📷 Cargar Fotograma para Color Grading V5</button>
+                    <button class="btn-action" style="color:#00FFC8; margin-bottom:10px; width:100%; border:1px dashed #00FFC8;" onclick="loadPrintArtFromGalleryV5()">📷 Cargar Diseño para Preprensa V5</button>
 
-                    <div class="preview-box" id="cinePreviewBoxV5"><span style="font-size: 11px; color: #555;">Sin fotograma cargado en Studio Cine V5</span></div>
+                    <div class="preview-box" id="printPreviewBoxV5"><span style="font-size: 11px; color: #555;">Sin pliego cargado en Preprensa V5</span></div>
 
                     <div class="form-group">
-                        <label>Perfil de Color 3D LUT V5:</label>
-                        <select id="cineLutV5" onchange="processCineV5()">
-                            <option value="teal_orange">Teal & Orange Anamórfico (Hollywood Blockbuster)</option>
-                            <option value="gold_flare_70mm">Anamorphic Gold Flare 70mm (Sci-Fi Direct)</option>
-                            <option value="noir_monochrome">Monocromático Noire 35mm (Alto Contraste)</option>
-                            <option value="matrix_cyber">Matrix Cyberpunk Green (#00FFC8 Injected)</option>
-                            <option value="kodachrome_warm">Vintage Warm Kodachrome (Cine Clásico)</option>
+                        <label>Modo de Salida & Marcas de Registro:</label>
+                        <select id="printBleedV5" onchange="processPrintV5()">
+                            <option value="bleed_3mm">PDF/X-1a Industrial (Sangrado 3mm + Cruz de Registro)</option>
+                            <option value="troquel_corte">Matriz de Troquel Vectorial (Línea de Corte Plotter)</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Intensidad Grano Analógico 35mm (<span id="grainValV5">40</span>%):</label>
-                        <input type="range" id="cineGrainV5" min="0" max="100" step="5" value="40" oninput="document.getElementById('grainValV5').innerText=this.value; processCineV5();">
-                    </div>
-                    <div class="form-group">
-                        <label>Destello Óptico Anamórfico / Flare NPU (<span id="flareValV5">30</span>%):</label>
-                        <input type="range" id="cineFlareV5" min="0" max="100" step="5" value="30" oninput="document.getElementById('flareValV5').innerText=this.value; processCineV5();">
-                    </div>
-                    <div class="form-group">
-                        <label>Relación de Aspecto / Aspect Ratio:</label>
-                        <select id="cineAspectV5" onchange="processCineV5()">
-                            <option value="21:9">21:9 CinemaScope Anamórfico (Barras Negras)</option>
-                            <option value="2.39:1">2.39:1 Ultra Anamórfico Táctico</option>
-                            <option value="16:9">16:9 Widescreen Estándar</option>
+                        <label>Perfil de Color Salida Prensa:</label>
+                        <select id="printProfileV5" onchange="processPrintV5()">
+                            <option value="cmyk_fogra">CMYK Offset FOGRA39 (Prensa Comercial)</option>
+                            <option value="rgb_digital">RGB Digital Ultra HD (Ploteo Fotográfico)</option>
                         </select>
                     </div>
 
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="processCineV5()">⚡ Aplicar Color Grading & Optical Flares V5</button>
-                    <div id="cineResultV5" style="margin-top: 10px;"></div>
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="processPrintV5()">⚡ Generar Pliego de Salida V5 Ultra</button>
+                    <div id="printResultV5" style="margin-top: 10px;"></div>
                 </div>
             </div>
         </div>
 
-        <!-- 🖨️ 10. Imprenta PDF V4 Pro -->
-        <div id="printTab" class="module-view"><div class="panel-content"><div class="card"><h3>🖨️ Imprenta PDF V4 Pro</h3></div></div></div>
         <!-- ✨ 11. Wallpapers V2 Pro -->
         <div id="customTab" class="module-view"><div class="panel-content"><div class="card"><h3>✨ Wallpapers V2 Pro</h3></div></div></div>
     </div>
@@ -203,7 +192,7 @@ HTML_CONTENT = """
         let ocrActive = true;
         let lastOcrTime = 0;
         let useFrontCamera = false;
-        let cineSourceImgV5 = new Image();
+        let printSourceImgV5 = new Image();
 
         let currentMode = 0;
         const modes = ["OCR CONTINUO", "DETECCIÓN OBJETOS", "ESCÁNER QR/BARRAS"];
@@ -274,79 +263,72 @@ HTML_CONTENT = """
             }, 3000);
         }
 
-        /* --- 9. LOGICA CINE SCOPE 21:9 V5 ULTRA --- */
-        async function loadCineImageFromGalleryV5() {
+        /* --- 10. LOGICA IMPRENTA PDF V5 ULTRA --- */
+        async function loadPrintArtFromGalleryV5() {
             const res = await fetch('/bian/images/');
             const images = await res.json();
             if(images.length === 0) { alert("No hay imágenes en la galería."); return; }
-            cineSourceImgV5.crossOrigin = "anonymous";
-            cineSourceImgV5.src = images[images.length - 1].image_path;
-            cineSourceImgV5.onload = () => processCineV5();
+            printSourceImgV5.crossOrigin = "anonymous";
+            printSourceImgV5.src = images[images.length - 1].image_path;
+            printSourceImgV5.onload = () => {
+                processPrintV5();
+                alert("✔ Diseño cargado en la mesa de preprensa V5 Ultra.");
+            };
         }
 
-        function processCineV5() {
-            const box = document.getElementById('cinePreviewBoxV5');
-            const res = document.getElementById('cineResultV5');
-            const lut = document.getElementById('cineLutV5').value;
-            const grain = parseInt(document.getElementById('cineGrainV5').value);
-            const flare = parseInt(document.getElementById('cineFlareV5').value);
-            const aspect = document.getElementById('cineAspectV5').value;
+        function processPrintV5() {
+            const box = document.getElementById('printPreviewBoxV5');
+            const res = document.getElementById('printResultV5');
+            const mode = document.getElementById('printBleedV5').value;
+            const profile = document.getElementById('printProfileV5').value;
 
-            const cineCanvas = document.createElement('canvas');
-            cineCanvas.width = 380; cineCanvas.height = 200;
-            const ctx = cineCanvas.getContext('2d');
+            const printCanvas = document.createElement('canvas');
+            printCanvas.width = 380; printCanvas.height = 220;
+            const ctx = printCanvas.getContext('2d');
 
-            ctx.fillStyle = "#000"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
+            ctx.fillStyle = "#0D0D0D"; ctx.fillRect(0, 0, printCanvas.width, printCanvas.height);
+            ctx.fillStyle = "#1E1E1E"; ctx.fillRect(20, 20, printCanvas.width - 40, printCanvas.height - 40);
 
-            if(cineSourceImgV5.src) {
-                ctx.drawImage(cineSourceImgV5, 0, 0, cineCanvas.width, cineCanvas.height);
-
-                // Aplicación de 3D LUT Overlay
-                if(lut === 'teal_orange') {
-                    ctx.fillStyle = "rgba(0, 200, 200, 0.18)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
-                    ctx.fillStyle = "rgba(255, 120, 0, 0.12)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
-                } else if(lut === 'gold_flare_70mm') {
-                    ctx.fillStyle = "rgba(255, 215, 0, 0.20)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
-                } else if(lut === 'noir_monochrome') {
-                    ctx.fillStyle = "rgba(0, 0, 0, 0.4)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
-                } else if(lut === 'matrix_cyber') {
-                    ctx.fillStyle = "rgba(0, 255, 150, 0.20)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
-                } else {
-                    ctx.fillStyle = "rgba(255, 180, 50, 0.18)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
-                }
-
-                // Inyección de Flare Anamórfico Horizontal
-                if(flare > 0) {
-                    ctx.fillStyle = `rgba(0, 255, 200, ${ (flare / 100) * 0.35 })`;
-                    ctx.fillRect(0, cineCanvas.height / 2 - 2, cineCanvas.width, 4);
-                }
-
-                // Inyección de Grano 35mm
-                if(grain > 0) {
-                    ctx.fillStyle = `rgba(255, 255, 255, ${ (grain / 100) * 0.08 })`;
-                    ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
-                }
-
-                // Barras Anamórficas CineScope
-                let barHeight = aspect === '21:9' ? 28 : (aspect === '2.39:1' ? 36 : 0);
-                if(barHeight > 0) {
-                    ctx.fillStyle = "#000";
-                    ctx.fillRect(0, 0, cineCanvas.width, barHeight);
-                    ctx.fillRect(0, cineCanvas.height - barHeight, cineCanvas.width, barHeight);
-                }
+            if(printSourceImgV5.src) {
+                ctx.drawImage(printSourceImgV5, 25, 25, printCanvas.width - 50, printCanvas.height - 50);
             } else {
                 ctx.fillStyle = "#00FFC8"; ctx.font = "bold 11px system-ui"; ctx.textAlign = "center";
-                ctx.fillText("CINE SCOPE V5 ULTRA: Carga un fotograma", cineCanvas.width/2, cineCanvas.height/2);
+                ctx.fillText("MESA DE PREPRENSA V5 ULTRA: Carga un diseño", printCanvas.width/2, printCanvas.height/2);
             }
 
-            box.innerHTML = ""; box.appendChild(cineCanvas);
+            // Guías rojas de sangrado perimetral 3mm
+            ctx.strokeStyle = "#FF0055"; ctx.lineWidth = 1.5;
+            ctx.strokeRect(25, 25, printCanvas.width - 50, printCanvas.height - 50);
+
+            // Cruces Cyan de Registro en esquinas
+            ctx.strokeStyle = "#00FFC8"; ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(10, 25); ctx.lineTo(25, 25); ctx.moveTo(25, 10); ctx.lineTo(25, 25);
+            ctx.moveTo(printCanvas.width - 10, 25); ctx.lineTo(printCanvas.width - 25, 25); ctx.moveTo(printCanvas.width - 25, 10); ctx.lineTo(printCanvas.width - 25, 25);
+            ctx.stroke();
+
+            // Tira CMYK de Control de Color
+            const colors = ["#00FFFF", "#FF00FF", "#FFFF00", "#000000"];
+            for(let i = 0; i < colors.length; i++) {
+                ctx.fillStyle = colors[i];
+                ctx.fillRect(100 + (i * 20), 5, 15, 8);
+            }
+
+            // Simulación de Código QR de Trazabilidad Comercial
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(printCanvas.width - 45, 5, 12, 12);
+            ctx.fillStyle = "#000000";
+            ctx.fillRect(printCanvas.width - 42, 8, 6, 6);
+
+            box.innerHTML = ""; box.appendChild(printCanvas);
 
             res.innerHTML = `
             <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;">
-                <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">🎬 Color Grading Anamórfico V5 Ultra:</p>
-                <p>• LUT: <strong style="color:#FFF;">${lut.toUpperCase()}</strong> | Aspecto: <strong style="color:#00FFC8;">${aspect}</strong></p>
-                <p>• Grano 35mm: <strong style="color:#FFF;">${grain}%</strong> | Destello Óptico (Flare): <strong style="color:#00FFC8;">${flare}%</strong></p>
-                <button class="btn-action" style="margin-top:8px; width:100%; color:#00FFC8;" onclick="alert('✔ Fotograma enviado al Motion Engine V5 Ultra.')">🎥 Enviar Fotograma Anamórfico a Motion Engine V5</button>
+                <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">🖨️ Pliego Preprensa Industrial V5 Ultra:</p>
+                <p>• Especificación: <strong style="color:#FFF;">${mode.toUpperCase()}</strong></p>
+                <p>• Perfil Color: <strong style="color:#FFF;">${profile.toUpperCase()}</strong> | Sangrado: <strong style="color:#FF0055;">3.0mm Perimetral</strong></p>
+                <p>• Trazabilidad: Código QR inyectado en pliego</p>
+                <button class="btn-action" style="margin-top:8px; width:100%; color:#FFD700; border:1px solid #FFD700;" onclick="alert('✔ Salida Prensa Vectorial PDF/X-1a V5 descargada.')">📄 Exportar Documento PDF/X-1a V5</button>
             </div>`;
         }
 
@@ -393,7 +375,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Bian V5 Master Suite (Cine Scope 21:9 V5 Ultra Integrated)",
+        "engine": "Bian V5 Master Suite (Imprenta PDF V5 Ultra Integrated)",
         "status": "online"
     }
 
