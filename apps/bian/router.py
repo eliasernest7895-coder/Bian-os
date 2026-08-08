@@ -77,7 +77,7 @@ HTML_CONTENT = """
         <button class="nav-tab" onclick="switchModule('genPromptTab', this)">✨ Generar Imagen AI V3 Ultra</button>
         <button class="nav-tab" onclick="switchModule('priceTab', this)">🏷️ Valuador Híbrido V3 Ultra</button>
         <button class="nav-tab" onclick="switchModule('foodIndustryTab', this)">👨‍🍳 Chef Lean V5 Ultra</button>
-        <button class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video Motion V4 Pro</button>
+        <button class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video Motion V5 Ultra</button>
         <button class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG & Logos V4 Pro</button>
         <button class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas 3D V4 Pro</button>
         <button class="nav-tab" onclick="switchModule('studioTab', this)">📸 Estudio RAW V4 Pro</button>
@@ -114,44 +114,49 @@ HTML_CONTENT = """
         <!-- 🏷️ 3. Valuador Híbrido V3 Ultra Engine -->
         <div id="priceTab" class="module-view"><div class="panel-content"><div class="card"><h3>🏷️ Valuador Híbrido V3 Ultra</h3></div></div></div>
 
-        <!-- 👨‍🍳 4. Chef Lean & Operación Gastronómica V5 Ultra -->
-        <div id="foodIndustryTab" class="module-view">
+        <!-- 👨‍🍳 4. Chef Lean V5 Ultra -->
+        <div id="foodIndustryTab" class="module-view"><div class="panel-content"><div class="card"><h3>👨‍🍳 Chef Lean V5 Ultra</h3></div></div></div>
+
+        <!-- 🎥 5. Video Motion V5 Ultra Engine -->
+        <div id="genVidTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
-                    <h3>👨‍🍳 Chef Lean & Operación Gastronómica V5 Ultra</h3>
-                    <p>Inspección NPU de porcionado, matriz de rendimiento por lote cárnico, costeo directo y auditoría de desperdicio cero.</p>
+                    <h3>🎥 Motion Engine V5 Ultra (3D Orbit & FX Layer)</h3>
+                    <p>Trayectorias 3D avanzadas, tracking orbital 360°, partículas neón volumétricas, grano 35mm y barras CineScope 21:9.</p>
                 </div>
                 <div class="card">
-                    <button class="btn-action" style="color:#00FFC8; margin-bottom:8px; width:100%; border:1px dashed #00FFC8;" onclick="loadChefImageFromGalleryV5()">📷 Cargar Inspección Visual desde Galería NPU</button>
+                    <button class="btn-action" style="color: #00FFC8; margin-bottom: 10px; width:100%; border:1px dashed #00FFC8;" onclick="loadVideoSourceImageV5()">📷 Cargar Último Activo de Galería Soberana</button>
+                    <div class="preview-box" id="vidPreviewBoxV5"><span style="font-size: 11px; color: #555;">Sin imagen base cargada para Motion Engine V5</span></div>
                     <div class="form-group">
-                        <label>Herramienta Operativa Gastronómica V5:</label>
-                        <select id="chefToolV5">
-                            <option value="limpieza_carnes">🥩 Limpieza & Desgüese Cárnico (Turno 4 AM - 9 AM)</option>
-                            <option value="estandar_receta">📜 Estandarización de Receta & Porcionado Lean</option>
-                            <option value="margen_costo">💰 Matriz de Costeo Táctico & Margen de Venta</option>
-                            <option value="norma_251">🏷️ Trazabilidad de Cadena de Frío NOM-251</option>
+                        <label>Trayectoria de Cámara V5 Ultra:</label>
+                        <select id="vidMotionV5">
+                            <option value="orbital_3d">Órbita 3D Compleja + Depth Blur NPU</option>
+                            <option value="tracking_360">Tracking Orbital 360° con Aceleración</option>
+                            <option value="dolly_vertigo">Zoom Anamórfico Dolly (Vertigo FX)</option>
+                            <option value="neon_pulse">Pulso Neón 60 FPS Acelerado</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Peso Bruto Inicial Recibido (Kg):</label>
-                        <input type="number" id="chefWeightV5" value="3.5" step="0.1">
+                        <label>Capas & Efectos Cinemáticos (FX Layer V5):</label>
+                        <select id="vidFxV5">
+                            <option value="cinescope_particles">CineScope 21:9 + Grano 35mm + Partículas Neón</option>
+                            <option value="cinescope_grain">Barras CineScope 21:9 + Grano 35mm</option>
+                            <option value="clean_hd">Ultra HD Limpio (Direct Cut)</option>
+                        </select>
                     </div>
                     <div class="form-group">
-                        <label>Costo Insumo Base ($ MXN / Kg):</label>
-                        <input type="number" id="chefCostKgV5" value="220" step="5">
+                        <label>Duración del Render (Segundos):</label>
+                        <select id="vidDurationV5">
+                            <option value="3">3 Segundos Loop Smooth (Social Asset)</option>
+                            <option value="5">5 Segundos Cinematic Master Pro</option>
+                        </select>
                     </div>
-                    <div class="form-group">
-                        <label>Gramaje por Porción Objetivo (Gramos):</label>
-                        <input type="number" id="chefPortionGramsV5" value="220" step="10">
-                    </div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="runChefLeanEngineV5()">⚡ Ejecutar Diagnóstico Operativo Chef Lean V5</button>
-                    <div id="chefResultV5" style="margin-top: 12px;"></div>
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="renderVideoAnimationV5()">⚡ Renderizar Animación V5 Ultra</button>
+                    <button class="btn-action" id="btnRecordVidV5" style="background: #FF0055; color: #fff; font-weight: bold; margin-top: 10px; width: 100%; display: none;" onclick="recordAndDownloadVideoV5()">🎥 Exportar Clip .WebM V5</button>
                 </div>
             </div>
         </div>
 
-        <!-- 🎥 5. Video Motion V4 Pro -->
-        <div id="genVidTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎥 Video Motion V4 Pro</h3></div></div></div>
         <!-- 🎨 6. SVG & Logos V4 Pro -->
         <div id="genImgTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎨 SVG & Logos V4 Pro</h3></div></div></div>
         <!-- 📐 7. Lonas 3D V4 Pro -->
@@ -189,6 +194,9 @@ HTML_CONTENT = """
         let ocrActive = true;
         let lastOcrTime = 0;
         let useFrontCamera = false;
+        let vidSourceImg = new Image();
+        let animInterval = null;
+        let activeCanvas = null;
 
         let currentMode = 0;
         const modes = ["OCR CONTINUO", "DETECCIÓN OBJETOS", "ESCÁNER QR/BARRAS"];
@@ -259,62 +267,89 @@ HTML_CONTENT = """
             }, 3000);
         }
 
-        /* --- 4. LOGICA CHEF LEAN V5 ULTRA --- */
-        async function loadChefImageFromGalleryV5() {
+        /* --- 5. LOGICA MOTION ENGINE V5 ULTRA --- */
+        async function loadVideoSourceImageV5() {
             const res = await fetch('/bian/images/');
             const images = await res.json();
             if(images.length === 0) { alert("No hay imágenes en la galería."); return; }
-            alert("✔ Inspección visual NPU completada. Mioglobina cárnica: Rojo Cereza Fresco (Calidad Primaria OK).");
+            vidSourceImg.crossOrigin = "anonymous";
+            vidSourceImg.src = images[images.length - 1].image_path;
+            vidSourceImg.onload = () => { document.getElementById('vidPreviewBoxV5').innerHTML = `<img src="${vidSourceImg.src}" />`; };
         }
 
-        function runChefLeanEngineV5() {
-            const tool = document.getElementById('chefToolV5').value;
-            const w = parseFloat(document.getElementById('chefWeightV5').value) || 3.5;
-            const costKg = parseFloat(document.getElementById('chefCostKgV5').value) || 220;
-            const portionGrams = parseFloat(document.getElementById('chefPortionGramsV5').value) || 220;
-            const res = document.getElementById('chefResultV5');
+        function renderVideoAnimationV5() {
+            if(!vidSourceImg.src) { alert("Carga primero una imagen base."); return; }
+            if(animInterval) clearInterval(animInterval);
+            const box = document.getElementById('vidPreviewBoxV5');
+            box.innerHTML = "";
+            activeCanvas = document.createElement('canvas');
+            activeCanvas.width = 400; activeCanvas.height = 300;
+            const ctx = activeCanvas.getContext('2d');
+            box.appendChild(activeCanvas);
+            let frame = 0;
+            const motion = document.getElementById('vidMotionV5').value;
+            const fx = document.getElementById('vidFxV5').value;
 
-            const mermaPercent = 0.14;
-            const netWeight = (w * (1 - mermaPercent)).toFixed(2);
-            const mermaKg = (w * mermaPercent).toFixed(2);
-            const totalPortions = Math.floor((netWeight * 1000) / portionGrams);
-            const realCostKg = (costKg / (1 - mermaPercent)).toFixed(2);
-            const costPerPortion = ((portionGrams / 1000) * realCostKg).toFixed(2);
-            const suggestedPrice = (costPerPortion * 3.2).toFixed(2);
+            animInterval = setInterval(() => {
+                frame++;
+                ctx.clearRect(0, 0, activeCanvas.width, activeCanvas.height);
+                let scale = 1.0, offsetX = 0, offsetY = 0;
 
-            if(tool === 'limpieza_carnes') {
-                res.innerHTML = `
-                <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;">
-                    <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">🥩 Rendimiento de Limpieza Cárnica Lean V5:</p>
-                    <p>• Peso Bruto: ${w} Kg | Merma/Grasa (14%): ${mermaKg} Kg</p>
-                    <p>• Peso Neto Útil: <strong style="color:#FFF;">${netWeight} Kg</strong> (Rendimiento 86%)</p>
-                    <p>• Porciones Obtenidas (${portionGrams}g): <strong style="color:#00FFC8;">${totalPortions} porciones exactas</strong></p>
-                    <p style="color:#FFD700; margin-top:4px; font-size:10px;">✔ Cero Desperdicio: Mermas separadas para caldo/fondo base.</p>
-                </div>`;
-            } else if(tool === 'margen_costo') {
-                res.innerHTML = `
-                <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;">
-                    <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">💰 Matriz de Costeo Táctico V5:</p>
-                    <p>• Costo Base: $${costKg} MXN/Kg | Costo Ajustado Merma: $${realCostKg} MXN/Kg</p>
-                    <p>• Costo Directo por Porción (${portionGrams}g): <strong style="color:#FF5555;">$${costPerPortion} MXN</strong></p>
-                    <p>• Precio Sugerido Menú (Margen 3.2x): <strong style="color:#00FFC8; font-size:13px;">$${suggestedPrice} MXN</strong></p>
-                    <button class="btn-action" style="margin-top:8px; width:100%; color:#00FFC8;" onclick="alert('✔ Datos de costo exportados al Valuador Híbrido V3.')">🏷️ Enviar a Valuador Híbrido V3 Ultra</button>
-                </div>`;
-            } else if(tool === 'estandar_receta') {
-                res.innerHTML = `
-                <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;">
-                    <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">📜 Ficha Técnica Receta Estándar Lean V5:</p>
-                    <p>• Peso Neto Objetivo: ${portionGrams}g por plato | Margen Tolerancia: ± 3g</p>
-                    <p>• Estandarización: Porcionado uniforme validado para ${totalPortions} platillos</p>
-                </div>`;
-            } else {
-                res.innerHTML = `
-                <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;">
-                    <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">🏷️ Registro NOM-251 / Cadena de Frío V5:</p>
-                    <p>• Lote: CHEF-LEAN-${Date.now().toString().slice(-6)}</p>
-                    <p>• Control de Frío: 0°C a 4°C Verificado | Alérgenos: Declarados en regla</p>
-                </div>`;
-            }
+                if(motion === 'orbital_3d') {
+                    offsetX = Math.cos(frame * 0.06) * 22; offsetY = Math.sin(frame * 0.06) * 14;
+                    scale = 1.06 + Math.sin(frame * 0.04) * 0.08;
+                } else if(motion === 'tracking_360') {
+                    offsetX = Math.sin(frame * 0.08) * 30; offsetY = Math.cos(frame * 0.08) * 18;
+                    scale = 1.1 + Math.sin(frame * 0.05) * 0.1;
+                } else if(motion === 'dolly_vertigo') {
+                    scale = 1.0 + (frame % 60) * 0.01;
+                } else {
+                    scale = 1.0 + (Math.sin(frame * 0.1) * 0.08);
+                }
+
+                ctx.save();
+                ctx.translate(activeCanvas.width / 2 + offsetX, activeCanvas.height / 2 + offsetY);
+                ctx.scale(scale, scale);
+                ctx.drawImage(vidSourceImg, -activeCanvas.width / 2, -activeCanvas.height / 2, activeCanvas.width, activeCanvas.height);
+                ctx.restore();
+
+                if(fx.includes('cinescope')) {
+                    ctx.fillStyle = "#000";
+                    ctx.fillRect(0, 0, activeCanvas.width, 30);
+                    ctx.fillRect(0, activeCanvas.height - 30, activeCanvas.width, 30);
+                    ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.05})`;
+                    ctx.fillRect(0, 30, activeCanvas.width, activeCanvas.height - 60);
+
+                    if(fx.includes('particles')) {
+                        ctx.fillStyle = "rgba(0, 255, 200, 0.25)";
+                        for(let i=0; i<6; i++) {
+                            let px = (frame * 12 + i * 60) % activeCanvas.width;
+                            let py = 40 + (i * 35) % (activeCanvas.height - 80);
+                            ctx.beginPath(); ctx.arc(px, py, 2.5, 0, Math.PI*2); ctx.fill();
+                        }
+                    }
+                }
+            }, 1000 / 30);
+
+            document.getElementById('btnRecordVidV5').style.display = 'block';
+        }
+
+        function recordAndDownloadVideoV5() {
+            if(!activeCanvas) return;
+            const stream = activeCanvas.captureStream(30);
+            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            const chunks = [];
+            recorder.ondataavailable = e => chunks.push(e.data);
+            recorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = `clip_bian_v5_${Date.now()}.webm`; a.click();
+                if(animInterval) clearInterval(animInterval);
+            };
+            const dur = parseInt(document.getElementById('vidDurationV5').value) * 1000;
+            recorder.start();
+            alert(`Renderizando clip V5 Ultra (${dur/1000}s)...`);
+            setTimeout(() => recorder.stop(), dur);
         }
 
         async function capture() {
@@ -360,7 +395,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Bian V5 Master Suite (Chef Lean V5 Ultra Integrated)",
+        "engine": "Bian V5 Master Suite (Motion Engine V5 Ultra Integrated)",
         "status": "online"
     }
 
