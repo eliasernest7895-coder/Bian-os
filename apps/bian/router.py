@@ -85,7 +85,7 @@ HTML_CONTENT = """
         <button class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG & Logos V6 Ultra</button>
         <button class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas 3D V6 Ultra</button>
         <button class="nav-tab" onclick="switchModule('studioTab', this)">📸 Estudio RAW V6 Ultra</button>
-        <button class="nav-tab" onclick="switchModule('cinemaTab', this)">🎬 Cine Scope 21:9 V5 Ultra</button>
+        <button class="nav-tab" onclick="switchModule('cinemaTab', this)">🎬 Cine Scope 21:9 V6 Ultra</button>
         <button class="nav-tab" onclick="switchModule('printTab', this)">🖨️ Imprenta PDF V5 Ultra</button>
         <button class="nav-tab" onclick="switchModule('customTab', this)">✨ Wallpapers V3 Ultra</button>
     </div>
@@ -123,43 +123,53 @@ HTML_CONTENT = """
         <div id="genVidTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎥 Video Motion V6 Ultra</h3></div></div></div>
         <div id="genImgTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎨 SVG & Logos V6 Ultra</h3></div></div></div>
         <div id="lonasPhysicsTab" class="module-view"><div class="panel-content"><div class="card"><h3>📐 Lonas 3D V6 Ultra</h3></div></div></div>
+        <div id="studioTab" class="module-view"><div class="panel-content"><div class="card"><h3>📸 Estudio RAW V6 Ultra</h3></div></div></div>
 
-        <!-- 📸 8. Estudio RAW V6 Ultra Engine -->
-        <div id="studioTab" class="module-view">
+        <!-- 🎬 9. Cine Scope 21:9 V6 Ultra Engine -->
+        <div id="cinemaTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
-                    <h3>📸 Estudio RAW V6 Ultra (Revelado NPU & Histograma RGB)</h3>
-                    <p>Compensación EV en curvas dinámicas, matriz Kelvin, curva de histograma analizado y clarificación NPU V6.</p>
+                    <h3>🎬 Cine Scope 21:9 V6 Ultra (Color Grading & Optical Flares)</h3>
+                    <p>Matrices de color 3D LUT, grano analógico de 35mm, destellos ópticos anamórficos NPU y corte CinemaScope.</p>
                 </div>
                 <div class="card">
-                    <button class="btn-action" style="color:#00FFC8; margin-bottom:10px; width:100%; border:1px dashed #00FFC8;" onclick="loadRawImageFromGalleryV6()">📷 Cargar Activo para Revelado RAW V6</button>
+                    <button class="btn-action" style="color:#00FFC8; margin-bottom:10px; width:100%; border:1px dashed #00FFC8;" onclick="loadCineImageFromGalleryV6()">📷 Cargar Fotograma para Color Grading V6</button>
 
-                    <div class="preview-box" id="rawPreviewBoxV6"><span style="font-size: 11px; color: #555;">Sin imagen cargada en canvas RAW V6</span></div>
+                    <div class="preview-box" id="cinePreviewBoxV6"><span style="font-size: 11px; color: #555;">Sin fotograma cargado en Studio Cine V6</span></div>
 
                     <div class="form-group">
-                        <label>Compensación de Exposición (EV: <span id="evValV6">0.0</span> Stops):</label>
-                        <input type="range" id="rawEvV6" min="-2" max="2" step="0.1" value="0.0" oninput="document.getElementById('evValV6').innerText=this.value; processRawV6();">
-                    </div>
-                    <div class="form-group">
-                        <label>Temperatura de Color Kelvin:</label>
-                        <select id="rawTempV6" onchange="processRawV6()">
-                            <option value="5500">5500K - Luz de Día Balanceada</option>
-                            <option value="3200">3200K - Tungsteno Cálido Gourmet</option>
-                            <option value="7500">7500K - Sombra Cyberpunk Neón</option>
+                        <label>Perfil de Color 3D LUT V6:</label>
+                        <select id="cineLutV6" onchange="processCineV6()">
+                            <option value="teal_orange">Teal & Orange Anamórfico (Hollywood Blockbuster)</option>
+                            <option value="gold_flare_70mm">Anamorphic Gold Flare 70mm (Sci-Fi Direct)</option>
+                            <option value="noir_monochrome">Monocromático Noire 35mm (Alto Contraste)</option>
+                            <option value="matrix_cyber">Matrix Cyberpunk Green (#00FFC8 Injected)</option>
+                            <option value="kodachrome_warm">Vintage Warm Kodachrome (Cine Clásico)</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Clarificación de Textura / Sharpening NPU (<span id="sharpValV6">50</span>%):</label>
-                        <input type="range" id="rawSharpV6" min="0" max="100" step="5" value="50" oninput="document.getElementById('sharpValV6').innerText=this.value; processRawV6();">
+                        <label>Intensidad Grano Analógico 35mm (<span id="grainValV6">40</span>%):</label>
+                        <input type="range" id="cineGrainV6" min="0" max="100" step="5" value="40" oninput="document.getElementById('grainValV6').innerText=this.value; processCineV6();">
+                    </div>
+                    <div class="form-group">
+                        <label>Destello Óptico Anamórfico / Flare NPU (<span id="flareValV6">30</span>%):</label>
+                        <input type="range" id="cineFlareV6" min="0" max="100" step="5" value="30" oninput="document.getElementById('flareValV6').innerText=this.value; processCineV6();">
+                    </div>
+                    <div class="form-group">
+                        <label>Relación de Aspecto / Aspect Ratio:</label>
+                        <select id="cineAspectV6" onchange="processCineV6()">
+                            <option value="21:9">21:9 CinemaScope Anamórfico (Barras Negras)</option>
+                            <option value="2.39:1">2.39:1 Ultra Anamórfico Táctico</option>
+                            <option value="16:9">16:9 Widescreen Estándar</option>
+                        </select>
                     </div>
 
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="processRawV6()">⚡ Procesar Revelado & Histograma V6 Ultra</button>
-                    <div id="rawResultV6" style="margin-top: 10px;"></div>
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="processCineV6()">⚡ Aplicar Color Grading & Optical Flares V6</button>
+                    <div id="cineResultV6" style="margin-top: 10px;"></div>
                 </div>
             </div>
         </div>
 
-        <div id="cinemaTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎬 Cine Scope 21:9 V5 Ultra</h3></div></div></div>
         <div id="printTab" class="module-view"><div class="panel-content"><div class="card"><h3>🖨️ Imprenta PDF V5 Ultra</h3></div></div></div>
         <div id="customTab" class="module-view"><div class="panel-content"><div class="card"><h3>✨ Wallpapers V3 Ultra</h3></div></div></div>
     </div>
@@ -187,7 +197,7 @@ HTML_CONTENT = """
         let ocrActive = true;
         let lastOcrTime = 0;
         let useFrontCamera = false;
-        let rawSourceImgV6 = new Image();
+        let cineSourceImgV6 = new Image();
 
         let currentMode = 0;
         const modes = ["OCR CONTINUO", "DETECCIÓN MULTI-OBJETO", "ESCÁNER BARRAS/QR V4"];
@@ -258,56 +268,75 @@ HTML_CONTENT = """
             }, 3000);
         }
 
-        /* --- 8. LOGICA ESTUDIO RAW V6 ULTRA --- */
-        async function loadRawImageFromGalleryV6() {
+        /* --- 9. LOGICA CINE SCOPE 21:9 V6 ULTRA --- */
+        async function loadCineImageFromGalleryV6() {
             const res = await fetch('/bian/images/');
             const images = await res.json();
             if(images.length === 0) { alert("No hay imágenes en la galería."); return; }
-            rawSourceImgV6.crossOrigin = "anonymous";
-            rawSourceImgV6.src = images[images.length - 1].image_path;
-            rawSourceImgV6.onload = () => processRawV6();
+            cineSourceImgV6.crossOrigin = "anonymous";
+            cineSourceImgV6.src = images[images.length - 1].image_path;
+            cineSourceImgV6.onload = () => processCineV6();
         }
 
-        function processRawV6() {
-            const box = document.getElementById('rawPreviewBoxV6');
-            const res = document.getElementById('rawResultV6');
-            const ev = parseFloat(document.getElementById('rawEvV6').value);
-            const temp = document.getElementById('rawTempV6').value;
-            const sharp = parseInt(document.getElementById('rawSharpV6').value);
+        function processCineV6() {
+            const box = document.getElementById('cinePreviewBoxV6');
+            const res = document.getElementById('cineResultV6');
+            const lut = document.getElementById('cineLutV6').value;
+            const grain = parseInt(document.getElementById('cineGrainV6').value);
+            const flare = parseInt(document.getElementById('cineFlareV6').value);
+            const aspect = document.getElementById('cineAspectV6').value;
 
-            const rawCanvas = document.createElement('canvas');
-            rawCanvas.width = 380; rawCanvas.height = 220;
-            const ctx = rawCanvas.getContext('2d');
+            const cineCanvas = document.createElement('canvas');
+            cineCanvas.width = 380; cineCanvas.height = 200;
+            const ctx = cineCanvas.getContext('2d');
 
-            ctx.fillStyle = "#050505"; ctx.fillRect(0, 0, rawCanvas.width, rawCanvas.height);
+            ctx.fillStyle = "#000"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
 
-            if(rawSourceImgV6.src) {
-                ctx.save(); ctx.drawImage(rawSourceImgV6, 0, 0, rawCanvas.width, rawCanvas.height); ctx.restore();
+            if(cineSourceImgV6.src) {
+                ctx.drawImage(cineSourceImgV6, 0, 0, cineCanvas.width, cineCanvas.height);
 
-                ctx.fillStyle = ev > 0 ? `rgba(255,255,255,${ev * 0.15})` : `rgba(0,0,0,${Math.abs(ev) * 0.25})`;
-                ctx.fillRect(0, 0, rawCanvas.width, rawCanvas.height);
+                if(lut === 'teal_orange') {
+                    ctx.fillStyle = "rgba(0, 200, 200, 0.18)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
+                    ctx.fillStyle = "rgba(255, 120, 0, 0.12)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
+                } else if(lut === 'gold_flare_70mm') {
+                    ctx.fillStyle = "rgba(255, 215, 0, 0.20)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
+                } else if(lut === 'noir_monochrome') {
+                    ctx.fillStyle = "rgba(0, 0, 0, 0.4)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
+                } else if(lut === 'matrix_cyber') {
+                    ctx.fillStyle = "rgba(0, 255, 150, 0.20)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
+                } else {
+                    ctx.fillStyle = "rgba(255, 180, 50, 0.18)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
+                }
 
-                if(temp === '3200') ctx.fillStyle = "rgba(255, 140, 0, 0.12)";
-                else if(temp === '7500') ctx.fillStyle = "rgba(0, 255, 200, 0.12)";
-                else ctx.fillStyle = "rgba(255, 255, 255, 0.02)";
-                ctx.fillRect(0, 0, rawCanvas.width, rawCanvas.height);
+                if(flare > 0) {
+                    ctx.fillStyle = `rgba(0, 255, 200, ${ (flare / 100) * 0.35 })`;
+                    ctx.fillRect(0, cineCanvas.height / 2 - 2, cineCanvas.width, 4);
+                }
 
-                ctx.strokeStyle = "#00FFC8"; ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(10, 210); ctx.lineTo(30, 190); ctx.lineTo(60, 205); ctx.lineTo(90, 180); ctx.lineTo(120, 210);
-                ctx.stroke();
+                if(grain > 0) {
+                    ctx.fillStyle = `rgba(255, 255, 255, ${ (grain / 100) * 0.08 })`;
+                    ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
+                }
+
+                let barHeight = aspect === '21:9' ? 28 : (aspect === '2.39:1' ? 36 : 0);
+                if(barHeight > 0) {
+                    ctx.fillStyle = "#000";
+                    ctx.fillRect(0, 0, cineCanvas.width, barHeight);
+                    ctx.fillRect(0, cineCanvas.height - barHeight, cineCanvas.width, barHeight);
+                }
             } else {
                 ctx.fillStyle = "#00FFC8"; ctx.font = "bold 11px system-ui"; ctx.textAlign = "center";
-                ctx.fillText("ESTUDIO RAW V6 ULTRA: Carga una foto para revelado", rawCanvas.width/2, rawCanvas.height/2);
+                ctx.fillText("CINE SCOPE V6 ULTRA: Carga un fotograma", cineCanvas.width/2, cineCanvas.height/2);
             }
 
-            box.innerHTML = ""; box.appendChild(rawCanvas);
+            box.innerHTML = ""; box.appendChild(cineCanvas);
 
             res.innerHTML = `
             <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;">
-                <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">📸 Revelado Digital RAW V6 Ultra:</p>
-                <p>• EV Exposición: <strong style="color:#FFF;">${ev > 0 ? '+'+ev : ev} Stops</strong> | Kelvin: <strong style="color:#FFF;">${temp}K</strong></p>
-                <p>• Claridad NPU (Sharpening): <strong style="color:#00FFC8;">${sharp}%</strong> | Histograma Sincronizado</p>
+                <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">🎬 Color Grading Anamórfico V6 Ultra:</p>
+                <p>• LUT: <strong style="color:#FFF;">${lut.toUpperCase()}</strong> | Aspecto: <strong style="color:#00FFC8;">${aspect}</strong></p>
+                <p>• Grano 35mm: <strong style="color:#FFF;">${grain}%</strong> | Destello Óptico (Flare): <strong style="color:#00FFC8;">${flare}%</strong></p>
+                <button class="btn-action" style="margin-top:8px; width:100%; color:#00FFC8;" onclick="alert('✔ Fotograma enviado al Motion Engine V6 Ultra.')">🎥 Enviar Fotograma Anamórfico a Motion Engine V6</button>
             </div>`;
         }
 
@@ -354,7 +383,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Bian V6 Master Suite (Estudio RAW V6 Ultra Integrated)",
+        "engine": "Bian V6 Master Suite (Cine Scope 21:9 V6 Ultra Integrated)",
         "status": "online"
     }
 
