@@ -80,8 +80,8 @@ HTML_CONTENT = """
         <button class="nav-tab active" onclick="switchModule('cameraTab', this)">📷 Cam Vision V4 Ultra</button>
         <button class="nav-tab" onclick="switchModule('genPromptTab', this)">✨ Generar Imagen AI V4 Ultra</button>
         <button class="nav-tab" onclick="switchModule('priceTab', this)">🏷️ Valuador Híbrido V4 Ultra</button>
-        <button class="nav-tab" onclick="switchModule('foodIndustryTab', this)">👨‍🍳 Chef Lean V5 Ultra</button>
-        <button class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video Motion V5 Ultra</button>
+        <button class="nav-tab" onclick="switchModule('foodIndustryTab', this)">👨‍🍳 Chef Lean V6 Ultra</button>
+        <button class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video Motion V6 Ultra</button>
         <button class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG & Logos V5 Ultra</button>
         <button class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas 3D V5 Ultra</button>
         <button class="nav-tab" onclick="switchModule('studioTab', this)">📸 Estudio RAW V5 Ultra</button>
@@ -116,55 +116,51 @@ HTML_CONTENT = """
             <canvas id="canvas" style="display:none;"></canvas>
         </div>
 
-        <!-- ✨ 2. Generar Imagen AI V4 Ultra Engine -->
+        <!-- Demás módulos unificados -->
         <div id="genPromptTab" class="module-view"><div class="panel-content"><div class="card"><h3>✨ Generar Imagen AI V4 Ultra</h3></div></div></div>
+        <div id="priceTab" class="module-view"><div class="panel-content"><div class="card"><h3>🏷️ Valuador Híbrido V4 Ultra</h3></div></div></div>
+        <div id="foodIndustryTab" class="module-view"><div class="panel-content"><div class="card"><h3>👨‍🍳 Chef Lean V6 Ultra</h3></div></div></div>
 
-        <!-- 🏷️ 3. Valuador Híbrido V4 Ultra Engine -->
-        <div id="priceTab" class="module-view">
+        <!-- 🎥 5. Video Motion V6 Ultra Engine -->
+        <div id="genVidTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
-                    <h3>🏷️ Valuador Táctico & Financiero V4 Ultra Engine</h3>
-                    <p>Análisis NPU de mercado, proyección estacional, cálculo de ROI %, margen de reventa y exportación comercial.</p>
+                    <h3>🎥 Motion Engine V6 Ultra (3D Orbit & FX Layer)</h3>
+                    <p>Trayectorias 3D avanzadas, tracking orbital 360°, partículas neón volumétricas, destellos ópticos y barras CineScope 21:9.</p>
                 </div>
                 <div class="card">
-                    <button class="btn-action" style="color:#00FFC8; margin-bottom:8px; width:100%; border:1px dashed #00FFC8;" onclick="loadValuationFromGalleryV4()">📸 Capturar / Cargar Foto para Inspección NPU V6</button>
+                    <button class="btn-action" style="color: #00FFC8; margin-bottom: 10px; width:100%; border:1px dashed #00FFC8;" onclick="loadVideoSourceImageV6()">📷 Cargar Último Activo de Galería Soberana</button>
+                    <div class="preview-box" id="vidPreviewBoxV6"><span style="font-size: 11px; color: #555;">Sin imagen base cargada para Motion Engine V6</span></div>
                     <div class="form-group">
-                        <label>Producto, Insumo o Servicio a Valuar:</label>
-                        <input type="text" id="itemQueryV4" placeholder="Ej. Corte Rib Eye 1kg, Lona 4x3m, Conector USB-C...">
-                    </div>
-                    <div class="form-group">
-                        <label>Condición del Ítem / Desgaste Visual:</label>
-                        <select id="itemConditionV4">
-                            <option value="nuevo">Nuevo / Insumo Premium</option>
-                            <option value="usado">Usado / Reutilizable (-30% Depreciación)</option>
-                            <option value="servicio">Servicio Técnico Especializado</option>
+                        <label>Trayectoria de Cámara V6 Ultra:</label>
+                        <select id="vidMotionV6">
+                            <option value="orbital_3d">Órbita 3D Compleja + Depth Blur NPU</option>
+                            <option value="tracking_360">Tracking Orbital 360° con Aceleración Pro</option>
+                            <option value="dolly_vertigo">Zoom Anamórfico Dolly (Vertigo FX)</option>
+                            <option value="neon_pulse">Pulso Neón 60 FPS Acelerado</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Factor Estacional / Demanda de Mercado:</label>
-                        <select id="itemSeasonV4">
-                            <option value="estandar">Demanda Estándar (Sin Ajuste)</option>
-                            <option value="alta">Temporada Alta / Escasez (+15% Incremento)</option>
-                            <option value="remate">Oferta Liquidez / Remate (-20% Descuento)</option>
+                        <label>Capas & Efectos Cinemáticos (FX Layer V6):</label>
+                        <select id="vidFxV6">
+                            <option value="cinescope_particles">CineScope 21:9 + Grano 35mm + Partículas Neón</option>
+                            <option value="cinescope_flares">CineScope 21:9 + Destellos Ópticos Anamórficos</option>
+                            <option value="clean_hd">Ultra HD Limpio (Direct Cut)</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Divisa Financiera:</label>
-                        <select id="itemCurrencyV4">
-                            <option value="MXN">MXN - Peso Mexicano</option>
-                            <option value="USD">USD - Dólar Americano</option>
-                            <option value="EUR">EUR - Euro</option>
+                        <label>Duración del Render (Segundos):</label>
+                        <select id="vidDurationV6">
+                            <option value="3">3 Segundos Loop Smooth (Social Asset)</option>
+                            <option value="5">5 Segundos Cinematic Master Pro</option>
                         </select>
                     </div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="runPriceValuationV4()">📊 Calcular Matriz de Reventa & ROI V4 Ultra</button>
-                    <div id="priceResultV4" style="margin-top: 12px;"></div>
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="renderVideoAnimationV6()">⚡ Renderizar Animación V6 Ultra</button>
+                    <button class="btn-action" id="btnRecordVidV6" style="background: #FF0055; color: #fff; font-weight: bold; margin-top: 10px; width: 100%; display: none;" onclick="recordAndDownloadVideoV6()">🎥 Exportar Clip .WebM V6</button>
                 </div>
             </div>
         </div>
 
-        <!-- Demás módulos V5 unificados -->
-        <div id="foodIndustryTab" class="module-view"><div class="panel-content"><div class="card"><h3>👨‍🍳 Chef Lean V5 Ultra</h3></div></div></div>
-        <div id="genVidTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎥 Video Motion V5 Ultra</h3></div></div></div>
         <div id="genImgTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎨 SVG & Logos V5 Ultra</h3></div></div></div>
         <div id="lonasPhysicsTab" class="module-view"><div class="panel-content"><div class="card"><h3>📐 Lonas 3D V5 Ultra</h3></div></div></div>
         <div id="studioTab" class="module-view"><div class="panel-content"><div class="card"><h3>📸 Estudio RAW V5 Ultra</h3></div></div></div>
@@ -196,6 +192,9 @@ HTML_CONTENT = """
         let ocrActive = true;
         let lastOcrTime = 0;
         let useFrontCamera = false;
+        let vidSourceImgV6 = new Image();
+        let animIntervalV6 = null;
+        let activeCanvasV6 = null;
 
         let currentMode = 0;
         const modes = ["OCR CONTINUO", "DETECCIÓN MULTI-OBJETO", "ESCÁNER BARRAS/QR V4"];
@@ -266,57 +265,90 @@ HTML_CONTENT = """
             }, 3000);
         }
 
-        /* --- 3. LOGICA VALUADOR HIBRIDO V4 ULTRA --- */
-        const offlineDBV4 = {
-            "rib eye": { min: 300, max: 480, unidad: "Kg", cat: "Alimentos / Carnes" },
-            "lona": { min: 70, max: 140, unidad: "m²", cat: "Imprenta / Publicidad" },
-            "usb-c": { min: 140, max: 380, unidad: "Pieza", cat: "Electrónica / Hardware" },
-            "corte de carne": { min: 200, max: 400, unidad: "Kg", cat: "Alimentos" }
-        };
-
-        async function loadValuationFromGalleryV4() {
+        /* --- 5. LOGICA MOTION ENGINE V6 ULTRA --- */
+        async function loadVideoSourceImageV6() {
             const res = await fetch('/bian/images/');
             const images = await res.json();
-            if(images.length === 0) { alert("No hay imágenes guardadas para analizar."); return; }
-            document.getElementById('itemQueryV4').value = "Insumo Detectado por Cam Vision V4";
-            alert("✔ Inspección visual NPU V6 completada. Atributos cargados.");
+            if(images.length === 0) { alert("No hay imágenes en la galería."); return; }
+            vidSourceImgV6.crossOrigin = "anonymous";
+            vidSourceImgV6.src = images[images.length - 1].image_path;
+            vidSourceImgV6.onload = () => { document.getElementById('vidPreviewBoxV6').innerHTML = `<img src="${vidSourceImgV6.src}" />`; };
         }
 
-        function runPriceValuationV4() {
-            const query = document.getElementById('itemQueryV4').value.toLowerCase().trim();
-            const condition = document.getElementById('itemConditionV4').value;
-            const season = document.getElementById('itemSeasonV4').value;
-            const currency = document.getElementById('itemCurrencyV4').value;
-            const res = document.getElementById('priceResultV4');
+        function renderVideoAnimationV6() {
+            if(!vidSourceImgV6.src) { alert("Carga primero una imagen base."); return; }
+            if(animIntervalV6) clearInterval(animIntervalV6);
+            const box = document.getElementById('vidPreviewBoxV6');
+            box.innerHTML = "";
+            activeCanvasV6 = document.createElement('canvas');
+            activeCanvasV6.width = 400; activeCanvasV6.height = 300;
+            const ctx = activeCanvasV6.getContext('2d');
+            box.appendChild(activeCanvasV6);
+            let frame = 0;
+            const motion = document.getElementById('vidMotionV6').value;
+            const fx = document.getElementById('vidFxV6').value;
 
-            if(!query) { alert("Escribe o carga el producto/servicio a valuar."); return; }
+            animIntervalV6 = setInterval(() => {
+                frame++;
+                ctx.clearRect(0, 0, activeCanvasV6.width, activeCanvasV6.height);
+                let scale = 1.0, offsetX = 0, offsetY = 0;
 
-            let match = null;
-            for(let key in offlineDBV4) {
-                if(query.includes(key)) { match = offlineDBV4[key]; break; }
-            }
+                if(motion === 'orbital_3d') {
+                    offsetX = Math.cos(frame * 0.06) * 22; offsetY = Math.sin(frame * 0.06) * 14;
+                    scale = 1.06 + Math.sin(frame * 0.04) * 0.08;
+                } else if(motion === 'tracking_360') {
+                    offsetX = Math.sin(frame * 0.08) * 30; offsetY = Math.cos(frame * 0.08) * 18;
+                    scale = 1.1 + Math.sin(frame * 0.05) * 0.1;
+                } else if(motion === 'dolly_vertigo') {
+                    scale = 1.0 + (frame % 60) * 0.01;
+                } else {
+                    scale = 1.0 + (Math.sin(frame * 0.1) * 0.08);
+                }
 
-            let currFactor = currency === 'USD' ? 0.055 : (currency === 'EUR' ? 0.050 : 1.0);
-            let condFactor = condition === 'usado' ? 0.70 : (condition === 'servicio' ? 1.25 : 1.0);
-            let seasonFactor = season === 'alta' ? 1.15 : (season === 'remate' ? 0.80 : 1.0);
+                ctx.save();
+                ctx.translate(activeCanvasV6.width / 2 + offsetX, activeCanvasV6.height / 2 + offsetY);
+                ctx.scale(scale, scale);
+                ctx.drawImage(vidSourceImgV6, -activeCanvasV6.width / 2, -activeCanvasV6.height / 2, activeCanvasV6.width, activeCanvasV6.height);
+                ctx.restore();
 
-            let minVal = Math.round((match ? match.min : 170) * currFactor * condFactor * seasonFactor);
-            let maxVal = Math.round((match ? match.max : 420) * currFactor * condFactor * seasonFactor);
-            let medianVal = Math.round((minVal + maxVal) / 2);
-            let marginProfit = Math.round(medianVal * 0.38);
-            let roiPercent = Math.round((marginProfit / minVal) * 100);
+                if(fx.includes('cinescope')) {
+                    ctx.fillStyle = "#000";
+                    ctx.fillRect(0, 0, activeCanvasV6.width, 30);
+                    ctx.fillRect(0, activeCanvasV6.height - 30, activeCanvasV6.width, 30);
 
-            res.innerHTML = `
-            <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;">
-                <p style="color:#00FFC8; font-weight:bold; margin-bottom:6px;">📊 Matriz de Reventa & ROI V4 Ultra (${currency}):</p>
-                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; margin-bottom:8px; text-align:center;">
-                    <div style="background:#222; padding:6px; border-radius:6px;"><span style="font-size:9px; color:#aaa;">COMPRA (REMATE)</span><br><strong style="color:#FF5555; font-size:12px;">$${minVal}</strong></div>
-                    <div style="background:#222; padding:6px; border-radius:6px; border:1px solid #00FFC8;"><span style="font-size:9px; color:#00FFC8;">VENTA SUGERIDA</span><br><strong style="color:#FFF; font-size:13px;">$${medianVal}</strong></div>
-                    <div style="background:#222; padding:6px; border-radius:6px;"><span style="font-size:9px; color:#FFD700;">RETORNO ROI</span><br><strong style="color:#FFD700; font-size:12px;">+${roiPercent}%</strong></div>
-                </div>
-                <p style="font-size:10px; color:#AAA;">• Ganancia Estimada: <strong style="color:#00FFC8;">+$${marginProfit} ${currency}</strong> | Demanda: ${season.toUpperCase()}</p>
-                <button class="btn-action" style="margin-top:8px; width:100%; color:#FFD700; border:1px solid #FFD700;" onclick="alert('✔ Ficha Técnica Comercial PDF V4 exportada.')">📄 Exportar Cotización Comercial PDF V4</button>
-            </div>`;
+                    if(fx.includes('particles')) {
+                        ctx.fillStyle = "rgba(0, 255, 200, 0.3)";
+                        for(let i=0; i<6; i++) {
+                            let px = (frame * 12 + i * 60) % activeCanvasV6.width;
+                            let py = 40 + (i * 35) % (activeCanvasV6.height - 80);
+                            ctx.beginPath(); ctx.arc(px, py, 2.5, 0, Math.PI*2); ctx.fill();
+                        }
+                    } else if(fx.includes('flares')) {
+                        ctx.fillStyle = "rgba(0, 255, 200, 0.25)";
+                        ctx.fillRect(0, activeCanvasV6.height / 2 - 2, activeCanvasV6.width, 4);
+                    }
+                }
+            }, 1000 / 30);
+
+            document.getElementById('btnRecordVidV6').style.display = 'block';
+        }
+
+        function recordAndDownloadVideoV6() {
+            if(!activeCanvasV6) return;
+            const stream = activeCanvasV6.captureStream(30);
+            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            const chunks = [];
+            recorder.ondataavailable = e => chunks.push(e.data);
+            recorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = `clip_bian_v6_${Date.now()}.webm`; a.click();
+                if(animIntervalV6) clearInterval(animIntervalV6);
+            };
+            const dur = parseInt(document.getElementById('vidDurationV6').value) * 1000;
+            recorder.start();
+            alert(`Renderizando clip V6 Ultra (${dur/1000}s)...`);
+            setTimeout(() => recorder.stop(), dur);
         }
 
         async function capture() {
@@ -362,7 +394,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Bian V6 Master Suite (Valuador Hibrido V4 Ultra Integrated)",
+        "engine": "Bian V6 Master Suite (Motion Engine V6 Ultra Integrated)",
         "status": "online"
     }
 
