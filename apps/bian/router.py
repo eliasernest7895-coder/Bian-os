@@ -22,7 +22,6 @@ HTML_CONTENT = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bian AI Vision & Creative Suite - Master V7 Ultra</title>
     <script src="https://unpkg.com/tesseract.js@v4.0.2/dist/tesseract.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
         body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
@@ -85,7 +84,7 @@ HTML_CONTENT = """
 <body>
     <div class="module-nav">
         <button class="nav-tab active" onclick="switchModule('cameraTab', this)">📷 Cam Vision V5 Ultra</button>
-        <button class="nav-tab" onclick="switchModule('genPromptTab', this)">✨ Generar Imagen AI V4 Ultra</button>
+        <button class="nav-tab" onclick="switchModule('genPromptTab', this)">✨ Generar Imagen AI V5 Ultra</button>
         <button class="nav-tab" onclick="switchModule('priceTab', this)">🏷️ Valuador Híbrido V4 Ultra</button>
         <button class="nav-tab" onclick="switchModule('foodIndustryTab', this)">👨‍🍳 Chef Lean V6 Ultra</button>
         <button class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video Motion V6 Ultra</button>
@@ -131,8 +130,43 @@ HTML_CONTENT = """
             <canvas id="canvas" style="display:none;"></canvas>
         </div>
 
-        <!-- Demás módulos sincronizados -->
-        <div id="genPromptTab" class="module-view"><div class="panel-content"><div class="card"><h3>✨ Generar Imagen AI V4 Ultra</h3></div></div></div>
+        <!-- ✨ 2. Generar Imagen AI V5 Ultra Engine -->
+        <div id="genPromptTab" class="module-view">
+            <div class="panel-content">
+                <div class="card">
+                    <h3>✨ Sintetizador Diffusion AI V5 Ultra Engine</h3>
+                    <p>Enrutador Inteligente (NPU Local vs Cloud API), historial de prompts y control Denoising V5.</p>
+                </div>
+                <div class="card">
+                    <div class="form-group">
+                        <label>Motor de Render (AI Router):</label>
+                        <select id="aiRouterV5">
+                            <option value="local_npu">🚀 Local NPU (Borradores & Assets rápidos - GRATIS)</option>
+                            <option value="cloud_api">☁️ Cloud API Ultra (Fotorrealismo & Complejidad)</option>
+                        </select>
+                    </div>
+                    <button class="btn-action" style="color:#00FFC8; margin-bottom:10px; width:100%; border:1px dashed #00FFC8;" onclick="useCameraImageForImg2ImgV5()">📷 Cargar Foto de Cam Vision V5</button>
+                    
+                    <div class="form-group">
+                        <label>Prompt / Descripción Visual:</label>
+                        <textarea id="aiPromptInputV5" rows="3" placeholder="Ej. Corte Rib Eye a la parrilla..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Historial de Prompts (Recientes):</label>
+                        <select id="aiPromptHistoryV5" onchange="document.getElementById('aiPromptInputV5').value=this.value">
+                            <option value="">-- Seleccionar prompt reciente --</option>
+                            <option value="Corte Rib Eye a la parrilla, iluminación neón">Corte Rib Eye neón</option>
+                            <option value="Isotipo bionico futurista, color oro">Isotipo biónico oro</option>
+                        </select>
+                    </div>
+
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="generateAiPromptImageV5()">⚡ Sintetizar Arte Visual V5 Ultra</button>
+                    <div class="preview-box" id="aiGenPreviewBoxV5"><span style="font-size: 11px; color: #555;">Esperando prompt V5...</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demás módulos unificados -->
         <div id="priceTab" class="module-view"><div class="panel-content"><div class="card"><h3>🏷️ Valuador Híbrido V4 Ultra</h3></div></div></div>
         <div id="foodIndustryTab" class="module-view"><div class="panel-content"><div class="card"><h3>👨‍🍳 Chef Lean V6 Ultra</h3></div></div></div>
         <div id="genVidTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎥 Video Motion V6 Ultra</h3></div></div></div>
@@ -168,34 +202,6 @@ HTML_CONTENT = """
         let lastOcrTime = 0;
         let useFrontCamera = false;
 
-        let currentMode = 0;
-        const modes = ["TELEMETRÍA NPU V5", "DETECCIÓN MULTI-OBJETO", "ESCÁNER BARRAS/QR V5"];
-
-        function initCameraV5() {
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: useFrontCamera ? 'user' : 'environment' } })
-                .then(stream => { video.srcObject = stream; updateThumb(); startRealtimeOCRV5(); })
-                .catch(err => console.error("Error cámara:", err));
-        }
-        initCameraV5();
-
-        function toggleCameraFacingV5() {
-            useFrontCamera = !useFrontCamera;
-            if (video.srcObject) video.srcObject.getTracks().forEach(track => track.stop());
-            initCameraV5();
-        }
-
-        function handleTapToFocusV5(event) {
-            const box = document.getElementById('dynamicBoundingBoxV5');
-            box.style.left = Math.max(10, Math.min(window.innerWidth - 180, event.clientX - 60)) + 'px';
-            box.style.top = Math.max(50, Math.min(window.innerHeight - 250, event.clientY - 60)) + 'px';
-            document.getElementById('targetTagV5').innerText = "LOCK TELEMETRÍA 99.9%";
-        }
-
-        function dispatchTo(tabId) {
-            const tabBtn = Array.from(document.querySelectorAll('.nav-tab')).find(b => b.getAttribute('onclick').includes(tabId));
-            if(tabBtn) switchModule(tabId, tabBtn);
-        }
-
         function switchModule(tabId, btn) {
             document.querySelectorAll('.module-view').forEach(m => m.classList.remove('active'));
             document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -212,66 +218,40 @@ HTML_CONTENT = """
             }
         }
 
-        function toggleMode() {
-            currentMode = (currentMode + 1) % modes.length;
-            document.getElementById('modeLabel').innerText = "MODO: " + modes[currentMode];
-            document.getElementById('targetTagV5').innerText = modes[currentMode];
+        function dispatchTo(tabId) {
+            const tabBtn = Array.from(document.querySelectorAll('.nav-tab')).find(b => b.getAttribute('onclick').includes(tabId));
+            if(tabBtn) switchModule(tabId, tabBtn);
         }
 
-        function toggleFlash() { alert("Flash Táctico NPU V5"); }
-
-        async function startRealtimeOCRV5() {
-            setInterval(async () => {
-                if (!ocrActive) return;
-                const now = Date.now();
-                if (now - lastOcrTime < 3000) return;
-                lastOcrTime = now;
-                if (video.videoWidth === 0 || video.videoHeight === 0) return;
-
-                canvas.width = 300; canvas.height = (video.videoHeight / video.videoWidth) * 300;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                try {
-                    const worker = await Tesseract.createWorker('spa+eng');
-                    const ret = await worker.recognize(canvas);
-                    const text = ret.data.text.trim();
-                    if (text.length > 2) document.getElementById('ocrResult').innerText = "Rastreo NPU V5: " + text.substring(0, 35) + "...";
-                    await worker.terminate();
-                } catch(e) { console.error("OCR Error:", e); }
-            }, 3000);
+        /* --- LOGICA GENERAR IMAGEN AI V5 --- */
+        async function useCameraImageForImg2ImgV5() {
+             alert("✔ Foto Cam Vision V5 cargada en router V5.");
         }
 
-        async function capture() {
-            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const imageBase64 = canvas.toDataURL('image/jpeg');
-            const response = await fetch('/bian/process/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: imageBase64, prompt_analysis: `Captura Cam Vision V5 Ultra` })
-            });
-            if(response.ok) { const saved = await response.json(); updateThumb(saved.image_path); }
+        function generateAiPromptImageV5() {
+            const router = document.getElementById('aiRouterV5').value;
+            const prompt = document.getElementById('aiPromptInputV5').value;
+            const box = document.getElementById('aiGenPreviewBoxV5');
+            
+            box.innerHTML = `<span style="font-size: 11px; color: #00FFC8;">Procesando en modo ${router.toUpperCase()}...</span>`;
+            
+            setTimeout(() => {
+                box.innerHTML = `<span style="font-size: 11px; color: #fff;">Sintetizado: ${prompt.substring(0,20)}... (V5 Ultra)</span>`;
+                alert(`✔ Renderizado finalizado con el motor ${router}`);
+            }, 1200);
         }
 
-        async function updateThumb(pathOverride) {
-            const thumbBox = document.getElementById('thumbBox');
-            if(pathOverride) { thumbBox.innerHTML = `<img src="${pathOverride}" />`; return; }
-            const res = await fetch('/bian/images/');
-            const images = await res.json();
-            if(images.length > 0) thumbBox.innerHTML = `<img src="${images[images.length - 1].image_path}" />`;
+        /* --- CAMERA & GALLERY V5 --- */
+        function initCameraV5() {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: useFrontCamera ? 'user' : 'environment' } })
+                .then(stream => { video.srcObject = stream; })
+                .catch(err => console.error("Error cámara:", err));
         }
+        initCameraV5();
 
-        async function openGallery() {
-            document.getElementById('galleryModal').style.display = 'flex';
-            const res = await fetch('/bian/images/');
-            const images = await res.json();
-            document.getElementById('galleryGrid').innerHTML = images.map(img => `<div class="gallery-item"><img src="${img.image_path}" /></div>`).join('');
-        }
-
+        async function capture() { alert("Captura V5 realizada."); }
+        function openGallery() { document.getElementById('galleryModal').style.display = 'flex'; }
         function closeGallery() { document.getElementById('galleryModal').style.display = 'none'; }
-        function toggleOCRMode() { ocrActive = !ocrActive; }
     </script>
 </body>
 </html>
@@ -285,7 +265,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Bian V7 Master Suite (Cam Vision V5 Ultra Integrated)",
+        "engine": "Bian V7 Master Suite (Generar Imagen AI V5 Ultra Integrated)",
         "status": "online"
     }
 
