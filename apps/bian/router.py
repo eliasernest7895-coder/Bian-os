@@ -90,7 +90,7 @@ HTML_CONTENT = """
         <button class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG & Logos V7</button>
         <button class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas 3D V7</button>
         <button class="nav-tab" onclick="switchModule('studioTab', this)">📸 Estudio RAW V7</button>
-        <button class="nav-tab" onclick="switchModule('cinemaTab', this)">🎬 Cine Scope V6</button>
+        <button class="nav-tab" onclick="switchModule('cinemaTab', this)">🎬 Cine Scope V7</button>
         <button class="nav-tab" onclick="switchModule('printTab', this)">🖨️ Imprenta PDF V6</button>
         <button class="nav-tab" onclick="switchModule('customTab', this)">✨ Wallpapers V4</button>
     </div>
@@ -101,7 +101,7 @@ HTML_CONTENT = """
     </div>
 
     <div class="main-container">
-        <!-- 📷 1. Cam Vision V5 Ultra Engine -->
+        <!-- 📷 1. Cam Vision V5 -->
         <div id="cameraTab" class="module-view active" onclick="handleTapToFocusV5(event)">
             <video id="webcam" autoplay playsinline></video>
             <div class="grid-overlay"></div>
@@ -129,10 +129,10 @@ HTML_CONTENT = """
             <canvas id="canvas" style="display:none;"></canvas>
         </div>
 
-        <!-- ✨ 2. Generar Imagen AI V5 -->
+        <!-- ✨ 2. IA V5 -->
         <div id="genPromptTab" class="module-view"><div class="panel-content"><div class="card"><h3>✨ Generar Imagen AI V5 Ultra</h3></div></div></div>
 
-        <!-- 🏷️ 3. Valuador Híbrido V5 -->
+        <!-- 🏷️ 3. Valuador V5 -->
         <div id="priceTab" class="module-view"><div class="panel-content"><div class="card"><h3>🏷️ Valuador Híbrido V5 Ultra</h3></div></div></div>
 
         <!-- 👨‍🍳 4. Chef Lean V7 -->
@@ -147,45 +147,58 @@ HTML_CONTENT = """
         <!-- 📐 7. Lonas 3D V7 -->
         <div id="lonasPhysicsTab" class="module-view"><div class="panel-content"><div class="card"><h3>📐 Lonas 3D V7 Ultra</h3></div></div></div>
 
-        <!-- 📸 8. Estudio RAW V7 Ultra Engine -->
-        <div id="studioTab" class="module-view">
+        <!-- 📸 8. Estudio RAW V7 -->
+        <div id="studioTab" class="module-view"><div class="panel-content"><div class="card"><h3>📸 Estudio RAW V7 Ultra</h3></div></div></div>
+
+        <!-- 🎬 9. Cine Scope 21:9 V7 Ultra Engine -->
+        <div id="cinemaTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
-                    <h3>📸 Estudio RAW V7 Ultra (Laboratorio NPU & Histograma RGB)</h3>
-                    <p>Compensación EV en tiempo real, calibración Kelvin precisa, curvas tonales y clarificación de textura.</p>
+                    <h3>🎬 Cine Scope 21:9 V7 Ultra (Color Grading & Optical Flares)</h3>
+                    <p>Matrices de color 3D LUT, grano analógico de 35mm, destellos ópticos anamórficos NPU y encuadre 21:9.</p>
                 </div>
                 <div class="card">
-                    <button class="btn-action" style="color:#00FFC8; margin-bottom:10px; width:100%; border:1px dashed #00FFC8;" onclick="loadRawImageFromGalleryV7()">📷 Cargar Activo para Revelado RAW V7</button>
+                    <button class="btn-action" style="color:#00FFC8; margin-bottom:10px; width:100%; border:1px dashed #00FFC8;" onclick="loadCineImageFromGalleryV7()">📷 Cargar Fotograma para Color Grading V7</button>
 
-                    <div class="preview-box" id="rawPreviewBoxV7"><span style="font-size: 11px; color: #555;">Sin imagen cargada en Revelador RAW V7</span></div>
-
-                    <div class="form-group">
-                        <label>Compensación de Exposición (EV: <span id="evValV7">0.0</span> Stops):</label>
-                        <input type="range" id="rawEvV7" min="-2" max="2" step="0.1" value="0.0" oninput="document.getElementById('evValV7').innerText=this.value; processRawV7();">
-                    </div>
+                    <div class="preview-box" id="cinePreviewBoxV7"><span style="font-size: 11px; color: #555;">Sin fotograma cargado en Cine Scope V7</span></div>
 
                     <div class="form-group">
-                        <label>Temperatura de Color Kelvin:</label>
-                        <select id="rawTempV7" onchange="processRawV7()">
-                            <option value="5500">5500K - Luz Solar Equilibrada</option>
-                            <option value="3200">3200K - Tungsteno Cálido Gourmet</option>
-                            <option value="7500">7500K - Sombra Fría / Cyber Neón</option>
+                        <label>Perfil 3D LUT V7:</label>
+                        <select id="cineLutV7" onchange="processCineV7()">
+                            <option value="teal_orange">Teal & Orange Blockbuster (Hollywood Pro)</option>
+                            <option value="gold_flare_70mm">Anamorphic Gold 70mm (Sci-Fi Resplandor)</option>
+                            <option value="noir_monochrome">Monocromático Noire 35mm (Alto Contraste)</option>
+                            <option value="matrix_cyber">Matrix Cyber Green V7 (#00FFC8 Injected)</option>
+                            <option value="kodachrome_warm">Vintage Warm Kodachrome (Cine Clásico)</option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label>Clarificación Óptica / Sharpening NPU (<span id="sharpValV7">50</span>%):</label>
-                        <input type="range" id="rawSharpV7" min="0" max="100" step="5" value="50" oninput="document.getElementById('sharpValV7').innerText=this.value; processRawV7();">
+                        <label>Destello Óptico Anamórfico (Flare NPU: <span id="flareValV7">35</span>%):</label>
+                        <input type="range" id="cineFlareV7" min="0" max="100" step="5" value="35" oninput="document.getElementById('flareValV7').innerText=this.value; processCineV7();">
                     </div>
 
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="processRawV7()">⚡ Procesar Revelado & Curva RGB V7</button>
-                    <div id="rawResultV7" style="margin-top: 10px;"></div>
+                    <div class="form-group">
+                        <label>Grano Analógico 35mm (<span id="grainValV7">30</span>%):</label>
+                        <input type="range" id="cineGrainV7" min="0" max="100" step="5" value="30" oninput="document.getElementById('grainValV7').innerText=this.value; processCineV7();">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Relación de Aspecto / Aspect Ratio:</label>
+                        <select id="cineAspectV7" onchange="processCineV7()">
+                            <option value="21:9">21:9 CinemaScope Anamórfico (Barras Negras)</option>
+                            <option value="2.39:1">2.39:1 Ultra Panavision Táctico</option>
+                            <option value="16:9">16:9 Widescreen Estándar</option>
+                        </select>
+                    </div>
+
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="processCineV7()">⚡ Aplicar Color Grading & Flares V7</button>
+                    <div id="cineResultV7" style="margin-top: 10px;"></div>
                 </div>
             </div>
         </div>
 
         <!-- Demás módulos sincronizados -->
-        <div id="cinemaTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎬 Cine Scope 21:9 V6 Ultra</h3></div></div></div>
         <div id="printTab" class="module-view"><div class="panel-content"><div class="card"><h3>🖨️ Imprenta PDF V6 Ultra</h3></div></div></div>
         <div id="customTab" class="module-view"><div class="panel-content"><div class="card"><h3>✨ Wallpapers V4 Ultra</h3></div></div></div>
     </div>
@@ -212,7 +225,7 @@ HTML_CONTENT = """
         const canvas = document.getElementById('canvas');
         let ocrActive = true;
         let useFrontCamera = false;
-        let rawSourceImgV7 = new Image();
+        let cineSourceImgV7 = new Image();
 
         let currentMode = 0;
         const modes = ["TELEMETRÍA NPU V5", "DETECCIÓN MULTI-OBJETO", "ESCÁNER BARRAS/QR V5"];
@@ -267,64 +280,79 @@ HTML_CONTENT = """
         function toggleFlash() { alert("Flash Táctico NPU V5"); }
         function toggleOCRMode() { ocrActive = !ocrActive; }
 
-        /* --- 8. LOGICA ESTUDIO RAW V7 ULTRA --- */
-        async function loadRawImageFromGalleryV7() {
+        /* --- 9. LOGICA CINE SCOPE 21:9 V7 ULTRA --- */
+        async function loadCineImageFromGalleryV7() {
             const res = await fetch('/bian/images/');
             const images = await res.json();
             if(images.length === 0) { alert("No hay imágenes en la galería."); return; }
-            rawSourceImgV7.crossOrigin = "anonymous";
-            rawSourceImgV7.src = images[images.length - 1].image_path;
-            rawSourceImgV7.onload = () => processRawV7();
+            cineSourceImgV7.crossOrigin = "anonymous";
+            cineSourceImgV7.src = images[images.length - 1].image_path;
+            cineSourceImgV7.onload = () => processCineV7();
         }
 
-        function processRawV7() {
-            const box = document.getElementById('rawPreviewBoxV7');
-            const res = document.getElementById('rawResultV7');
-            const ev = parseFloat(document.getElementById('rawEvV7').value);
-            const temp = document.getElementById('rawTempV7').value;
-            const sharp = parseInt(document.getElementById('rawSharpV7').value);
+        function processCineV7() {
+            const box = document.getElementById('cinePreviewBoxV7');
+            const res = document.getElementById('cineResultV7');
+            const lut = document.getElementById('cineLutV7').value;
+            const grain = parseInt(document.getElementById('cineGrainV7').value);
+            const flare = parseInt(document.getElementById('cineFlareV7').value);
+            const aspect = document.getElementById('cineAspectV7').value;
 
-            const rawCanvas = document.createElement('canvas');
-            rawCanvas.width = 380; rawCanvas.height = 220;
-            const ctx = rawCanvas.getContext('2d');
+            const cineCanvas = document.createElement('canvas');
+            cineCanvas.width = 380; cineCanvas.height = 200;
+            const ctx = cineCanvas.getContext('2d');
 
-            ctx.fillStyle = "#050505"; ctx.fillRect(0, 0, rawCanvas.width, rawCanvas.height);
+            ctx.fillStyle = "#000"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
 
-            if(rawSourceImgV7.src) {
-                ctx.save(); ctx.drawImage(rawSourceImgV7, 0, 0, rawCanvas.width, rawCanvas.height); ctx.restore();
+            if(cineSourceImgV7.src) {
+                ctx.drawImage(cineSourceImgV7, 0, 0, cineCanvas.width, cineCanvas.height);
 
-                // Compensación EV
-                ctx.fillStyle = ev > 0 ? `rgba(255,255,255,${ev * 0.16})` : `rgba(0,0,0,${Math.abs(ev) * 0.26})`;
-                ctx.fillRect(0, 0, rawCanvas.width, rawCanvas.height);
+                if(lut === 'teal_orange') {
+                    ctx.fillStyle = "rgba(0, 200, 200, 0.18)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
+                    ctx.fillStyle = "rgba(255, 120, 0, 0.12)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
+                } else if(lut === 'gold_flare_70mm') {
+                    ctx.fillStyle = "rgba(255, 215, 0, 0.22)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
+                } else if(lut === 'noir_monochrome') {
+                    ctx.fillStyle = "rgba(0, 0, 0, 0.42)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
+                } else if(lut === 'matrix_cyber') {
+                    ctx.fillStyle = "rgba(0, 255, 160, 0.22)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
+                } else {
+                    ctx.fillStyle = "rgba(255, 175, 45, 0.18)"; ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
+                }
 
-                // Balance Kelvin
-                if(temp === '3200') ctx.fillStyle = "rgba(255, 140, 0, 0.13)";
-                else if(temp === '7500') ctx.fillStyle = "rgba(0, 255, 200, 0.13)";
-                else ctx.fillStyle = "rgba(255, 255, 255, 0.02)";
-                ctx.fillRect(0, 0, rawCanvas.width, rawCanvas.height);
+                // Inyección Óptica de Destello Anamórfico (Flare V7)
+                if(flare > 0) {
+                    ctx.fillStyle = `rgba(0, 255, 200, ${ (flare / 100) * 0.40 })`;
+                    ctx.fillRect(0, cineCanvas.height / 2 - 2, cineCanvas.width, 4);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${ (flare / 100) * 0.60 })`;
+                    ctx.fillRect(cineCanvas.width / 2 - 30, cineCanvas.height / 2 - 1, 60, 2);
+                }
 
-                // Trazo de Histograma RGB Dinámico
-                ctx.strokeStyle = "#00FFC8"; ctx.lineWidth = 1.5;
-                ctx.beginPath();
-                ctx.moveTo(10, 210); ctx.lineTo(35, 185); ctx.lineTo(70, 205); ctx.lineTo(105, 175); ctx.lineTo(140, 210);
-                ctx.stroke();
+                // Grano Analógico 35mm
+                if(grain > 0) {
+                    ctx.fillStyle = `rgba(255, 255, 255, ${ (grain / 100) * 0.08 })`;
+                    ctx.fillRect(0, 0, cineCanvas.width, cineCanvas.height);
+                }
 
-                ctx.strokeStyle = "#FF0055"; ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(10, 210); ctx.lineTo(40, 195); ctx.lineTo(75, 180); ctx.lineTo(110, 190); ctx.lineTo(140, 210);
-                ctx.stroke();
+                // Barras Negras Anamórficas
+                let barHeight = aspect === '21:9' ? 28 : (aspect === '2.39:1' ? 36 : 0);
+                if(barHeight > 0) {
+                    ctx.fillStyle = "#000";
+                    ctx.fillRect(0, 0, cineCanvas.width, barHeight);
+                    ctx.fillRect(0, cineCanvas.height - barHeight, cineCanvas.width, barHeight);
+                }
             } else {
                 ctx.fillStyle = "#00FFC8"; ctx.font = "bold 11px system-ui"; ctx.textAlign = "center";
-                ctx.fillText("ESTUDIO RAW V7 ULTRA: Carga una foto para calibración", rawCanvas.width/2, rawCanvas.height/2);
+                ctx.fillText("CINE SCOPE V7 ULTRA: Carga un fotograma para gradación", cineCanvas.width/2, cineCanvas.height/2);
             }
 
-            box.innerHTML = ""; box.appendChild(rawCanvas);
+            box.innerHTML = ""; box.appendChild(cineCanvas);
 
             res.innerHTML = `
             <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;">
-                <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">📸 Revelado Óptico RAW V7 Ultra:</p>
-                <p>• EV: <strong style="color:#FFF;">${ev > 0 ? '+'+ev : ev} Stops</strong> | Kelvin: <strong style="color:#FFF;">${temp}K</strong></p>
-                <p>• Claridad NPU: <strong style="color:#00FFC8;">${sharp}%</strong> | Curvas RGB Sincronizadas</p>
+                <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">🎬 Gradación Cinemática Anamórfica V7:</p>
+                <p>• Perfil 3D LUT: <strong style="color:#FFF;">${lut.toUpperCase()}</strong> | Encuadre: <strong style="color:#00FFC8;">${aspect}</strong></p>
+                <p>• Destello Óptico (Flare): <strong style="color:#00FFC8;">${flare}%</strong> | Grano 35mm: <strong style="color:#FFF;">${grain}%</strong></p>
             </div>`;
         }
 
@@ -371,7 +399,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Bian V7 Master Suite (Estudio RAW V7 Ultra Integrated)",
+        "engine": "Bian V7 Master Suite (Cine Scope V7 Ultra Integrated)",
         "status": "online"
     }
 
