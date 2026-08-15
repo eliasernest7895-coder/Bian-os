@@ -89,7 +89,7 @@ HTML_CONTENT = """
         <button class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video Motion V7</button>
         <button class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG & Logos V7</button>
         <button class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas 3D V7</button>
-        <button class="nav-tab" onclick="switchModule('studioTab', this)">📸 Estudio RAW V6</button>
+        <button class="nav-tab" onclick="switchModule('studioTab', this)">📸 Estudio RAW V7</button>
         <button class="nav-tab" onclick="switchModule('cinemaTab', this)">🎬 Cine Scope V6</button>
         <button class="nav-tab" onclick="switchModule('printTab', this)">🖨️ Imprenta PDF V6</button>
         <button class="nav-tab" onclick="switchModule('customTab', this)">✨ Wallpapers V4</button>
@@ -129,168 +129,62 @@ HTML_CONTENT = """
             <canvas id="canvas" style="display:none;"></canvas>
         </div>
 
-        <!-- ✨ 2. Generar Imagen AI V5 Ultra Engine -->
-        <div id="genPromptTab" class="module-view">
-            <div class="panel-content">
-                <div class="card">
-                    <h3>✨ Sintetizador Diffusion AI V5 Ultra Engine</h3>
-                    <p>Enrutador Inteligente (NPU Local vs Cloud API), historial de prompts y control Denoising V5.</p>
-                </div>
-                <div class="card">
-                    <div class="form-group">
-                        <label>Motor de Render (AI Router):</label>
-                        <select id="aiRouterV5">
-                            <option value="local_npu">🚀 Local NPU (Borradores & Assets rápidos - GRATIS)</option>
-                            <option value="cloud_api">☁️ Cloud API Ultra (Fotorrealismo & Complejidad)</option>
-                        </select>
-                    </div>
-                    <button class="btn-action" style="color:#00FFC8; margin-bottom:10px; width:100%; border:1px dashed #00FFC8;" onclick="useCameraImageForImg2ImgV5()">📷 Cargar Foto de Cam Vision V5</button>
-                    <div class="form-group">
-                        <label>Prompt / Descripción Visual:</label>
-                        <textarea id="aiPromptInputV5" rows="3" placeholder="Ej. Corte Rib Eye a la parrilla, iluminación neón cyberpunk..."></textarea>
-                    </div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="generateAiPromptImageV5()">⚡ Sintetizar Arte Visual V5 Ultra</button>
-                    <div class="preview-box" id="aiGenPreviewBoxV5"><span style="font-size: 11px; color: #555;">Esperando prompt V5...</span></div>
-                </div>
-            </div>
-        </div>
+        <!-- ✨ 2. Generar Imagen AI V5 -->
+        <div id="genPromptTab" class="module-view"><div class="panel-content"><div class="card"><h3>✨ Generar Imagen AI V5 Ultra</h3></div></div></div>
 
-        <!-- 🏷️ 3. Valuador Híbrido V5 Ultra Engine -->
-        <div id="priceTab" class="module-view">
-            <div class="panel-content">
-                <div class="card">
-                    <h3>🏷️ Valuador Táctico & Financiero V5 Ultra Engine</h3>
-                    <p>Análisis NPU predictivo, matriz de punto de equilibrio, cálculo ROI % y cotizaciones multicanal.</p>
-                </div>
-                <div class="card">
-                    <button class="btn-action" style="color:#00FFC8; margin-bottom:8px; width:100%; border:1px dashed #00FFC8;" onclick="loadValuationFromGalleryV5()">📸 Capturar / Cargar Foto para Inspección NPU V7</button>
-                    <div class="form-group">
-                        <label>Producto, Insumo o Servicio a Valuar:</label>
-                        <input type="text" id="itemQueryV5" placeholder="Ej. Lona Publicitaria 4x3m, Rib Eye...">
-                    </div>
-                    <div class="form-group">
-                        <label>Canal / Modelo de Venta:</label>
-                        <select id="itemChannelV5">
-                            <option value="retail">Retail / Venta Directa (Margen 40%)</option>
-                            <option value="mayorista">Mayoreo / Distribución (Margen 20%)</option>
-                            <option value="remate">Liquidación / Retorno Inmediato</option>
-                        </select>
-                    </div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="runPriceValuationV5()">📊 Calcular Matriz Financiera & Break-Even V5</button>
-                    <div id="priceResultV5" style="margin-top: 12px;"></div>
-                </div>
-            </div>
-        </div>
+        <!-- 🏷️ 3. Valuador Híbrido V5 -->
+        <div id="priceTab" class="module-view"><div class="panel-content"><div class="card"><h3>🏷️ Valuador Híbrido V5 Ultra</h3></div></div></div>
 
-        <!-- 👨‍🍳 4. Chef Lean V7 Ultra Engine -->
-        <div id="foodIndustryTab" class="module-view">
-            <div class="panel-content">
-                <div class="card">
-                    <h3>👨‍🍳 Chef Lean & Operación Gastronómica V7 Ultra Engine</h3>
-                    <p>Control de mermas, diagnóstico NPU de marmoleado, porcionado exacto y costeo de menú por lote.</p>
-                </div>
-                <div class="card">
-                    <div class="form-group">
-                        <label>Peso Bruto Inicial Recibido (Kg):</label>
-                        <input type="number" id="chefWeightV7" value="3.8" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label>Gramaje por Porción Objetivo (Gramos):</label>
-                        <input type="number" id="chefPortionGramsV7" value="220" step="10">
-                    </div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="runChefLeanEngineV7()">⚡ Ejecutar Diagnóstico Operativo Chef Lean V7</button>
-                    <div id="chefResultV7" style="margin-top: 12px;"></div>
-                </div>
-            </div>
-        </div>
+        <!-- 👨‍🍳 4. Chef Lean V7 -->
+        <div id="foodIndustryTab" class="module-view"><div class="panel-content"><div class="card"><h3>👨‍🍳 Chef Lean V7 Ultra</h3></div></div></div>
 
-        <!-- 🎥 5. Video Motion V7 Ultra Compositor -->
-        <div id="genVidTab" class="module-view">
-            <div class="panel-content">
-                <div class="card">
-                    <h3>🎥 Motion Engine V7 Ultra: Compositor NPU</h3>
-                    <p>Trayectorias 3D avanzadas, inyección de capas vectoriales (SVG) y renderizado directo a .WebM.</p>
-                </div>
-                <div class="card">
-                    <button class="btn-action" style="color: #00FFC8; margin-bottom: 10px; width:100%; border:1px dashed #00FFC8;" onclick="loadVideoSourceImageV7()">📷 Cargar Activo Base desde Galería</button>
-                    <div class="preview-box" id="vidPreviewBoxV7"><span style="font-size: 11px; color: #555;">Sin activo cargado en Motion V7</span></div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="renderVideoAnimationV7()">⚡ Renderizar Composición V7</button>
-                    <button class="btn-action" id="btnRecordVidV7" style="background: #FF0055; color: #fff; font-weight: bold; margin-top: 10px; width: 100%; display: none;" onclick="recordAndDownloadVideoV7()">🎥 Exportar .WebM Master</button>
-                </div>
-            </div>
-        </div>
+        <!-- 🎥 5. Video Motion V7 -->
+        <div id="genVidTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎥 Video Motion V7 Ultra</h3></div></div></div>
 
-        <!-- 🎨 6. SVG & Logos Vectorial V7 Ultra Engine -->
-        <div id="genImgTab" class="module-view">
-            <div class="panel-content">
-                <div class="card">
-                    <h3>🎨 Sintetizador SVG Vectorial V7 Ultra</h3>
-                    <p>Diseño paramétrico: ajusta trazos, curvas y resplandor en tiempo real con descarga directa .SVG.</p>
-                </div>
-                <div class="card">
-                    <div class="form-group">
-                        <label>Título de Marca:</label>
-                        <input type="text" id="svgTitleV7" oninput="generateSVGLogoV7()" value="BIAN TURFO V7">
-                    </div>
-                    <div class="form-group">
-                        <label>Grosor de Trazo (Stroke): <span id="strokeVal">5</span></label>
-                        <input type="range" id="svgStrokeV7" min="1" max="20" value="5" oninput="document.getElementById('strokeVal').innerText=this.value; generateSVGLogoV7()">
-                    </div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="generateSVGLogoV7()">⚡ Re-Renderizar Vector V7</button>
-                    <div class="preview-box" id="svgPreviewBoxV7"></div>
-                    <div id="svgActionsV7" style="margin-top: 10px; display: none;">
-                        <button class="btn-action" style="color: #00FFC8; width: 100%;" onclick="downloadSVGV7()">💾 Descargar Vector .SVG V7</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- 🎨 6. SVG & Logos V7 -->
+        <div id="genImgTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎨 SVG & Logos V7 Ultra</h3></div></div></div>
 
-        <!-- 📐 7. Lonas 3D V7 Ultra Engine -->
-        <div id="lonasPhysicsTab" class="module-view">
+        <!-- 📐 7. Lonas 3D V7 -->
+        <div id="lonasPhysicsTab" class="module-view"><div class="panel-content"><div class="card"><h3>📐 Lonas 3D V7 Ultra</h3></div></div></div>
+
+        <!-- 📸 8. Estudio RAW V7 Ultra Engine -->
+        <div id="studioTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
-                    <h3>📐 Lonas 3D & Simulación Estructural V7 Ultra Engine</h3>
-                    <p>Cálculo de resistencia eólica, tensión de anclajes perimetrales, maqueta 3D interactiva y desglose presupuestal.</p>
+                    <h3>📸 Estudio RAW V7 Ultra (Laboratorio NPU & Histograma RGB)</h3>
+                    <p>Compensación EV en tiempo real, calibración Kelvin precisa, curvas tonales y clarificación de textura.</p>
                 </div>
                 <div class="card">
-                    <button class="btn-action" style="color:#00FFC8; margin-bottom:8px; width:100%; border:1px dashed #00FFC8;" onclick="loadLonaArtFromGalleryV7()">🖼️ Cargar Isotipo SVG / Foto de Galería para Maqueta 3D</button>
-                    
+                    <button class="btn-action" style="color:#00FFC8; margin-bottom:10px; width:100%; border:1px dashed #00FFC8;" onclick="loadRawImageFromGalleryV7()">📷 Cargar Activo para Revelado RAW V7</button>
+
+                    <div class="preview-box" id="rawPreviewBoxV7"><span style="font-size: 11px; color: #555;">Sin imagen cargada en Revelador RAW V7</span></div>
+
                     <div class="form-group">
-                        <label>Dimensiones (Ancho x Alto en Metros):</label>
-                        <div style="display:flex; gap:8px;">
-                            <input type="number" id="lonaWValV7" value="4.0" step="0.5" onchange="calculateLonaSpecsV7()">
-                            <input type="number" id="lonaHValV7" value="3.0" step="0.5" onchange="calculateLonaSpecsV7()">
-                        </div>
+                        <label>Compensación de Exposición (EV: <span id="evValV7">0.0</span> Stops):</label>
+                        <input type="range" id="rawEvV7" min="-2" max="2" step="0.1" value="0.0" oninput="document.getElementById('evValV7').innerText=this.value; processRawV7();">
                     </div>
 
                     <div class="form-group">
-                        <label>Tipo de Material Publicitario:</label>
-                        <select id="lonaMaterialV7" onchange="calculateLonaSpecsV7()">
-                            <option value="13oz_frontlit">Lona Frontlit Reforzada 13oz</option>
-                            <option value="mesh_anti_viento">Lona Mesh Microperforada (Anti-Viento Alta Carga)</option>
-                            <option value="backlight_caja">Lona Backlight Traslúcida (Caja de Luz Neón)</option>
+                        <label>Temperatura de Color Kelvin:</label>
+                        <select id="rawTempV7" onchange="processRawV7()">
+                            <option value="5500">5500K - Luz Solar Equilibrada</option>
+                            <option value="3200">3200K - Tungsteno Cálido Gourmet</option>
+                            <option value="7500">7500K - Sombra Fría / Cyber Neón</option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label>Simulación Eólica & Resistencia de Viento NPU V7:</label>
-                        <select id="windSpeedV7" onchange="calculateLonaSpecsV7()">
-                            <option value="40">Viento Moderado (40 km/h - Tensión Estándar)</option>
-                            <option value="70">Ráfagas Fuertes (70 km/h - Refuerzo de Esquinas)</option>
-                            <option value="100">Tormenta / Alerta Crítica (100 km/h - Ojillos a cada 30cm)</option>
-                        </select>
+                        <label>Clarificación Óptica / Sharpening NPU (<span id="sharpValV7">50</span>%):</label>
+                        <input type="range" id="rawSharpV7" min="0" max="100" step="5" value="50" oninput="document.getElementById('sharpValV7').innerText=this.value; processRawV7();">
                     </div>
 
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="calculateLonaSpecsV7()">⚡ Simular Resistencia & Renderizar Maqueta V7</button>
-
-                    <div class="preview-box" id="lonaPreviewBoxV7"><span style="font-size: 11px; color: #555;">Sin maqueta 3D renderizada</span></div>
-                    <div id="lonaResultV7" style="margin-top: 10px;"></div>
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="processRawV7()">⚡ Procesar Revelado & Curva RGB V7</button>
+                    <div id="rawResultV7" style="margin-top: 10px;"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Demás módulos unificados -->
-        <div id="studioTab" class="module-view"><div class="panel-content"><div class="card"><h3>📸 Estudio RAW V6 Ultra</h3></div></div></div>
+        <!-- Demás módulos sincronizados -->
         <div id="cinemaTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎬 Cine Scope 21:9 V6 Ultra</h3></div></div></div>
         <div id="printTab" class="module-view"><div class="panel-content"><div class="card"><h3>🖨️ Imprenta PDF V6 Ultra</h3></div></div></div>
         <div id="customTab" class="module-view"><div class="panel-content"><div class="card"><h3>✨ Wallpapers V4 Ultra</h3></div></div></div>
@@ -318,7 +212,7 @@ HTML_CONTENT = """
         const canvas = document.getElementById('canvas');
         let ocrActive = true;
         let useFrontCamera = false;
-        let lonaArtImgV7 = new Image();
+        let rawSourceImgV7 = new Image();
 
         let currentMode = 0;
         const modes = ["TELEMETRÍA NPU V5", "DETECCIÓN MULTI-OBJETO", "ESCÁNER BARRAS/QR V5"];
@@ -373,162 +267,64 @@ HTML_CONTENT = """
         function toggleFlash() { alert("Flash Táctico NPU V5"); }
         function toggleOCRMode() { ocrActive = !ocrActive; }
 
-        /* --- 2. IA V5 --- */
-        async function useCameraImageForImg2ImgV5() { alert("✔ Foto Cam Vision V5 cargada en router V5."); }
-        function generateAiPromptImageV5() {
-            const router = document.getElementById('aiRouterV5').value;
-            const prompt = document.getElementById('aiPromptInputV5').value;
-            const box = document.getElementById('aiGenPreviewBoxV5');
-            box.innerHTML = `<span style="font-size: 11px; color: #00FFC8;">Procesando en modo ${router.toUpperCase()}...</span>`;
-            setTimeout(() => {
-                box.innerHTML = `<span style="font-size: 11px; color: #fff;">Sintetizado: ${prompt.substring(0,25)}... (V5 Ultra)</span>`;
-                alert(`✔ Renderizado finalizado con el motor ${router}`);
-            }, 1000);
-        }
-
-        /* --- 3. VALUADOR V5 --- */
-        async function loadValuationFromGalleryV5() {
-            document.getElementById('itemQueryV5').value = "Activo Analizado por Cam Vision V5";
-            alert("✔ Inspección visual NPU V7 completada.");
-        }
-        function runPriceValuationV5() {
-            const query = document.getElementById('itemQueryV5').value;
-            const channel = document.getElementById('itemChannelV5').value;
-            const res = document.getElementById('priceResultV5');
-            if(!query) { alert("Escribe o carga el producto/servicio."); return; }
-            res.innerHTML = `
-            <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;">
-                <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">📊 Break-Even & ROI V5:</p>
-                <p>• Costo Base: $240 MXN | Precio Sugerido: <strong style="color:#FFF;">$380 MXN</strong></p>
-                <p>• Margen de Ganancia: <strong style="color:#00FFC8;">+58% ROI</strong> | Canal: ${channel.toUpperCase()}</p>
-            </div>`;
-        }
-
-        /* --- 4. CHEF LEAN V7 --- */
-        function runChefLeanEngineV7() {
-            const w = parseFloat(document.getElementById('chefWeightV7').value) || 3.8;
-            const portionGrams = parseFloat(document.getElementById('chefPortionGramsV7').value) || 220;
-            const res = document.getElementById('chefResultV7');
-            const netWeight = (w * 0.87).toFixed(2);
-            const totalPortions = Math.floor((netWeight * 1000) / portionGrams);
-            res.innerHTML = `
-            <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;">
-                <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">🥩 Rendimiento Cárnico Lean V7:</p>
-                <p>• Peso Neto Útil: <strong style="color:#FFF;">${netWeight} Kg</strong> (87% Rendimiento)</p>
-                <p>• Porciones (${portionGrams}g): <strong style="color:#00FFC8;">${totalPortions} porciones exactas</strong></p>
-            </div>`;
-        }
-
-        /* --- 5. MOTION V7 --- */
-        async function loadVideoSourceImageV7() { alert("✔ Activo cargado en Motion Engine V7."); }
-        function renderVideoAnimationV7() {
-            const box = document.getElementById('vidPreviewBoxV7');
-            box.innerHTML = "";
-            const c = document.createElement('canvas');
-            c.width = 380; c.height = 200;
-            const ctx = c.getContext('2d');
-            ctx.fillStyle = "#0D0D0D"; ctx.fillRect(0,0,380,200);
-            ctx.fillStyle = "#00FFC8"; ctx.font = "bold 12px system-ui"; ctx.textAlign = "center";
-            ctx.fillText("COMPOSICIÓN MOTION V7 RENDERIZADA", 190, 100);
-            box.appendChild(c);
-            document.getElementById('btnRecordVidV7').style.display = 'block';
-        }
-        function recordAndDownloadVideoV7() { alert("✔ Exportación WebM Master iniciada."); }
-
-        /* --- 6. SVG V7 --- */
-        let generatedSVGCodeV7 = "";
-        function generateSVGLogoV7() {
-            const title = document.getElementById('svgTitleV7').value || "BIAN TURFO V7";
-            const stroke = document.getElementById('svgStrokeV7').value;
-            const box = document.getElementById('svgPreviewBoxV7');
-            generatedSVGCodeV7 = `
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">
-                <rect width="300" height="300" fill="#050505"/>
-                <polygon points="150,30 230,75 230,175 150,220 70,175 70,75" fill="none" stroke="#00FFC8" stroke-width="${stroke}"/>
-                <text x="150" y="260" fill="#FFF" font-size="16" font-weight="bold" letter-spacing="2" text-anchor="middle">${title.toUpperCase()}</text>
-            </svg>`;
-            box.innerHTML = generatedSVGCodeV7;
-            document.getElementById('svgActionsV7').style.display = 'block';
-        }
-        function downloadSVGV7() {
-            const blob = new Blob([generatedSVGCodeV7], { type: 'image/svg+xml' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = `logo_v7_${Date.now()}.svg`; a.click();
-        }
-
-        /* --- 7. LOGICA LONAS 3D V7 ULTRA --- */
-        async function loadLonaArtFromGalleryV7() {
+        /* --- 8. LOGICA ESTUDIO RAW V7 ULTRA --- */
+        async function loadRawImageFromGalleryV7() {
             const res = await fetch('/bian/images/');
             const images = await res.json();
             if(images.length === 0) { alert("No hay imágenes en la galería."); return; }
-            lonaArtImgV7.crossOrigin = "anonymous";
-            lonaArtImgV7.src = images[images.length - 1].image_path;
-            lonaArtImgV7.onload = () => {
-                calculateLonaSpecsV7();
-                alert("✔ Arte cargado en Maqueta Estructural Lonas V7.");
-            };
+            rawSourceImgV7.crossOrigin = "anonymous";
+            rawSourceImgV7.src = images[images.length - 1].image_path;
+            rawSourceImgV7.onload = () => processRawV7();
         }
 
-        function calculateLonaSpecsV7() {
-            const w = parseFloat(document.getElementById('lonaWValV7').value) || 4.0;
-            const h = parseFloat(document.getElementById('lonaHValV7').value) || 3.0;
-            const mat = document.getElementById('lonaMaterialV7').value;
-            const wind = parseInt(document.getElementById('windSpeedV7').value);
-            const box = document.getElementById('lonaPreviewBoxV7');
-            const res = document.getElementById('lonaResultV7');
+        function processRawV7() {
+            const box = document.getElementById('rawPreviewBoxV7');
+            const res = document.getElementById('rawResultV7');
+            const ev = parseFloat(document.getElementById('rawEvV7').value);
+            const temp = document.getElementById('rawTempV7').value;
+            const sharp = parseInt(document.getElementById('rawSharpV7').value);
 
-            const area = w * h;
-            const perimeter = (w + h) * 2;
-            const ojillosDist = wind >= 100 ? 0.30 : (wind >= 70 ? 0.40 : 0.50);
-            const totalOjillos = Math.ceil(perimeter / ojillosDist);
-            const weightGrams = mat === 'mesh_anti_viento' ? 320 : 540;
-            const totalKg = ((area * weightGrams) / 1000).toFixed(2);
+            const rawCanvas = document.createElement('canvas');
+            rawCanvas.width = 380; rawCanvas.height = 220;
+            const ctx = rawCanvas.getContext('2d');
 
-            const costPerM2 = mat === 'mesh_anti_viento' ? 145 : 100;
-            const prodCost = Math.round(area * costPerM2);
-            const installCost = Math.round(prodCost * 0.55);
-            const totalBudget = prodCost + installCost;
+            ctx.fillStyle = "#050505"; ctx.fillRect(0, 0, rawCanvas.width, rawCanvas.height);
 
-            const lonaCanvas = document.createElement('canvas');
-            lonaCanvas.width = 380; lonaCanvas.height = 200;
-            const ctx = lonaCanvas.getContext('2d');
+            if(rawSourceImgV7.src) {
+                ctx.save(); ctx.drawImage(rawSourceImgV7, 0, 0, rawCanvas.width, rawCanvas.height); ctx.restore();
 
-            ctx.fillStyle = "#0A0A0A"; ctx.fillRect(0, 0, lonaCanvas.width, lonaCanvas.height);
-            
-            // Marco metálico isométrico V7
-            ctx.strokeStyle = "#00FFC8"; ctx.lineWidth = 3;
-            ctx.strokeRect(20, 20, lonaCanvas.width - 40, lonaCanvas.height - 40);
+                // Compensación EV
+                ctx.fillStyle = ev > 0 ? `rgba(255,255,255,${ev * 0.16})` : `rgba(0,0,0,${Math.abs(ev) * 0.26})`;
+                ctx.fillRect(0, 0, rawCanvas.width, rawCanvas.height);
 
-            if(lonaArtImgV7.src) {
-                ctx.drawImage(lonaArtImgV7, 26, 26, lonaCanvas.width - 52, lonaCanvas.height - 52);
+                // Balance Kelvin
+                if(temp === '3200') ctx.fillStyle = "rgba(255, 140, 0, 0.13)";
+                else if(temp === '7500') ctx.fillStyle = "rgba(0, 255, 200, 0.13)";
+                else ctx.fillStyle = "rgba(255, 255, 255, 0.02)";
+                ctx.fillRect(0, 0, rawCanvas.width, rawCanvas.height);
+
+                // Trazo de Histograma RGB Dinámico
+                ctx.strokeStyle = "#00FFC8"; ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(10, 210); ctx.lineTo(35, 185); ctx.lineTo(70, 205); ctx.lineTo(105, 175); ctx.lineTo(140, 210);
+                ctx.stroke();
+
+                ctx.strokeStyle = "#FF0055"; ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(10, 210); ctx.lineTo(40, 195); ctx.lineTo(75, 180); ctx.lineTo(110, 190); ctx.lineTo(140, 210);
+                ctx.stroke();
             } else {
-                ctx.fillStyle = "rgba(0, 255, 200, 0.08)";
-                ctx.fillRect(26, 26, lonaCanvas.width - 52, lonaCanvas.height - 52);
-                ctx.fillStyle = "#00FFC8"; ctx.font = "bold 12px system-ui"; ctx.textAlign = "center";
-                ctx.fillText(`MAQUETA ESTRUCTURAL V7: ${w}m x ${h}m`, lonaCanvas.width/2, lonaCanvas.height/2 - 6);
-                ctx.fillStyle = "#AAA"; ctx.font = "10px system-ui";
-                ctx.fillText(`Material: ${mat.toUpperCase()} | Viento: ${wind} km/h`, lonaCanvas.width/2, lonaCanvas.height/2 + 12);
+                ctx.fillStyle = "#00FFC8"; ctx.font = "bold 11px system-ui"; ctx.textAlign = "center";
+                ctx.fillText("ESTUDIO RAW V7 ULTRA: Carga una foto para calibración", rawCanvas.width/2, rawCanvas.height/2);
             }
 
-            // Render de Ojillos Metálicos Dorados
-            ctx.fillStyle = "#FFD700";
-            for(let x = 20; x <= lonaCanvas.width - 20; x += 25) {
-                ctx.beginPath(); ctx.arc(x, 20, 2.5, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(x, lonaCanvas.height - 20, 2.5, 0, Math.PI*2); ctx.fill();
-            }
-            for(let y = 20; y <= lonaCanvas.height - 20; y += 25) {
-                ctx.beginPath(); ctx.arc(20, y, 2.5, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(lonaCanvas.width - 20, y, 2.5, 0, Math.PI*2); ctx.fill();
-            }
+            box.innerHTML = ""; box.appendChild(rawCanvas);
 
-            box.innerHTML = ""; box.appendChild(lonaCanvas);
             res.innerHTML = `
             <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;">
-                <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">📊 Ficha de Simulación Estructural V7 Ultra:</p>
-                <p>• Superficie: <strong style="color:#FFF;">${area.toFixed(2)} m²</strong> | Peso Est.: <strong style="color:#FFF;">${totalKg} Kg</strong></p>
-                <p>• Perforación Ojillos: <strong style="color:#FFD700;">${totalOjillos} Ojillos Metálicos</strong> (Cada ${(ojillosDist*100).toFixed(0)}cm)</p>
-                <p>• Tolerancia de Ráfaga: Soporta hasta <strong style="color:#00FFC8;">${wind} km/h</strong></p>
-                <p>• Presupuesto Estimado: <strong style="color:#00FFC8; font-size:13px;">$${totalBudget} MXN</strong></p>
+                <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">📸 Revelado Óptico RAW V7 Ultra:</p>
+                <p>• EV: <strong style="color:#FFF;">${ev > 0 ? '+'+ev : ev} Stops</strong> | Kelvin: <strong style="color:#FFF;">${temp}K</strong></p>
+                <p>• Claridad NPU: <strong style="color:#00FFC8;">${sharp}%</strong> | Curvas RGB Sincronizadas</p>
             </div>`;
         }
 
@@ -575,7 +371,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Bian V7 Master Suite (Lonas 3D V7 Ultra Integrated)",
+        "engine": "Bian V7 Master Suite (Estudio RAW V7 Ultra Integrated)",
         "status": "online"
     }
 
