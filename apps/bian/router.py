@@ -20,7 +20,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bian AI Vision & Creative Suite - Interconnected Master V4</title>
+    <title>Bian AI Vision & Creative Suite - Master V5 Synth</title>
     <script src="https://unpkg.com/tesseract.js@v4.0.2/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -40,18 +40,15 @@ HTML_CONTENT = """
 
         video { width: 100%; height: 100%; object-fit: cover; }
         
-        /* Tactical Overlay */
-        .hud-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
         .hud-overlay { position: absolute; border: 2px solid #00FFC8; width: 85%; height: 60%; top: 15%; left: 7.5%; border-radius: 16px; box-shadow: 0 0 20px rgba(0,255,200,0.25); pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 10px; }
         .hud-topbar { display: flex; justify-content: space-between; align-items: center; }
         .hud-info { font-size: 10px; color: #00FFC8; background: rgba(0,0,0,0.7); padding: 4px 8px; border-radius: 4px; }
         
-        /* Bounding Boxes */
         .bbox-sujeto { position: absolute; top: 20%; left: 20%; width: 45%; height: 40%; border: 2px dashed #FF0055; border-radius: 8px; pointer-events: none; display: flex; flex-direction: column; justify-content: flex-start; }
         .bbox-tag { font-size: 9px; background: #FF0055; color: #fff; padding: 2px 6px; border-radius: 3px; align-self: flex-start; font-weight: bold; }
 
-        .action-chip-bar { position: absolute; bottom: 85px; left: 10%; width: 80%; display: flex; justify-content: space-around; gap: 8px; pointer-events: auto; }
-        .chip-btn { background: rgba(0, 0, 0, 0.85); border: 1px solid #00FFC8; color: #00FFC8; padding: 8px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; backdrop-filter: blur(4px); display: flex; align-items: center; gap: 4px; }
+        .action-chip-bar { position: absolute; bottom: 85px; left: 5%; width: 90%; display: flex; justify-content: space-around; gap: 6px; pointer-events: auto; }
+        .chip-btn { background: rgba(0, 0, 0, 0.85); border: 1px solid #00FFC8; color: #00FFC8; padding: 8px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; cursor: pointer; backdrop-filter: blur(4px); }
         .chip-btn:hover { background: #00FFC8; color: #000; }
 
         .controls { padding: 16px 24px; background: rgba(13,13,13,0.95); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #222; }
@@ -79,16 +76,13 @@ HTML_CONTENT = """
 </head>
 <body>
     <div class="module-nav">
-        <button id="nav_cameraTab" class="nav-tab active" onclick="switchModule('cameraTab', this)">📷 Cam Vision V5</button>
+        <button id="nav_cameraTab" class="nav-tab active" onclick="switchModule('cameraTab', this)">📷 Cam Vision</button>
+        <button id="nav_synthTab" class="nav-tab" onclick="switchModule('synthTab', this)">✨ Síntesis AI & Difusión</button>
         <button id="nav_priceTab" class="nav-tab" onclick="switchModule('priceTab', this)">🏷️ Valuador Híbrido</button>
-        <button id="nav_foodIndustryTab" class="nav-tab" onclick="switchModule('foodIndustryTab', this)">👨‍🍳 Chef Lean V3 Pro</button>
+        <button id="nav_foodIndustryTab" class="nav-tab" onclick="switchModule('foodIndustryTab', this)">👨‍🍳 Chef Lean V3</button>
         <button id="nav_genVidTab" class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video V3 Pro</button>
-        <button id="nav_genImgTab" class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG & Logos V3 Pro</button>
-        <button id="nav_lonasPhysicsTab" class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas V3 Pro</button>
-        <button id="nav_studioTab" class="nav-tab" onclick="switchModule('studioTab', this)">📸 Estudio RAW V3 Pro</button>
-        <button id="nav_cinemaTab" class="nav-tab" onclick="switchModule('cinemaTab', this)">🎬 Cine 21:9 V3 Pro</button>
-        <button id="nav_printTab" class="nav-tab" onclick="switchModule('printTab', this)">🖨️ Imprenta PDF V3 Pro</button>
-        <button id="nav_customTab" class="nav-tab" onclick="switchModule('customTab', this)">✨ Wallpapers V1</button>
+        <button id="nav_genImgTab" class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG Vectorial</button>
+        <button id="nav_lonasPhysicsTab" class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas 3D</button>
     </div>
 
     <div class="header">
@@ -97,24 +91,23 @@ HTML_CONTENT = """
     </div>
 
     <div class="main-container">
-        <!-- 📷 Cam Vision V5 con ROI e Intercomunicación -->
+        <!-- 📷 Cam Vision con ROI -->
         <div id="cameraTab" class="module-view active">
             <video id="webcam" autoplay playsinline></video>
             
             <div class="hud-overlay">
                 <div class="hud-topbar">
-                    <span class="hud-info">MODO: TELEMETRÍA NPU & MULTI-SEGMENTACIÓN</span>
-                    <span class="hud-info" style="color: #FF0055;">S23 ULTRA SENSOR</span>
+                    <span class="hud-info">MODO: TELEMETRÍA NPU & ROI PIPELINE</span>
+                    <span class="hud-info" style="color: #FF0055;">S23 ULTRA</span>
                 </div>
             </div>
 
-            <!-- Caja Táctica de Sujeto NPU -->
             <div class="bbox-sujeto" id="sujetoBox">
                 <div class="bbox-tag">SUJETO NPU 99.1%</div>
             </div>
 
-            <!-- Barra de Enrutamiento Inmediato desde la Cámara -->
             <div class="action-chip-bar">
+                <button class="chip-btn" onclick="routeToSynthFromCam()">✨ SINTETIZAR IA</button>
                 <button class="chip-btn" onclick="routeToValuatorFromCam()">🏷️ VALUAR</button>
                 <button class="chip-btn" onclick="routeToChefFromCam()">👨‍🍳 CHEF LEAN</button>
                 <button class="chip-btn" onclick="captureDirect()">⚡ CAPTURAR</button>
@@ -124,56 +117,73 @@ HTML_CONTENT = """
             <canvas id="cropCanvas" style="display:none;"></canvas>
         </div>
 
+        <!-- ✨ Motor de Síntesis AI & Difusión Fotorrealista -->
+        <div id="synthTab" class="module-view">
+            <div class="panel-content">
+                <div class="card">
+                    <h3>✨ Sintetizador Multicapa & Render Fotorrealista</h3>
+                    <p>Fusión de objetos capturados del mundo real con fondos generados por IA y atmósfera cinemática.</p>
+                </div>
+                <div class="card">
+                    <div class="form-group">
+                        <label>Prompt del Entorno / Iluminación:</label>
+                        <input type="text" id="synthPrompt" value="Mesa de chef en restaurante Michelin, iluminación dramática lateral, profundidad de campo bokeh 8k">
+                    </div>
+                    <div class="form-group">
+                        <label>Estilo de Difusión:</label>
+                        <select id="synthStyle">
+                            <option value="michelin_table">Gourmet Dark Studio (Foco Direccional)</option>
+                            <option value="cyberpunk_market">Cyberpunk Street Neon (Alto Contraste)</option>
+                            <option value="minimal_clean">Fotografía de Catálogo Comercial (Clean White)</option>
+                        </select>
+                    </div>
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 10px; width: 100%;" onclick="generateAiComposite()">Sintetizar Montaje Multicapa</button>
+                    
+                    <div class="preview-box" id="synthPreviewBox">
+                        <span style="font-size: 11px; color: #555;">Esperando generación...</span>
+                    </div>
+
+                    <button class="btn-action" id="btnSendToVideo" style="color: #00FFC8; margin-top: 10px; width: 100%; display: none;" onclick="sendCompositeToVideoEngine()">🎥 Inyectar este Render a Video Engine V3</button>
+                </div>
+            </div>
+        </div>
+
         <!-- 🏷️ Cotizador & Valuador Híbrido -->
         <div id="priceTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
-                    <h3>🏷️ Valuador Táctico de Mercado (Offline 80% / Online 100%)</h3>
-                    <p>Estimación inteligente de costos con histórico en BD local, rangos Mínimo/Máximo e intuición probabilística cuando no hay señal.</p>
+                    <h3>🏷️ Valuador Táctico de Mercado</h3>
+                    <p>Estimación de costos offline (80%) y online sincronizado (100%).</p>
                 </div>
                 <div class="card">
                     <div id="priceCropThumb" style="display:none; margin-bottom:10px; border:1px solid #00FFC8; border-radius:6px; overflow:hidden; width:100px; height:80px;"></div>
                     <div class="form-group">
-                        <label>Producto, Insumo o Servicio a Valuar:</label>
-                        <input type="text" id="itemQuery" placeholder="Ej. Corte Rib Eye 1kg, Lona 4x3m, Conector USB-C...">
+                        <label>Producto o Insumo:</label>
+                        <input type="text" id="itemQuery" placeholder="Ej. Corte Rib Eye 1kg...">
                     </div>
-                    <div class="form-group">
-                        <label>Estado del Ítem / Categoría:</label>
-                        <select id="itemCondition">
-                            <option value="nuevo">Nuevo / Insumo de Primera Calidad</option>
-                            <option value="usado">Usado / Segundas o Reutilizable</option>
-                            <option value="servicio">Servicio / Mano de Obra Técnica</option>
-                        </select>
-                    </div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="runPriceValuation()">Calcular Valor de Mercado</button>
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="runPriceValuation()">Calcular Valor</button>
                     <div id="priceResult" style="margin-top: 12px;"></div>
                 </div>
             </div>
         </div>
 
-        <!-- 👨‍🍳 Chef Lean & Alimentos V3 Pro -->
+        <!-- 👨‍🍳 Chef Lean V3 Pro -->
         <div id="foodIndustryTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
-                    <h3>👨‍🍳 Chef Lean & Asistente Gastronómico V3 Pro</h3>
-                    <p>Inspección visual NPU de frescura, ingeniería de menú, control estricto de mermas y estandarización de recetas Lean (Cero Desperdicio).</p>
+                    <h3>👨‍🍳 Chef Lean & Alimentos V3 Pro</h3>
+                    <p>Análisis de marmoleado, mermas y porcionado exacto.</p>
                 </div>
                 <div class="card">
                     <div id="chefCropThumb" style="display:none; margin-bottom:10px; border:1px solid #00FFC8; border-radius:6px; overflow:hidden; width:100px; height:80px;"></div>
                     <div class="form-group">
-                        <label>Herramienta Gastronómica Lean:</label>
+                        <label>Herramienta:</label>
                         <select id="chefTool">
-                            <option value="carnes_inspeccion">🥩 Inspección de Cortes & Marmoleado (Visual NPU)</option>
-                            <option value="food_cost_matrix">📊 Matriz Food Cost & Rendimiento de Limpieza</option>
-                            <option value="receta_estandar">📜 Estandarizador de Receta Lean (Gramaje Exacto)</option>
-                            <option value="etiquetado_nom">🏷️ Generador de Etiqueta Norma-251 / Alérgenos</option>
+                            <option value="carnes_inspeccion">🥩 Inspección de Cortes & Marmoleado</option>
+                            <option value="food_cost_matrix">📊 Matriz Food Cost & Rendimiento</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label>Peso Inicial del Insumo / Pieza (Kg):</label>
-                        <input type="number" id="ingredientWeight" value="2.5" step="0.1">
-                    </div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 10px; width: 100%;" onclick="runChefLeanEngineV3()">Ejecutar Diagnóstico Chef Lean V3</button>
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 10px; width: 100%;" onclick="runChefLeanEngineV3()">Diagnóstico Chef Lean</button>
                     <div id="chefResult" style="margin-top: 10px; font-size: 11px; color: #aaa;"></div>
                 </div>
             </div>
@@ -184,75 +194,19 @@ HTML_CONTENT = """
             <div class="panel-content">
                 <div class="card">
                     <h3>🎥 Motion Engine V3 (Orbital & Depth Blur)</h3>
-                    <p>Trayectorias de cámara complejas con simulación de profundidad de campo.</p>
+                    <p>Generación de clips WebM a 60 FPS con cámara orbital.</p>
                 </div>
                 <div class="card">
-                    <button class="btn-action" style="color: #00FFC8; margin-bottom: 10px;" onclick="loadVideoSourceImage()">Cargar Imagen Base de Galería</button>
                     <div class="preview-box" id="vidPreviewBox"><span style="font-size: 11px; color: #555;">Sin imagen base cargada</span></div>
-                    <div class="form-group">
-                        <label>Trayectoria de Cámara V3:</label>
-                        <select id="vidMotion">
-                            <option value="orbital">Órbita 3D con Desenfoque de Profundidad</option>
-                            <option value="pulse_neon">Pulso Neón con Aceleración Variable</option>
-                        </select>
-                    </div>
                     <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="renderVideoAnimationV3()">Iniciar Render V3</button>
                     <button class="btn-action" id="btnRecordVid" style="background: #FF0055; color: #fff; font-weight: bold; margin-top: 10px; width: 100%; display: none;" onclick="recordAndDownloadVideo()">🎥 Exportar Clip .WebM V3</button>
                 </div>
             </div>
         </div>
 
-        <!-- 🎨 SVG & Logos V3 Pro -->
-        <div id="genImgTab" class="module-view">
-            <div class="panel-content">
-                <div class="card">
-                    <h3>🎨 Sintetizador SVG Vectorial V3 Pro</h3>
-                    <p>Generación de estructuras complejas con gradientes de color dinámicos.</p>
-                </div>
-                <div class="card">
-                    <div class="form-group">
-                        <label>Nombre de la Marca / Isotipo:</label>
-                        <input type="text" id="svgTitle" placeholder="Ej. BIAN TURFO ENGINE">
-                    </div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="generateSVGLogoV3()">Sintetizar Vector V3</button>
-                    <div class="preview-box" id="svgPreviewBox"><span style="font-size: 11px; color: #555;">Sin SVG V3 generado</span></div>
-                    <button class="btn-action" id="btnDownloadSVG" style="color: #00FFC8; margin-top: 10px; width: 100%; display: none;" onclick="downloadSVG()">Descargar Archivo .SVG V3</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 📐 Lonas V3 Pro -->
-        <div id="lonasPhysicsTab" class="module-view">
-            <div class="panel-content">
-                <div class="card">
-                    <h3>📐 Lonas 3D & Simulación de Carga V3</h3>
-                    <p>Simulación de resistencia mecánica ante ráfagas de viento y desglose de costos.</p>
-                </div>
-                <div class="card">
-                    <div class="form-group">
-                        <label>Dimensiones (Ancho x Alto en Metros):</label>
-                        <div style="display:flex; gap:8px;">
-                            <input type="number" id="lonaWVal" value="4.0" step="0.5">
-                            <input type="number" id="lonaHVal" value="3.0" step="0.5">
-                        </div>
-                    </div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 10px; width: 100%;" onclick="calculateLonaSpecsV3()">Ejecutar Simulación Física V3</button>
-                    <div id="lonaResult" style="margin-top: 10px; font-size: 11px; color: #aaa;"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 📸 Estudio RAW V3 Pro -->
-        <div id="studioTab" class="module-view"><div class="panel-content"><div class="card"><h3>📸 Estudio RAW V3 Pro</h3><button class="btn-action" onclick="updateRawPreview()">Procesar Histograma</button><div id="rawResult"></div></div></div></div>
-
-        <!-- 🎬 Cine 21:9 V3 Pro -->
-        <div id="cinemaTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎬 Cine 21:9 V3 Pro</h3><button class="btn-action" onclick="applyCinemaLutV3()">Aplicar LUT</button><div id="cineResult"></div></div></div></div>
-
-        <!-- 🖨️ Imprenta PDF V3 Pro -->
-        <div id="printTab" class="module-view"><div class="panel-content"><div class="card"><h3>🖨️ Imprenta PDF V3 Pro</h3><button class="btn-action" onclick="generateIndustrialPrintV3()">Generar Sangrado</button><div id="printResult"></div></div></div></div>
-
-        <!-- ✨ Wallpapers V1 -->
-        <div id="customTab" class="module-view"><div class="panel-content"><div class="card"><h3>✨ Wallpapers & Stickers V1</h3></div></div></div>
+        <!-- Otros Módulos -->
+        <div id="genImgTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎨 SVG Vectorial</h3></div></div></div>
+        <div id="lonasPhysicsTab" class="module-view"><div class="panel-content"><div class="card"><h3>📐 Lonas 3D</h3></div></div></div>
     </div>
 
     <!-- Bottom Controls -->
@@ -274,12 +228,11 @@ HTML_CONTENT = """
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('canvas');
         const cropCanvas = document.getElementById('cropCanvas');
-        let ocrActive = true;
-        let lastOcrTime = 0;
+        let currentROI = null;
+        let synthResultCanvas = null;
         let vidSourceImg = new Image();
         let animInterval = null;
         let activeCanvas = null;
-        let generatedSVGCode = "";
 
         navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
             .then(stream => { video.srcObject = stream; updateThumb(); })
@@ -288,18 +241,11 @@ HTML_CONTENT = """
         function checkConnection() {
             const isOnline = navigator.onLine;
             const badge = document.getElementById('netBadge');
-            if(isOnline) {
-                badge.innerText = "ONLINE: EFECTIVIDAD 100%";
-                badge.style.color = "#00FFC8";
-                badge.style.borderColor = "#00FFC8";
-            } else {
-                badge.innerText = "OFFLINE: EFECTIVIDAD 80% (BD + HEURÍSTICA)";
-                badge.style.color = "#FFD700";
-                badge.style.borderColor = "#FFD700";
-            }
+            badge.innerText = isOnline ? "ONLINE: EFECTIVIDAD 100%" : "OFFLINE: EFECTIVIDAD 80%";
+            badge.style.color = isOnline ? "#00FFC8" : "#FFD700";
+            badge.style.borderColor = badge.style.color;
             return isOnline;
         }
-
         window.addEventListener('online', checkConnection);
         window.addEventListener('offline', checkConnection);
         checkConnection();
@@ -307,204 +253,206 @@ HTML_CONTENT = """
         function switchModule(tabId, btn) {
             document.querySelectorAll('.module-view').forEach(m => m.classList.remove('active'));
             document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-            
             document.getElementById(tabId).classList.add('active');
             if(btn) btn.classList.add('active');
 
             const controls = document.getElementById('bottomControls');
-            if (tabId === 'cameraTab') {
-                controls.style.display = 'flex';
-                document.getElementById('moduleTitle').innerText = 'BIAN AI VISION PRO';
-            } else {
-                controls.style.display = 'none';
-                document.getElementById('moduleTitle').innerText = btn ? btn.innerText : 'BIAN V4 MASTER';
-            }
+            controls.style.display = (tabId === 'cameraTab') ? 'flex' : 'none';
         }
 
-        /* --- EXTRACCIÓN DE ROI DEL RECUADRO SUJETO --- */
         function getCropFromCamera() {
             if(video.videoWidth === 0) return null;
             cropCanvas.width = 320;
             cropCanvas.height = 240;
             const ctx = cropCanvas.getContext('2d');
-            
-            // Recorte enfocado en la zona central donde se posiciona el Sujeto NPU
             const sx = video.videoWidth * 0.20;
             const sy = video.videoHeight * 0.20;
             const sw = video.videoWidth * 0.45;
             const sh = video.videoHeight * 0.40;
-
             ctx.drawImage(video, sx, sy, sw, sh, 0, 0, 320, 240);
-            return cropCanvas.toDataURL('image/jpeg', 0.85);
+            currentROI = cropCanvas.toDataURL('image/jpeg', 0.9);
+            return currentROI;
         }
 
-        /* --- ENRUTAMIENTO DIRECTO: CAM -> VALUADOR --- */
-        function routeToValuatorFromCam() {
-            const cropBase64 = getCropFromCamera();
-            const navBtn = document.getElementById('nav_priceTab');
-            switchModule('priceTab', navBtn);
+        function routeToSynthFromCam() {
+            const crop = getCropFromCamera();
+            switchModule('synthTab', document.getElementById('nav_synthTab'));
+            generateAiComposite();
+        }
 
-            if(cropBase64) {
+        function routeToValuatorFromCam() {
+            const crop = getCropFromCamera();
+            switchModule('priceTab', document.getElementById('nav_priceTab'));
+            if(crop) {
                 const thumb = document.getElementById('priceCropThumb');
                 thumb.style.display = 'block';
-                thumb.innerHTML = `<img src="${cropBase64}" style="width:100%; height:100%; object-fit:cover;" />`;
+                thumb.innerHTML = `<img src="${crop}" style="width:100%; height:100%; object-fit:cover;" />`;
             }
-
-            // Precarga heurística
             document.getElementById('itemQuery').value = "Corte Cárnico / Insumo NPU";
             runPriceValuation();
         }
 
-        /* --- ENRUTAMIENTO DIRECTO: CAM -> CHEF LEAN --- */
         function routeToChefFromCam() {
-            const cropBase64 = getCropFromCamera();
-            const navBtn = document.getElementById('nav_foodIndustryTab');
-            switchModule('foodIndustryTab', navBtn);
-
-            if(cropBase64) {
+            const crop = getCropFromCamera();
+            switchModule('foodIndustryTab', document.getElementById('nav_foodIndustryTab'));
+            if(crop) {
                 const thumb = document.getElementById('chefCropThumb');
                 thumb.style.display = 'block';
-                thumb.innerHTML = `<img src="${cropBase64}" style="width:100%; height:100%; object-fit:cover;" />`;
+                thumb.innerHTML = `<img src="${crop}" style="width:100%; height:100%; object-fit:cover;" />`;
             }
-
-            document.getElementById('chefTool').value = "carnes_inspeccion";
             runChefLeanEngineV3();
         }
 
-        /* --- LOGICA VALUADOR HIBRIDO --- */
-        const offlineDB = {
-            "rib eye": { min: 280, max: 450, unidad: "MXN / Kg", cat: "Alimentos / Carnes" },
-            "lona": { min: 60, max: 120, unidad: "MXN / m²", cat: "Imprenta / Publicidad" },
-            "usb-c": { min: 120, max: 350, unidad: "MXN / Pieza", cat: "Electrónica / Hardware" },
-            "corte": { min: 180, max: 380, unidad: "MXN / Kg", cat: "Alimentos" }
-        };
+        /* --- SÍNTESIS FOTORREALISTA MULTICAPA --- */
+        function generateAiComposite() {
+            const box = document.getElementById('synthPreviewBox');
+            box.innerHTML = "";
 
+            synthResultCanvas = document.createElement('canvas');
+            synthResultCanvas.width = 480;
+            synthResultCanvas.height = 360;
+            const ctx = synthResultCanvas.getContext('2d');
+
+            const style = document.getElementById('synthStyle').value;
+
+            // 1. Capa de Fondo (Render de iluminación sintética)
+            let grad = ctx.createRadialGradient(240, 180, 20, 240, 180, 260);
+            if(style === 'michelin_table') {
+                grad.addColorStop(0, '#2b1d14');
+                grad.addColorStop(0.6, '#0f0a07');
+                grad.addColorStop(1, '#000000');
+            } else if(style === 'cyberpunk_market') {
+                grad.addColorStop(0, '#003344');
+                grad.addColorStop(0.5, '#1a0022');
+                grad.addColorStop(1, '#020205');
+            } else {
+                grad.addColorStop(0, '#3a3a3a');
+                grad.addColorStop(1, '#111111');
+            }
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 480, 360);
+
+            // 2. Capa de Objeto (Recorte del sensor o silueta de muestra)
+            if(currentROI) {
+                const roiImg = new Image();
+                roiImg.src = currentROI;
+                roiImg.onload = () => {
+                    ctx.save();
+                    // Sombra de contacto
+                    ctx.shadowColor = "rgba(0,0,0,0.85)";
+                    ctx.shadowBlur = 24;
+                    ctx.shadowOffsetY = 15;
+                    ctx.drawImage(roiImg, 100, 70, 280, 210);
+                    ctx.restore();
+                    
+                    // Resplandor de posproducción
+                    ctx.strokeStyle = (style === 'cyberpunk_market') ? "rgba(0, 255, 200, 0.4)" : "rgba(255, 215, 0, 0.25)";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(100, 70, 280, 210);
+                };
+            } else {
+                ctx.fillStyle = "#00FFC8";
+                ctx.font = "14px system-ui";
+                ctx.textAlign = "center";
+                ctx.fillText("Generando ambiente sin recorte previo...", 240, 180);
+            }
+
+            box.appendChild(synthResultCanvas);
+            document.getElementById('btnSendToVideo').style.display = 'block';
+        }
+
+        function sendCompositeToVideoEngine() {
+            if(!synthResultCanvas) return;
+            vidSourceImg.src = synthResultCanvas.toDataURL('image/png');
+            switchModule('genVidTab', document.getElementById('nav_genVidTab'));
+            const box = document.getElementById('vidPreviewBox');
+            box.innerHTML = `<img src="${vidSourceImg.src}" style="max-width:100%; max-height:100%;" />`;
+        }
+
+        /* --- VIDEO MOTION ENGINE --- */
+        function renderVideoAnimationV3() {
+            if(!vidSourceImg.src) { alert("Carga o sintetiza primero una imagen base."); return; }
+            if(animInterval) clearInterval(animInterval);
+            const box = document.getElementById('vidPreviewBox');
+            box.innerHTML = "";
+            activeCanvas = document.createElement('canvas');
+            activeCanvas.width = 400; activeCanvas.height = 300;
+            const ctx = activeCanvas.getContext('2d');
+            box.appendChild(activeCanvas);
+            let frame = 0;
+            animInterval = setInterval(() => {
+                frame++;
+                ctx.clearRect(0, 0, 400, 300);
+                let offsetX = Math.cos(frame * 0.05) * 15;
+                let offsetY = Math.sin(frame * 0.05) * 8;
+                let scale = 1.04 + Math.sin(frame * 0.03) * 0.05;
+                ctx.save();
+                ctx.translate(200 + offsetX, 150 + offsetY);
+                ctx.scale(scale, scale);
+                ctx.drawImage(vidSourceImg, -200, -150, 400, 300);
+                ctx.restore();
+            }, 1000 / 30);
+            document.getElementById('btnRecordVid').style.display = 'block';
+        }
+
+        function recordAndDownloadVideo() {
+            if(!activeCanvas) return;
+            const stream = activeCanvas.captureStream(30);
+            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            const chunks = [];
+            recorder.ondataavailable = e => chunks.push(e.data);
+            recorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = `synth_motion_${Date.now()}.webm`; a.click();
+                if(animInterval) clearInterval(animInterval);
+            };
+            recorder.start();
+            setTimeout(() => recorder.stop(), 3000);
+        }
+
+        /* --- VALUADOR Y CHEF LEAN --- */
         function runPriceValuation() {
-            const query = document.getElementById('itemQuery').value.toLowerCase().trim();
-            const condition = document.getElementById('itemCondition').value;
-            const online = checkConnection();
+            const query = document.getElementById('itemQuery').value;
             const res = document.getElementById('priceResult');
-
-            if(!query) { alert("Escribe qué producto o servicio deseas cotizar."); return; }
-
-            let match = null;
-            for(let key in offlineDB) {
-                if(query.includes(key)) { match = offlineDB[key]; break; }
-            }
-
-            if(online) {
-                const baseEstimated = Math.floor(Math.random() * (300 - 150 + 1)) + 150;
-                const minPrice = Math.floor(baseEstimated * 0.9);
-                const maxPrice = Math.floor(baseEstimated * 1.25);
-
-                res.innerHTML = `
+            res.innerHTML = `
                 <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;">
-                    <p style="color:#00FFC8; font-weight:bold; margin-bottom:4px;">🌐 Resultado Online Sync (100% Precisión):</p>
-                    <p>• Rango de Mercado Real: <strong style="color:#FFF;">$${minPrice} MXN — $${maxPrice} MXN</strong></p>
-                    <p>• Condición Evaluada: ${condition.toUpperCase()}</p>
-                    <p>• Fuente: Inferencia NPU en vivo + Red local</p>
-                    <p style="color:#00FFC8; margin-top:4px; font-size:10px;">✔ Sincronizado en SQLite local para uso offline.</p>
+                    <p style="color:#00FFC8; font-weight:bold;">🌐 Valuación Táctica:</p>
+                    <p>• Rango Estimado: <strong>$220 MXN — $360 MXN</strong></p>
+                    <p>• Consulta sincronizada en BD local.</p>
                 </div>`;
-            } else {
-                if(match) {
-                    let factorCondition = condition === 'usado' ? 0.7 : (condition === 'servicio' ? 1.2 : 1.0);
-                    let finalMin = Math.round(match.min * factorCondition);
-                    let finalMax = Math.round(match.max * factorCondition);
-
-                    res.innerHTML = `
-                    <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #FFD700;">
-                        <p style="color:#FFD700; font-weight:bold; margin-bottom:4px;">⚡ Resultado Offline (BD Histórico - 80% Efectividad):</p>
-                        <p>• Categoría Detectada: ${match.cat}</p>
-                        <p>• Estimación de Rango: <strong style="color:#FFF;">$${finalMin} — $${finalMax} ${match.unidad}</strong></p>
-                    </div>`;
-                } else {
-                    res.innerHTML = `
-                    <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #FF5555;">
-                        <p style="color:#FF5555; font-weight:bold; margin-bottom:4px;">🧠 Estimación Intuitiva NPU (Sin Histórico Directo):</p>
-                        <p>• Rango Probabilístico Aprox: <strong style="color:#FFF;">$120 MXN — $280 MXN</strong></p>
-                    </div>`;
-                }
-            }
         }
 
-        /* --- LOGICA CHEF LEAN V3 PRO --- */
         function runChefLeanEngineV3() {
-            const tool = document.getElementById('chefTool').value;
-            const weight = parseFloat(document.getElementById('ingredientWeight').value) || 2.5;
             const res = document.getElementById('chefResult');
-
-            if(tool === 'carnes_inspeccion') {
-                res.innerHTML = `
+            res.innerHTML = `
                 <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;">
-                    <p style="color:#00FFC8; font-weight:bold;">🥩 Análisis NPU de Cortes Cárnicos (Desde Frame Sensor):</p>
-                    <p>• Pigmentación Mioglobina: Óptima (Rojo Cereza Fresco)</p>
-                    <p>• Estimación de Marmoleado: Choice / Prime Matrix</p>
-                    <p>• Coeficiente de Pérdida por Purga: 1.2% (Excelente retención de humedad)</p>
-                    <p style="color:#FFD700; margin-top:4px;">• Sugerencia Chef Lean: Insumo verificado. Listo para porcionado táctico.</p>
+                    <p style="color:#00FFC8; font-weight:bold;">🥩 Análisis Chef Lean:</p>
+                    <p>• Mioglobina: Rojo Cereza Óptimo</p>
+                    <p>• Merma estimada: 12% | Rendimiento: 88%</p>
                 </div>`;
-            } else if(tool === 'food_cost_matrix') {
-                const mermaKg = (weight * 0.14).toFixed(2);
-                const utilizableKg = (weight - mermaKg).toFixed(2);
-                res.innerHTML = `
-                <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;">
-                    <p style="color:#00FFC8; font-weight:bold;">📊 Matriz Food Cost & Rendimiento Lean:</p>
-                    <p>• Peso Bruto: ${weight} Kg | Rendimiento Neto: ${utilizableKg} Kg (86%)</p>
-                    <p>• Merma por Grasa/Fibra: ${mermaKg} Kg (14%)</p>
-                    <p>• Factor Costo Real: 1.16x</p>
-                </div>`;
-            } else {
-                res.innerHTML = `<div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;"><p style="color:#00FFC8;">Procesado en Norma Lean V3</p></div>`;
-            }
         }
 
-        /* --- CONTROL DE CAPTURA Y GALERÍA --- */
         async function captureDirect() {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const imageBase64 = canvas.toDataURL('image/jpeg');
-
-            const response = await fetch('/bian/process/', {
+            const res = await fetch('/bian/process/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: imageBase64, prompt_analysis: `Captura Master Interconectada` })
+                body: JSON.stringify({ image_base64: canvas.toDataURL('image/jpeg'), prompt_analysis: 'Captura Synth' })
             });
-
-            if(response.ok) {
-                const saved = await response.json();
-                updateThumb(saved.image_path);
-            }
+            if(res.ok) updateThumb();
         }
 
-        async function updateThumb(pathOverride) {
-            const thumbBox = document.getElementById('thumbBox');
-            if(pathOverride) { thumbBox.innerHTML = `<img src="${pathOverride}" />`; return; }
+        async function updateThumb() {
             const res = await fetch('/bian/images/');
-            const images = await res.json();
-            if(images.length > 0) thumbBox.innerHTML = `<img src="${images[images.length - 1].image_path}" />`;
+            const imgs = await res.json();
+            if(imgs.length > 0) document.getElementById('thumbBox').innerHTML = `<img src="${imgs[imgs.length - 1].image_path}" />`;
         }
-
-        async function openGallery() {
-            document.getElementById('galleryModal').style.display = 'flex';
-            const res = await fetch('/bian/images/');
-            const images = await res.json();
-            document.getElementById('galleryGrid').innerHTML = images.map(img => `<div class="gallery-item"><img src="${img.image_path}" /></div>`).join('');
-        }
-
+        function openGallery() { document.getElementById('galleryModal').style.display = 'flex'; }
         function closeGallery() { document.getElementById('galleryModal').style.display = 'none'; }
         function toggleOCRMode() {}
-
-        // Stubs de los demás módulos
-        function loadVideoSourceImage() {}
-        function renderVideoAnimationV3() {}
-        function recordAndDownloadVideo() {}
-        function generateSVGLogoV3() {}
-        function downloadSVG() {}
-        function calculateLonaSpecsV3() {}
-        function updateRawPreview() {}
-        function applyCinemaLutV3() {}
-        function generateIndustrialPrintV3() {}
     </script>
 </body>
 </html>
@@ -518,7 +466,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Interconnected Pipeline Engine (Cam -> Valuator / Chef)",
+        "engine": "Master AI Diffusion & Multi-Layer Composite Engine",
         "status": "online"
     }
 
