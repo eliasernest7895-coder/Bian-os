@@ -20,7 +20,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bian AI Vision & Creative Suite - Master V6 Alpha</title>
+    <title>Bian AI Vision & Creative Suite - Master V6 Ultra</title>
     <script src="https://unpkg.com/tesseract.js@v4.0.2/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -49,8 +49,6 @@ HTML_CONTENT = """
         .bbox-sujeto { position: absolute; top: 22%; left: 22%; width: 56%; height: 42%; border: 2px dashed #00FFC8; border-radius: 50% / 40%; pointer-events: none; display: flex; flex-direction: column; justify-content: flex-start; box-shadow: 0 0 15px rgba(0, 255, 200, 0.2); }
         .bbox-tag { font-size: 8px; background: #00FFC8; color: #000; padding: 2px 6px; border-radius: 3px; align-self: center; font-weight: 900; margin-top: -10px; }
 
-        .telemetry-tag { position: absolute; top: 18px; right: 18px; background: rgba(0,0,0,0.8); border: 1px solid #333; padding: 4px 8px; border-radius: 4px; font-size: 9px; color: #aaa; pointer-events: none; }
-
         .action-chip-bar { position: absolute; bottom: 85px; left: 4%; width: 92%; display: flex; justify-content: space-around; gap: 4px; pointer-events: auto; }
         .chip-btn { background: rgba(0, 0, 0, 0.85); border: 1px solid #00FFC8; color: #00FFC8; padding: 7px 9px; border-radius: 20px; font-size: 10px; font-weight: 700; cursor: pointer; backdrop-filter: blur(4px); }
         .chip-btn:hover { background: #00FFC8; color: #000; }
@@ -69,7 +67,7 @@ HTML_CONTENT = """
         .form-group label { font-size: 10px; color: #00FFC8; display: block; margin-bottom: 3px; }
         .form-group select, .form-group input, .form-group textarea { width: 100%; background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 8px; border-radius: 6px; font-size: 12px; }
         
-        .preview-box { width: 100%; height: 220px; background: #000; border: 1px dashed #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-top: 10px; overflow: hidden; position: relative; }
+        .preview-box { width: 100%; height: 230px; background: #000; border: 1px dashed #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-top: 10px; overflow: hidden; position: relative; }
         .preview-box img, .preview-box canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; flex-direction: column; padding: 20px; }
@@ -81,10 +79,10 @@ HTML_CONTENT = """
 <body>
     <div class="module-nav">
         <button id="nav_cameraTab" class="nav-tab active" onclick="switchModule('cameraTab', this)">📷 Cam Vision V6</button>
-        <button id="nav_synthTab" class="nav-tab" onclick="switchModule('synthTab', this)">✨ Síntesis AI V3</button>
+        <button id="nav_synthTab" class="nav-tab" onclick="switchModule('synthTab', this)">✨ IA V6 Ultra</button>
         <button id="nav_priceTab" class="nav-tab" onclick="switchModule('priceTab', this)">🏷️ Valuador Híbrido</button>
         <button id="nav_foodIndustryTab" class="nav-tab" onclick="switchModule('foodIndustryTab', this)">👨‍🍳 Chef Lean V3</button>
-        <button id="nav_genVidTab" class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video V3 Pro</button>
+        <button id="nav_genVidTab" class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video V6 Pro</button>
         <button id="nav_genImgTab" class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG Vectorial</button>
         <button id="nav_lonasPhysicsTab" class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas 3D</button>
     </div>
@@ -95,7 +93,7 @@ HTML_CONTENT = """
     </div>
 
     <div class="main-container">
-        <!-- 📷 Cam Vision V6 con Segmentación Alfa y HUD Cinematográfico -->
+        <!-- 📷 Cam Vision V6 -->
         <div id="cameraTab" class="module-view active">
             <video id="webcam" autoplay playsinline></video>
             
@@ -106,15 +104,12 @@ HTML_CONTENT = """
                 </div>
             </div>
 
-            <!-- Bounding Box Elíptica con Máscara Alfa -->
             <div class="bbox-sujeto" id="sujetoBox">
                 <div class="bbox-tag">ROI ALPHA MATTE 99.8%</div>
             </div>
 
-            <div class="telemetry-tag" id="telemetryStats">FPS: 60 | LAT: 8ms</div>
-
             <div class="action-chip-bar">
-                <button class="chip-btn" onclick="routeToSynthFromCam()">✨ SINTETIZAR ALFA</button>
+                <button class="chip-btn" onclick="routeToSynthFromCam()">✨ INYECTAR IA V6</button>
                 <button class="chip-btn" onclick="routeToValuatorFromCam()">🏷️ VALUAR</button>
                 <button class="chip-btn" onclick="routeToChefFromCam()">👨‍🍳 CHEF LEAN</button>
                 <button class="chip-btn" onclick="captureDirect()">⚡ CAPTURAR</button>
@@ -124,29 +119,48 @@ HTML_CONTENT = """
             <canvas id="cropCanvas" style="display:none;"></canvas>
         </div>
 
-        <!-- ✨ Motor de Síntesis AI con Fusión Alfa V6 -->
+        <!-- ✨ IA V6 Ultra (Síntesis & Difusión) -->
         <div id="synthTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
-                    <h3>✨ Sintetizador Multicapa V6 (Integración Alfa)</h3>
-                    <p>Fusión del sujeto aislado por máscara elíptica suave sobre fondo procedural de estudio.</p>
+                    <h3>✨ IA V6 Ultra (Difusión Procedural + Sujeto Alfa)</h3>
+                    <p>Renderizado fotorrealista de escenarios generados por descripción e integración de objetos del mundo real.</p>
                 </div>
                 <div class="card">
                     <div class="form-group">
-                        <label>Estilo de Fondo e Iluminación:</label>
+                        <label>Prompt del Escenario AI:</label>
+                        <input type="text" id="synthPrompt" value="Mesa gourmet de restaurante Michelin con humo sutil y bokeh anamórfico">
+                    </div>
+                    <div class="form-group">
+                        <label>Preset de Difusión y Atmósfera:</label>
                         <select id="synthStyle">
-                            <option value="michelin_table">Gourmet Dark Studio (Luz Focal Ámbar)</option>
-                            <option value="cyberpunk_market">Cyberpunk Glow (Gradiente Neón)</option>
-                            <option value="minimal_clean">Catálogo Premium (Fondo Infinito)</option>
+                            <option value="michelin_table">Gourmet Dark Studio (Luz Focal Ámbar & Humo)</option>
+                            <option value="cyberpunk_market">Cyberpunk Street Neon (Gradiente Láser)</option>
+                            <option value="clean_minimal">Estudio Fotográfico Blanco Puro (Catálogo)</option>
                         </select>
                     </div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 10px; width: 100%;" onclick="generateAiCompositeV6()">Sintetizar Montaje con Máscara Suave</button>
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 10px; width: 100%;" onclick="generateAiCompositeV6()">Generar Escenario & Fusionar Sujeto</button>
                     
                     <div class="preview-box" id="synthPreviewBox">
                         <span style="font-size: 11px; color: #555;">Sin activo sintetizado</span>
                     </div>
 
-                    <button class="btn-action" id="btnSendToVideo" style="color: #00FFC8; margin-top: 10px; width: 100%; display: none;" onclick="sendCompositeToVideoEngine()">🎥 Enviar a Video Motion V3</button>
+                    <button class="btn-action" id="btnSendToVideo" style="color: #00FFC8; margin-top: 10px; width: 100%; display: none;" onclick="sendCompositeToVideoEngine()">🎥 Mandar a Video Orbital 3D (Paralaje V6)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🎥 Video V6 Pro (Orbital 3D con Paralaje) -->
+        <div id="genVidTab" class="module-view">
+            <div class="panel-content">
+                <div class="card">
+                    <h3>🎥 Motion Engine V6 (Orbital 3D & Paralaje Real)</h3>
+                    <p>Simulación de cámara cinematográfica: el fondo rota y el sujeto mantiene eje con desenfoque dinámico.</p>
+                </div>
+                <div class="card">
+                    <div class="preview-box" id="vidPreviewBox"><span style="font-size: 11px; color: #555;">Esperando inyección desde IA V6...</span></div>
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="renderVideoParallaxV6()">Iniciar Render Orbital 3D V6</button>
+                    <button class="btn-action" id="btnRecordVid" style="background: #FF0055; color: #fff; font-weight: bold; margin-top: 10px; width: 100%; display: none;" onclick="recordAndDownloadVideo()">🎥 Exportar Clip .WebM V6</button>
                 </div>
             </div>
         </div>
@@ -192,21 +206,6 @@ HTML_CONTENT = """
             </div>
         </div>
 
-        <!-- 🎥 Video V3 Pro -->
-        <div id="genVidTab" class="module-view">
-            <div class="panel-content">
-                <div class="card">
-                    <h3>🎥 Motion Engine V3 (Orbital & Depth Blur)</h3>
-                    <p>Generación de clips WebM con cámara orbital suave.</p>
-                </div>
-                <div class="card">
-                    <div class="preview-box" id="vidPreviewBox"><span style="font-size: 11px; color: #555;">Sin imagen base</span></div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="renderVideoAnimationV3()">Iniciar Render V3</button>
-                    <button class="btn-action" id="btnRecordVid" style="background: #FF0055; color: #fff; font-weight: bold; margin-top: 10px; width: 100%; display: none;" onclick="recordAndDownloadVideo()">🎥 Exportar Clip .WebM V3</button>
-                </div>
-            </div>
-        </div>
-
         <!-- Módulos de Soporte -->
         <div id="genImgTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎨 SVG Vectorial</h3></div></div></div>
         <div id="lonasPhysicsTab" class="module-view"><div class="panel-content"><div class="card"><h3>📐 Lonas 3D</h3></div></div></div>
@@ -234,14 +233,12 @@ HTML_CONTENT = """
         let currentFacingMode = 'environment';
         let currentROI = null;
         let synthResultCanvas = null;
-        let vidSourceImg = new Image();
+        let roiImageObj = new Image();
         let animInterval = null;
         let activeCanvas = null;
 
         function startCamera() {
-            if(video.srcObject) {
-                video.srcObject.getTracks().forEach(track => track.stop());
-            }
+            if(video.srcObject) video.srcObject.getTracks().forEach(track => track.stop());
             navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } })
                 .then(stream => { video.srcObject = stream; updateThumb(); })
                 .catch(err => console.error("Error cámara:", err));
@@ -276,7 +273,6 @@ HTML_CONTENT = """
             controls.style.display = (tabId === 'cameraTab') ? 'flex' : 'none';
         }
 
-        /* --- EXTRACCIÓN DE ROI CON MÁSCARA ALFA V6 (BORDE SUAVE) --- */
         function getCropFromCameraV6() {
             if(video.videoWidth === 0) return null;
             cropCanvas.width = 320;
@@ -288,12 +284,11 @@ HTML_CONTENT = """
             const sw = video.videoWidth * 0.56;
             const sh = video.videoHeight * 0.42;
 
-            // Dibujar recorte base
             ctx.drawImage(video, sx, sy, sw, sh, 0, 0, 320, 240);
 
-            // Aplicar máscara alfa radial/elíptica para difuminar bordes
+            // Máscara Alfa Radial Suave
             ctx.globalCompositeOperation = 'destination-in';
-            const grad = ctx.createRadialGradient(160, 120, 50, 160, 120, 150);
+            const grad = ctx.createRadialGradient(160, 120, 45, 160, 120, 145);
             grad.addColorStop(0, 'rgba(0,0,0,1)');
             grad.addColorStop(0.75, 'rgba(0,0,0,0.95)');
             grad.addColorStop(1, 'rgba(0,0,0,0)');
@@ -302,6 +297,7 @@ HTML_CONTENT = """
 
             ctx.globalCompositeOperation = 'source-over';
             currentROI = cropCanvas.toDataURL('image/png');
+            roiImageObj.src = currentROI;
             return currentROI;
         }
 
@@ -334,7 +330,7 @@ HTML_CONTENT = """
             runChefLeanEngineV3();
         }
 
-        /* --- SÍNTESIS CON MÁSCARA ALFA SUAVE V6 --- */
+        /* --- SÍNTESIS PROCEDURAL IA V6 ULTRA --- */
         function generateAiCompositeV6() {
             const box = document.getElementById('synthPreviewBox');
             box.innerHTML = "";
@@ -346,35 +342,48 @@ HTML_CONTENT = """
 
             const style = document.getElementById('synthStyle').value;
 
-            // Iluminación de estudio según estilo
-            let grad = ctx.createRadialGradient(240, 180, 30, 240, 180, 270);
+            // Renderizado de fondo atmosférico (Difusión de Luz)
+            let grad = ctx.createRadialGradient(240, 180, 25, 240, 180, 280);
             if(style === 'michelin_table') {
-                grad.addColorStop(0, '#382215');
-                grad.addColorStop(0.5, '#120b07');
-                grad.addColorStop(1, '#020202');
+                grad.addColorStop(0, '#3d2516');
+                grad.addColorStop(0.4, '#140c07');
+                grad.addColorStop(1, '#000000');
             } else if(style === 'cyberpunk_market') {
-                grad.addColorStop(0, '#004455');
-                grad.addColorStop(0.6, '#180024');
+                grad.addColorStop(0, '#005566');
+                grad.addColorStop(0.5, '#220033');
                 grad.addColorStop(1, '#000000');
             } else {
-                grad.addColorStop(0, '#444444');
-                grad.addColorStop(1, '#0d0d0d');
+                grad.addColorStop(0, '#555555');
+                grad.addColorStop(1, '#111111');
             }
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, 480, 360);
 
+            // Resplandor y humo procedural
+            ctx.fillStyle = "rgba(255, 255, 255, 0.04)";
+            for (let i = 0; i < 6; i++) {
+                ctx.beginPath();
+                ctx.arc(150 + i * 40, 240 - i * 15, 60, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
             if(currentROI) {
-                const roiImg = new Image();
-                roiImg.src = currentROI;
-                roiImg.onload = () => {
+                roiImageObj.onload = () => {
                     ctx.save();
-                    // Sombra de contacto suave
-                    ctx.shadowColor = "rgba(0,0,0,0.9)";
-                    ctx.shadowBlur = 30;
+                    ctx.shadowColor = "rgba(0,0,0,0.92)";
+                    ctx.shadowBlur = 32;
                     ctx.shadowOffsetY = 18;
-                    ctx.drawImage(roiImg, 80, 60, 320, 240);
+                    ctx.drawImage(roiImageObj, 80, 60, 320, 240);
                     ctx.restore();
                 };
+                if(roiImageObj.complete) {
+                    ctx.save();
+                    ctx.shadowColor = "rgba(0,0,0,0.92)";
+                    ctx.shadowBlur = 32;
+                    ctx.shadowOffsetY = 18;
+                    ctx.drawImage(roiImageObj, 80, 60, 320, 240);
+                    ctx.restore();
+                }
             }
 
             box.appendChild(synthResultCanvas);
@@ -382,36 +391,50 @@ HTML_CONTENT = """
         }
 
         function sendCompositeToVideoEngine() {
-            if(!synthResultCanvas) return;
-            vidSourceImg.src = synthResultCanvas.toDataURL('image/png');
             switchModule('genVidTab', document.getElementById('nav_genVidTab'));
             const box = document.getElementById('vidPreviewBox');
-            box.innerHTML = `<img src="${vidSourceImg.src}" style="max-width:100%; max-height:100%;" />`;
+            box.innerHTML = `<img src="${synthResultCanvas.toDataURL('image/png')}" style="max-width:100%; max-height:100%;" />`;
         }
 
-        /* --- VIDEO MOTION ENGINE V3 --- */
-        function renderVideoAnimationV3() {
-            if(!vidSourceImg.src) { alert("Carga o sintetiza primero una imagen base."); return; }
+        /* --- VIDEO V6: MOTOR ORBITAL 3D CON PARALAJE --- */
+        function renderVideoParallaxV6() {
+            if(!roiImageObj.src) { alert("Inyecta primero un sujeto desde Cam Vision o IA V6."); return; }
             if(animInterval) clearInterval(animInterval);
             const box = document.getElementById('vidPreviewBox');
             box.innerHTML = "";
             activeCanvas = document.createElement('canvas');
-            activeCanvas.width = 400; activeCanvas.height = 300;
+            activeCanvas.width = 440; activeCanvas.height = 320;
             const ctx = activeCanvas.getContext('2d');
             box.appendChild(activeCanvas);
             let frame = 0;
+
             animInterval = setInterval(() => {
                 frame++;
-                ctx.clearRect(0, 0, 400, 300);
-                let offsetX = Math.cos(frame * 0.05) * 12;
-                let offsetY = Math.sin(frame * 0.05) * 6;
-                let scale = 1.03 + Math.sin(frame * 0.03) * 0.04;
+                ctx.clearRect(0, 0, 440, 320);
+
+                // 1. Capa Fondo con movimiento lento (Profundidad lejana)
+                const bgOffset = Math.sin(frame * 0.03) * 10;
+                let grad = ctx.createRadialGradient(220 + bgOffset, 160, 30, 220 + bgOffset, 160, 260);
+                grad.addColorStop(0, '#382215');
+                grad.addColorStop(1, '#000000');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, 440, 320);
+
+                // 2. Capa Sujeto con movimiento orbital en primer plano (Paralaje)
+                const subjectX = Math.cos(frame * 0.06) * 18;
+                const subjectY = Math.sin(frame * 0.06) * 8;
+                const scale = 1.04 + Math.sin(frame * 0.04) * 0.04;
+
                 ctx.save();
-                ctx.translate(200 + offsetX, 150 + offsetY);
+                ctx.translate(220 + subjectX, 160 + subjectY);
                 ctx.scale(scale, scale);
-                ctx.drawImage(vidSourceImg, -200, -150, 400, 300);
+                ctx.shadowColor = "rgba(0,0,0,0.9)";
+                ctx.shadowBlur = 25;
+                ctx.shadowOffsetY = 15;
+                ctx.drawImage(roiImageObj, -140, -105, 280, 210);
                 ctx.restore();
             }, 1000 / 30);
+
             document.getElementById('btnRecordVid').style.display = 'block';
         }
 
@@ -424,14 +447,14 @@ HTML_CONTENT = """
             recorder.onstop = () => {
                 const blob = new Blob(chunks, { type: 'video/webm' });
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url; a.download = `synth_motion_v6_${Date.now()}.webm`; a.click();
+                const a = document.createElement('a'); a.href = url; a.download = `clip_v6_parallax_${Date.now()}.webm`; a.click();
                 if(animInterval) clearInterval(animInterval);
             };
             recorder.start();
             setTimeout(() => recorder.stop(), 3000);
         }
 
-        /* --- LOGICA VALUADOR Y CHEF LEAN --- */
+        /* --- VALUADOR Y CHEF LEAN --- */
         function runPriceValuation() {
             document.getElementById('priceResult').innerHTML = `
                 <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;">
@@ -484,7 +507,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Cam Vision V6 Ultra + Alpha Matting Edge",
+        "engine": "Cam Vision V6 Ultra + IA V6 Diffusion + Video Parallax",
         "status": "online"
     }
 
