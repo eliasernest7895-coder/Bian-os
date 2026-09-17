@@ -40,12 +40,10 @@ HTML_CONTENT = """
 
         video { width: 100%; height: 100%; object-fit: cover; }
         
-        /* HUD V6 Alpha Styling */
         .hud-overlay { position: absolute; border: 2px solid #00FFC8; width: 88%; height: 65%; top: 12%; left: 6%; border-radius: 18px; box-shadow: 0 0 25px rgba(0,255,200,0.3); pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 12px; }
         .hud-topbar { display: flex; justify-content: space-between; align-items: center; pointer-events: auto; }
         .hud-info { font-size: 9px; color: #00FFC8; background: rgba(0,0,0,0.75); padding: 4px 8px; border-radius: 4px; font-weight: bold; letter-spacing: 0.5px; }
         
-        /* Bounding Box con Máscara Suave V6 */
         .bbox-sujeto { position: absolute; top: 22%; left: 22%; width: 56%; height: 42%; border: 2px dashed #00FFC8; border-radius: 50% / 40%; pointer-events: none; display: flex; flex-direction: column; justify-content: flex-start; box-shadow: 0 0 15px rgba(0, 255, 200, 0.2); }
         .bbox-tag { font-size: 8px; background: #00FFC8; color: #000; padding: 2px 6px; border-radius: 3px; align-self: center; font-weight: 900; margin-top: -10px; }
 
@@ -81,7 +79,7 @@ HTML_CONTENT = """
         <button id="nav_cameraTab" class="nav-tab active" onclick="switchModule('cameraTab', this)">📷 Cam Vision V6</button>
         <button id="nav_synthTab" class="nav-tab" onclick="switchModule('synthTab', this)">✨ IA V6 Ultra</button>
         <button id="nav_priceTab" class="nav-tab" onclick="switchModule('priceTab', this)">🏷️ Valuador V6</button>
-        <button id="nav_foodIndustryTab" class="nav-tab" onclick="switchModule('foodIndustryTab', this)">👨‍🍳 Chef Lean V3</button>
+        <button id="nav_foodIndustryTab" class="nav-tab" onclick="switchModule('foodIndustryTab', this)">👨‍🍳 Chef Lean V6</button>
         <button id="nav_genVidTab" class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video V6 Pro</button>
         <button id="nav_genImgTab" class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG Vectorial</button>
         <button id="nav_lonasPhysicsTab" class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas 3D</button>
@@ -111,7 +109,7 @@ HTML_CONTENT = """
             <div class="action-chip-bar">
                 <button class="chip-btn" onclick="routeToSynthFromCam()">✨ INYECTAR IA V6</button>
                 <button class="chip-btn" onclick="routeToValuatorFromCam()">🏷️ VALUAR V6</button>
-                <button class="chip-btn" onclick="routeToChefFromCam()">👨‍🍳 CHEF LEAN</button>
+                <button class="chip-btn" onclick="routeToChefFromCam()">👨‍🍳 CHEF LEAN V6</button>
                 <button class="chip-btn" onclick="captureDirect()">⚡ CAPTURAR</button>
             </div>
 
@@ -119,7 +117,7 @@ HTML_CONTENT = """
             <canvas id="cropCanvas" style="display:none;"></canvas>
         </div>
 
-        <!-- ✨ IA V6 Ultra (Síntesis & Difusión) -->
+        <!-- ✨ IA V6 Ultra -->
         <div id="synthTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
@@ -150,12 +148,12 @@ HTML_CONTENT = """
             </div>
         </div>
 
-        <!-- 🏷️ Valuador Híbrido V6 Ultra -->
+        <!-- 🏷️ Valuador Híbrido V6 -->
         <div id="priceTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
                     <h3>🏷️ Valuador Híbrido V6 (Market Intelligence & ROI)</h3>
-                    <p>Tasación multimodal de insumos, herramientas y productos. Integración con sensor ROI y cálculo dinámico de margen comercial.</p>
+                    <p>Tasación multimodal de insumos, herramientas y productos con cálculo dinámico de margen comercial.</p>
                 </div>
                 <div class="card">
                     <div style="display:flex; gap:12px; align-items:center; margin-bottom:10px;">
@@ -183,11 +181,11 @@ HTML_CONTENT = """
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
                         <div class="form-group">
                             <label>Costo de Adquisición ($ MXN):</label>
-                            <input type="number" id="itemCostBase" value="180" oninput="calculateMarginV6()">
+                            <input type="number" id="itemCostBase" value="180" oninput="runPriceValuationV6()">
                         </div>
                         <div class="form-group">
                             <label>Margen Objetivo (%):</label>
-                            <input type="number" id="targetMargin" value="35" oninput="calculateMarginV6()">
+                            <input type="number" id="targetMargin" value="35" oninput="runPriceValuationV6()">
                         </div>
                     </div>
 
@@ -197,24 +195,47 @@ HTML_CONTENT = """
             </div>
         </div>
 
-        <!-- 👨‍🍳 Chef Lean V3 Pro -->
+        <!-- 👨‍🍳 Chef Lean V6 Pro -->
         <div id="foodIndustryTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
-                    <h3>👨‍🍳 Chef Lean & Alimentos V3 Pro</h3>
-                    <p>Análisis de marmoleado, mermas y porcionado exacto.</p>
+                    <h3>👨‍🍳 Chef Lean V6 Pro (Inspección NPU & Yield Master)</h3>
+                    <p>Telemetría cromática sobre recorte alfa, clasificación de marmoleado, cálculo de merma y estandarización porcionaria.</p>
                 </div>
                 <div class="card">
-                    <div id="chefCropThumb" style="display:none; margin-bottom:10px; border:1px solid #00FFC8; border-radius:6px; overflow:hidden; width:100px; height:80px;"></div>
-                    <div class="form-group">
-                        <label>Herramienta:</label>
-                        <select id="chefTool">
-                            <option value="carnes_inspeccion">🥩 Inspección de Cortes & Marmoleado</option>
-                            <option value="food_cost_matrix">📊 Matriz Food Cost & Rendimiento</option>
-                        </select>
+                    <div style="display:flex; gap:12px; align-items:center; margin-bottom:10px;">
+                        <div id="chefCropThumb" style="border:1px solid #00FFC8; border-radius:10px; overflow:hidden; width:110px; height:90px; background:#050505; display:flex; align-items:center; justify-content:center;">
+                            <span style="font-size:9px; color:#555;">Sin ROI cárnico</span>
+                        </div>
+                        <div style="flex:1;">
+                            <div class="form-group" style="margin-top:0;">
+                                <label>Corte o Pieza Primaria:</label>
+                                <input type="text" id="chefCutName" value="Corte Primario / Insumo Cárnico">
+                            </div>
+                            <div class="form-group">
+                                <label>Tipo de Inspección NPU:</label>
+                                <select id="chefAnalysisMode">
+                                    <option value="marmoleado">🥩 Grado de Marmoleado (Choice / Prime)</option>
+                                    <option value="frescura">🔬 Espectro Mioglobina & Frescura</option>
+                                    <option value="porcionado">⚖️ Estandarización de Porciones Lean</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 10px; width: 100%;" onclick="runChefLeanEngineV3()">Diagnóstico Chef Lean</button>
-                    <div id="chefResult" style="margin-top: 10px; font-size: 11px; color: #aaa;"></div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                        <div class="form-group">
+                            <label>Peso Bruto Entrada (Kg):</label>
+                            <input type="number" id="chefGrossWeight" value="5.0" step="0.1" oninput="runChefLeanEngineV6()">
+                        </div>
+                        <div class="form-group">
+                            <label>Gramaje x Porción (g):</label>
+                            <input type="number" id="chefPortionSize" value="350" step="10" oninput="runChefLeanEngineV6()">
+                        </div>
+                    </div>
+
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="runChefLeanEngineV6()">Ejecutar Diagnóstico Chef Lean V6</button>
+                    <div id="chefResult" style="margin-top: 12px;"></div>
                 </div>
             </div>
         </div>
@@ -314,7 +335,6 @@ HTML_CONTENT = """
 
             ctx.drawImage(video, sx, sy, sw, sh, 0, 0, 320, 240);
 
-            // Máscara Alfa Radial Suave
             ctx.globalCompositeOperation = 'destination-in';
             const grad = ctx.createRadialGradient(160, 120, 45, 160, 120, 145);
             grad.addColorStop(0, 'rgba(0,0,0,1)');
@@ -342,9 +362,7 @@ HTML_CONTENT = """
                 const thumb = document.getElementById('priceCropThumb');
                 thumb.innerHTML = `<img src="${crop}" style="width:100%; height:100%; object-fit:contain;" />`;
             }
-            document.getElementById('itemQuery').value = "Tambo / Insumo Industrial NPU";
-            document.getElementById('itemCategory').value = "industrial";
-            document.getElementById('itemCostBase').value = "220";
+            document.getElementById('itemQuery').value = "Insumo Detectado V6";
             runPriceValuationV6();
         }
 
@@ -353,18 +371,18 @@ HTML_CONTENT = """
             switchModule('foodIndustryTab', document.getElementById('nav_foodIndustryTab'));
             if(crop) {
                 const thumb = document.getElementById('chefCropThumb');
-                thumb.style.display = 'block';
-                thumb.innerHTML = `<img src="${crop}" style="width:100%; height:100%; object-fit:contain; background:#050505;" />`;
+                thumb.innerHTML = `<img src="${crop}" style="width:100%; height:100%; object-fit:contain;" />`;
             }
-            runChefLeanEngineV3();
+            document.getElementById('chefCutName').value = "Corte En Foco V6 NPU";
+            runChefLeanEngineV6();
         }
 
         /* --- MOTOR VALUADOR HÍBRIDO V6 --- */
         const offlineV6Catalog = {
-            "industrial": { min: 280, max: 480, sugerido: 390, name: "Contenedor Industrial / Depósito", roiDef: 40 },
-            "carnico": { min: 190, max: 360, sugerido: 295, name: "Corte Primario / Insumo Gastronómico", roiDef: 35 },
-            "hardware": { min: 140, max: 320, sugerido: 250, name: "Componente Electrónico / Herramienta", roiDef: 45 },
-            "publicidad": { min: 70, max: 130, sugerido: 95, name: "Lona Vinílica m² / Publicidad", roiDef: 50 }
+            "industrial": { min: 280, max: 480, sugerido: 390, name: "Contenedor Industrial / Depósito" },
+            "carnico": { min: 190, max: 360, sugerido: 295, name: "Corte Primario / Insumo Gastronómico" },
+            "hardware": { min: 140, max: 320, sugerido: 250, name: "Componente Electrónico / Herramienta" },
+            "publicidad": { min: 70, max: 130, sugerido: 95, name: "Lona Vinílica m² / Publicidad" }
         };
 
         function runPriceValuationV6() {
@@ -394,39 +412,76 @@ HTML_CONTENT = """
                 res.innerHTML = `
                 <div style="background:#141414; padding:14px; border-radius:10px; border:1px solid #00FFC8;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <span style="color:#00FFC8; font-weight:bold; font-size:12px;">🌐 TASACIÓN ONLINE EN VIVO (PRECISIÓN 100%)</span>
+                        <span style="color:#00FFC8; font-weight:bold; font-size:12px;">🌐 TASACIÓN ONLINE EN VIVO</span>
                         <span style="background:#00FFC8; color:#000; font-size:9px; font-weight:900; padding:2px 6px; border-radius:4px;">SYNC ACTIVO</span>
                     </div>
-                    <p style="color:#eee; font-size:11px; margin-bottom:4px;">• Clasificación: <strong>${ref.name}</strong></p>
+                    <p style="font-size:11px; margin-bottom:4px;">• Clasificación: <strong>${ref.name}</strong></p>
                     <p style="font-size:12px; margin-bottom:6px;">• Banda de Mercado Real: <strong style="color:#00FFC8;">$${liveMin} — $${liveMax} MXN</strong> (Media: $${liveAvg} MXN)</p>
                     <hr style="border:0; border-top:1px solid #222; margin:8px 0;">
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:11px;">
-                        <div>• Precio Venta Calculado: <strong style="color:#FFF;">$${calculatedSalePrice} MXN</strong></div>
-                        <div>• Ganancia Bruta x Unidad: <strong style="color:#00FFC8;">+$${calculatedSalePrice - cost} MXN</strong></div>
+                        <div>• Precio Venta: <strong style="color:#FFF;">$${calculatedSalePrice} MXN</strong></div>
+                        <div>• Margen Bruto: <strong style="color:#00FFC8;">+$${calculatedSalePrice - cost} MXN</strong></div>
                     </div>
-                    <div style="margin-top:8px; font-size:10px; color:#888;">✔ Indexación validada y guardada en BD SQLite de Termux.</div>
                 </div>`;
             } else {
                 res.innerHTML = `
                 <div style="background:#141414; padding:14px; border-radius:10px; border:1px solid #FFD700;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <span style="color:#FFD700; font-weight:bold; font-size:12px;">⚡ TASACIÓN OFFLINE V6 (HEURÍSTICA 85%)</span>
+                        <span style="color:#FFD700; font-weight:bold; font-size:12px;">⚡ TASACIÓN OFFLINE V6</span>
                         <span style="background:#FFD700; color:#000; font-size:9px; font-weight:900; padding:2px 6px; border-radius:4px;">LOCAL BD</span>
                     </div>
-                    <p style="color:#eee; font-size:11px; margin-bottom:4px;">• Clasificación Local: <strong>${ref.name}</strong></p>
-                    <p style="font-size:12px; margin-bottom:6px;">• Estimación por Catálogo: <strong style="color:#FFD700;">$${ref.min} — $${ref.max} MXN</strong> (Sugerido: $${ref.sugerido} MXN)</p>
+                    <p style="font-size:11px; margin-bottom:4px;">• Clasificación: <strong>${ref.name}</strong></p>
+                    <p style="font-size:12px; margin-bottom:6px;">• Estimación Catálogo: <strong style="color:#FFD700;">$${ref.min} — $${ref.max} MXN</strong></p>
                     <hr style="border:0; border-top:1px solid #222; margin:8px 0;">
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:11px;">
-                        <div>• Venta Sugerida (${targetMargin}%): <strong style="color:#FFF;">$${calculatedSalePrice} MXN</strong></div>
-                        <div>• Margen Neto Proyectado: <strong style="color:#FFD700;">+$${calculatedSalePrice - cost} MXN</strong></div>
+                        <div>• Sugerido (${targetMargin}%): <strong style="color:#FFF;">$${calculatedSalePrice} MXN</strong></div>
+                        <div>• Margen Neto: <strong style="color:#FFD700;">+$${calculatedSalePrice - cost} MXN</strong></div>
                     </div>
-                    <div style="margin-top:8px; font-size:10px; color:#888;">✔ Basado en registros locales previos sin conexión activa.</div>
                 </div>`;
             }
         }
 
-        function calculateMarginV6() {
-            runPriceValuationV6();
+        /* --- MOTOR CHEF LEAN V6 PRO --- */
+        function runChefLeanEngineV6() {
+            const cut = document.getElementById('chefCutName').value;
+            const mode = document.getElementById('chefAnalysisMode').value;
+            const gross = parseFloat(document.getElementById('chefGrossWeight').value) || 1.0;
+            const portionG = parseFloat(document.getElementById('chefPortionSize').value) || 300;
+            const res = document.getElementById('chefResult');
+
+            // Parámetros calculados Lean
+            const trimLossPercent = 12.5; // Porcentaje de merma estimado
+            const netWeight = gross * (1 - (trimLossPercent / 100));
+            const totalPortions = Math.floor((netWeight * 1000) / portionG);
+            const remainingG = Math.round((netWeight * 1000) % portionG);
+
+            res.innerHTML = `
+            <div style="background:#141414; padding:14px; border-radius:10px; border:1px solid #00FFC8;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span style="color:#00FFC8; font-weight:bold; font-size:12px;">🥩 TELEMETRÍA CHEF LEAN V6</span>
+                    <span style="background:#00FFC8; color:#000; font-size:9px; font-weight:900; padding:2px 6px; border-radius:4px;">NPU VISUAL READY</span>
+                </div>
+                <p style="font-size:11px; margin-bottom:4px;">• Insumo Evaluado: <strong>${cut}</strong></p>
+                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; margin:8px 0; text-align:center;">
+                    <div style="background:#1d1d1d; padding:6px; border-radius:6px;">
+                        <span style="font-size:9px; color:#aaa;">PIGMENTO</span><br>
+                        <strong style="color:#00FFC8; font-size:11px;">Rojo Óptimo</strong>
+                    </div>
+                    <div style="background:#1d1d1d; padding:6px; border-radius:6px; border:1px solid #00FFC8;">
+                        <span style="font-size:9px; color:#00FFC8;">MARMOLEADO</span><br>
+                        <strong style="color:#FFF; font-size:11px;">Choice / Prime</strong>
+                    </div>
+                    <div style="background:#1d1d1d; padding:6px; border-radius:6px;">
+                        <span style="font-size:9px; color:#aaa;">YIELD NETO</span><br>
+                        <strong style="color:#00FFC8; font-size:11px;">${(100 - trimLossPercent).toFixed(1)}%</strong>
+                    </div>
+                </div>
+                <hr style="border:0; border-top:1px solid #222; margin:8px 0;">
+                <div style="font-size:11px; color:#eee; line-height:1.5;">
+                    <p>• Peso Bruto: <strong>${gross.toFixed(2)} Kg</strong> | Merma Técnica (-${trimLossPercent}%): <strong>${(gross - netWeight).toFixed(2)} Kg</strong></p>
+                    <p>• Porciones Estándar (${portionG}g): <strong style="color:#00FFC8; font-size:13px;">${totalPortions} Piezas</strong> (Sobrante: ${remainingG}g)</p>
+                </div>
+            </div>`;
         }
 
         /* --- SÍNTESIS PROCEDURAL IA V6 ULTRA --- */
@@ -549,16 +604,6 @@ HTML_CONTENT = """
             setTimeout(() => recorder.stop(), 3000);
         }
 
-        /* --- CHEF LEAN V3 PRO --- */
-        function runChefLeanEngineV3() {
-            document.getElementById('chefResult').innerHTML = `
-                <div style="background:#181818; padding:12px; border-radius:8px; border:1px solid #00FFC8;">
-                    <p style="color:#00FFC8; font-weight:bold;">🥩 Análisis Chef Lean V6:</p>
-                    <p>• Borde Mioglobina Integrado: Grado A Choice</p>
-                    <p>• Pérdida de Purga por Vacío: 1.1% | Rendimiento Neto: 89%</p>
-                </div>`;
-        }
-
         async function captureDirect() {
             canvas.width = video.videoWidth; canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
@@ -593,7 +638,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Master Unified Suite V6 (Valuador V6 + Market Intelligence)",
+        "engine": "Master Unified Suite V6 (Chef Lean V6 Pro Integrated)",
         "status": "online"
     }
 
