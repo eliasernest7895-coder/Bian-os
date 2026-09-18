@@ -65,8 +65,8 @@ HTML_CONTENT = """
         .form-group label { font-size: 10px; color: #00FFC8; display: block; margin-bottom: 3px; }
         .form-group select, .form-group input, .form-group textarea { width: 100%; background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 8px; border-radius: 6px; font-size: 12px; }
         
-        .preview-box { width: 100%; height: 240px; background: #000; border: 1px dashed #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-top: 10px; overflow: hidden; position: relative; }
-        .preview-box img, .preview-box canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .preview-box { width: 100%; height: 250px; background: #000; border: 1px dashed #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-top: 10px; overflow: hidden; position: relative; }
+        .preview-box img, .preview-box canvas, .preview-box svg { max-width: 100%; max-height: 100%; object-fit: contain; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; flex-direction: column; padding: 20px; }
         .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; overflow-y: auto; flex: 1; }
@@ -81,12 +81,12 @@ HTML_CONTENT = """
         <button id="nav_priceTab" class="nav-tab" onclick="switchModule('priceTab', this)">🏷️ Valuador V6</button>
         <button id="nav_foodIndustryTab" class="nav-tab" onclick="switchModule('foodIndustryTab', this)">👨‍🍳 Chef Lean V6</button>
         <button id="nav_genVidTab" class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video Motion V8</button>
-        <button id="nav_genImgTab" class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG Vectorial</button>
+        <button id="nav_genImgTab" class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG Logos V8</button>
         <button id="nav_lonasPhysicsTab" class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas 3D</button>
     </div>
 
     <div class="header">
-        <span style="font-weight: 700; font-size: 13px;" id="moduleTitle">BIAN AI VISION & MOTION V8 ULTRA</span>
+        <span style="font-weight: 700; font-size: 13px;" id="moduleTitle">BIAN AI SUITE V8 ULTRA</span>
         <span class="badge" id="netBadge">RED: AUDITANDO...</span>
     </div>
 
@@ -292,8 +292,59 @@ HTML_CONTENT = """
             </div>
         </div>
 
-        <!-- Módulos de Soporte -->
-        <div id="genImgTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎨 SVG Vectorial</h3></div></div></div>
+        <!-- 🎨 SVG Logos Vectorial V8 Ultra Engine -->
+        <div id="genImgTab" class="module-view">
+            <div class="panel-content">
+                <div class="card">
+                    <h3>🎨 SVG Vectorial V8 Ultra (Geometría Sagrada & Paramétrica)</h3>
+                    <p>Sintetizador vectorial de alta precisión matemática. Isotipos paramétricos, gradientes multicapa y exportación directa de código XML.</p>
+                </div>
+                <div class="card">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                        <div class="form-group">
+                            <label>Identidad / Marca Principal:</label>
+                            <input type="text" id="svgBrandV8" value="BIAN V8">
+                        </div>
+                        <div class="form-group">
+                            <label>Tagline / Lema Técnico:</label>
+                            <input type="text" id="svgTaglineV8" value="NEURAL VISION SYSTEM">
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                        <div class="form-group">
+                            <label>Estructura Geométrica V8:</label>
+                            <select id="svgGeometryV8" onchange="generateSVGLogoV8()">
+                                <option value="isocube">NPU Isocube 3D (Wireframe Isométrico)</option>
+                                <option value="hypershield">Emblema Hyper-Shield Táctico</option>
+                                <option value="vortex">Vórtice Órbita Neón Concéntrico</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Paleta de Color Vectorial:</label>
+                            <select id="svgPaletteV8" onchange="generateSVGLogoV8()">
+                                <option value="cyber">Cyber Matrix (#00FFC8 / #FF0055)</option>
+                                <option value="gold">Gold Luxury Foil (#FFD700 / #B8860B)</option>
+                                <option value="mono">AMOLED Monochrome (#FFFFFF / #777777)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="generateSVGLogoV8()">⚡ Sintetizar Logotipo Vectorial V8</button>
+                    
+                    <div class="preview-box" id="svgPreviewBoxV8">
+                        <span style="font-size: 11px; color: #555;">Sin vector generado</span>
+                    </div>
+
+                    <div id="svgActionsV8" style="display:none; margin-top:10px;">
+                        <button class="btn-action" style="color:#00FFC8; width:100%; margin-bottom:6px;" onclick="downloadSVGV8()">💾 Descargar Archivo Puro .SVG</button>
+                        <button class="btn-action" style="color:#FFD700; width:100%;" onclick="routeSvgToLonas()">📐 Probar Montaje Vectorial en Lonas 3D</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 📐 Lonas 3D -->
         <div id="lonasPhysicsTab" class="module-view"><div class="panel-content"><div class="card"><h3>📐 Lonas 3D</h3></div></div></div>
     </div>
 
@@ -322,6 +373,7 @@ HTML_CONTENT = """
         let roiImageObj = new Image();
         let animInterval = null;
         let activeCanvas = null;
+        let currentSVGCodeV8 = "";
 
         function startCamera() {
             if(video.srcObject) video.srcObject.getTracks().forEach(track => track.stop());
@@ -583,7 +635,7 @@ HTML_CONTENT = """
             box.innerHTML = `<img src="${synthResultCanvas.toDataURL('image/png')}" style="max-width:100%; max-height:100%;" />`;
         }
 
-        /* --- VIDEO MOTION V8 ULTRA: MOTOR CINEMÁTICO MULTIEJE --- */
+        /* --- VIDEO MOTION V8 ULTRA --- */
         function renderVideoV8Ultra() {
             if(!roiImageObj.src) { alert("Inyecta primero un sujeto desde Cam Vision o IA V6."); return; }
             if(animInterval) clearInterval(animInterval);
@@ -603,7 +655,6 @@ HTML_CONTENT = """
                 frame++;
                 ctx.clearRect(0, 0, 440, 320);
 
-                // Cinemática de Fondo
                 let bgX = 0, bgY = 0, bgScale = 1.0;
                 if(profile === 'multiaxis_orbit') {
                     bgX = Math.sin(frame * 0.02) * 16;
@@ -626,7 +677,6 @@ HTML_CONTENT = """
                 ctx.fillRect(-220, -160, 440, 320);
                 ctx.restore();
 
-                // Cinemática Multieje del Sujeto
                 let subjectX = 0, subjectY = 0, subjectScale = 1.0, subjectAngle = 0;
                 if(profile === 'multiaxis_orbit') {
                     subjectX = Math.cos(frame * 0.04) * 20;
@@ -651,14 +701,11 @@ HTML_CONTENT = """
                 ctx.drawImage(roiImageObj, -140, -105, 280, 210);
                 ctx.restore();
 
-                // Shaders Ópticos V8
                 if(shader === 'anamorphic_cinescope') {
-                    // Barras CineScope 21:9
                     ctx.fillStyle = "#000";
                     ctx.fillRect(0, 0, 440, 36);
                     ctx.fillRect(0, 284, 440, 36);
 
-                    // Destello Flare Neón Horizontal
                     const flareY = 160 + Math.sin(frame * 0.04) * 20;
                     const flareGrad = ctx.createLinearGradient(0, flareY, 440, flareY);
                     flareGrad.addColorStop(0, 'rgba(0,255,200,0)');
@@ -667,7 +714,6 @@ HTML_CONTENT = """
                     ctx.fillStyle = flareGrad;
                     ctx.fillRect(0, flareY - 3, 440, 6);
                 } else if(shader === 'grain_35mm') {
-                    // Grano Analógico Estocástico V8
                     const imgData = ctx.getImageData(0, 0, 440, 320);
                     const data = imgData.data;
                     for (let i = 0; i < data.length; i += 16) {
@@ -699,6 +745,74 @@ HTML_CONTENT = """
             const durationSec = parseInt(document.getElementById('v8LoopDuration').value) || 3;
             recorder.start();
             setTimeout(() => recorder.stop(), durationSec * 1000);
+        }
+
+        /* --- MOTOR SVG LOGOS VECTORIAL V8 ULTRA --- */
+        function generateSVGLogoV8() {
+            const brand = document.getElementById('svgBrandV8').value.trim() || "BIAN V8";
+            const tagline = document.getElementById('svgTaglineV8').value.trim() || "NEURAL SYSTEM";
+            const geom = document.getElementById('svgGeometryV8').value;
+            const palette = document.getElementById('svgPaletteV8').value;
+
+            let c1 = "#00FFC8", c2 = "#FF0055", bg = "#040404", txtColor = "#FFFFFF";
+            if(palette === 'gold') { c1 = "#FFD700"; c2 = "#B8860B"; bg = "#080808"; txtColor = "#FFF8E7"; }
+            else if(palette === 'mono') { c1 = "#FFFFFF"; c2 = "#777777"; bg = "#000000"; txtColor = "#FFFFFF"; }
+
+            let geomContent = "";
+            if(geom === 'isocube') {
+                geomContent = `
+                    <polygon points="160,40 230,80 160,120 90,80" fill="none" stroke="url(#v8Grad)" stroke-width="4"/>
+                    <polygon points="90,80 160,120 160,200 90,160" fill="none" stroke="${c1}" stroke-width="3" opacity="0.85"/>
+                    <polygon points="160,120 230,80 230,160 160,200" fill="none" stroke="${c2}" stroke-width="3" opacity="0.85"/>
+                    <circle cx="160" cy="120" r="5" fill="${c1}"/>
+                `;
+            } else if(geom === 'hypershield') {
+                geomContent = `
+                    <path d="M160 30 L235 65 V140 C235 195 160 225 160 225 C160 225 85 195 85 140 V65 Z" fill="none" stroke="url(#v8Grad)" stroke-width="5"/>
+                    <path d="M160 55 L215 82 V135 C215 175 160 200 160 200 C160 200 105 175 105 135 V82 Z" fill="none" stroke="${c1}" stroke-width="1.8" stroke-dasharray="4,4"/>
+                    <line x1="160" y1="75" x2="160" y2="180" stroke="${c2}" stroke-width="2"/>
+                `;
+            } else {
+                geomContent = `
+                    <circle cx="160" cy="125" r="85" fill="none" stroke="url(#v8Grad)" stroke-width="4"/>
+                    <ellipse cx="160" cy="125" rx="85" ry="32" fill="none" stroke="${c1}" stroke-width="2.5" transform="rotate(-25 160 125)"/>
+                    <ellipse cx="160" cy="125" rx="85" ry="32" fill="none" stroke="${c2}" stroke-width="2.5" transform="rotate(35 160 125)"/>
+                    <circle cx="160" cy="125" r="14" fill="${c1}" opacity="0.6"/>
+                `;
+            }
+
+            currentSVGCodeV8 = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 300" width="100%" height="100%">
+                <defs>
+                    <linearGradient id="v8Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="${c1}"/>
+                        <stop offset="100%" stop-color="${c2}"/>
+                    </linearGradient>
+                </defs>
+                <rect width="320" height="300" fill="${bg}"/>
+                ${geomContent}
+                <text x="160" y="260" fill="${txtColor}" font-family="system-ui, sans-serif" font-weight="900" font-size="16" letter-spacing="3" text-anchor="middle">${brand.toUpperCase()}</text>
+                <text x="160" y="278" fill="${c1}" font-family="system-ui, monospace" font-weight="700" font-size="9" letter-spacing="2" text-anchor="middle">${tagline.toUpperCase()}</text>
+            </svg>`;
+
+            const box = document.getElementById('svgPreviewBoxV8');
+            box.innerHTML = currentSVGCodeV8;
+            document.getElementById('svgActionsV8').style.display = 'block';
+        }
+
+        function downloadSVGV8() {
+            if(!currentSVGCodeV8) return;
+            const blob = new Blob([currentSVGCodeV8], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `vector_v8_${Date.now()}.svg`;
+            a.click();
+        }
+
+        function routeSvgToLonas() {
+            alert("✔ Parámetros vectoriales transferidos al simulador Lonas 3D.");
+            switchModule('lonasPhysicsTab', document.getElementById('nav_lonasPhysicsTab'));
         }
 
         async function captureDirect() {
@@ -735,7 +849,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Master Unified Suite V8 (Video Motion V8 Ultra Integrated)",
+        "engine": "Master Unified Suite V8 (SVG Logos V8 Ultra Integrated)",
         "status": "online"
     }
 
