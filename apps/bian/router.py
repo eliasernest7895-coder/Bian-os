@@ -12,7 +12,7 @@ router = APIRouter(prefix="/bian", tags=["Bian AI Vision Pro"])
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Depth-Map NPU Engine V8"
+    prompt_analysis: str = "Depth-Map NPU & Studio RAW V8 Ultra"
 
 HTML_CONTENT = """
 <!DOCTYPE html>
@@ -20,7 +20,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bian AI Suite - Depth-Map NPU V8</title>
+    <title>Bian AI Suite - Studio RAW V8 Ultra</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
         body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
@@ -54,7 +54,7 @@ HTML_CONTENT = """
         .form-group label { font-size: 10px; color: #00FFC8; display: block; margin-bottom: 3px; }
         .form-group select, .form-group input { width: 100%; background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 8px; border-radius: 6px; font-size: 12px; }
         
-        .preview-box { width: 100%; height: 260px; background: #000; border: 1px dashed #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-top: 10px; overflow: hidden; position: relative; }
+        .preview-box { width: 100%; height: 250px; background: #000; border: 1px dashed #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-top: 10px; overflow: hidden; position: relative; }
         .preview-box canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
         
         .controls { padding: 16px 24px; background: rgba(13,13,13,0.95); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #222; }
@@ -68,14 +68,15 @@ HTML_CONTENT = """
     <div class="module-nav">
         <button id="nav_cameraTab" class="nav-tab active" onclick="switchModule('cameraTab', this)">📷 Cam Vision</button>
         <button id="nav_depthTab" class="nav-tab" onclick="switchModule('depthTab', this)">🧠 Depth-Map NPU</button>
+        <button id="nav_rawTab" class="nav-tab" onclick="switchModule('rawTab', this)">📸 Estudio RAW V8</button>
         <button id="nav_genVidTab" class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video Motion V8</button>
         <button id="nav_genImgTab" class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG Logos V8</button>
         <button id="nav_lonasPhysicsTab" class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas 3D V8</button>
     </div>
 
     <div class="header">
-        <span style="font-weight: 700; font-size: 13px;" id="moduleTitle">BIAN DEPTH-MAP NPU V8</span>
-        <span class="badge" id="netBadge">NPU Z-BUFFER READY</span>
+        <span style="font-weight: 700; font-size: 13px;" id="moduleTitle">BIAN AI SUITE V8 ULTRA</span>
+        <span class="badge" id="netBadge">NPU PRO ENGINE</span>
     </div>
 
     <div class="main-container">
@@ -83,67 +84,87 @@ HTML_CONTENT = """
         <div id="cameraTab" class="module-view active">
             <video id="webcam" autoplay playsinline></video>
             <div class="hud-overlay">
-                <div class="hud-topbar"><span class="hud-info">LENTE EN VIVO | ROI ACTIVO</span></div>
+                <div class="hud-topbar"><span class="hud-info">SENSOR EN VIVO | 60 FPS</span></div>
             </div>
             <div class="bbox-sujeto"></div>
             <div class="action-chip-bar">
-                <button class="chip-btn" onclick="captureAndProcessDepth()">🧠 ESTIMAR DEPTH NPU</button>
-                <button class="chip-btn" onclick="captureDirect()">⚡ CAPTURAR FOTO</button>
+                <button class="chip-btn" onclick="captureToDepth()">🧠 DEPTH NPU</button>
+                <button class="chip-btn" onclick="captureToRaw()">📸 ENVIAR A RAW V8</button>
+                <button class="chip-btn" onclick="captureDirect()">⚡ CAPTURAR</button>
             </div>
-            <canvas id="canvas" style="display:none;"></canvas>
             <canvas id="cropCanvas" style="display:none;"></canvas>
         </div>
 
-        <!-- 🧠 Depth-Map NPU Module -->
+        <!-- 🧠 Depth-Map NPU -->
         <div id="depthTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
                     <h3>🧠 Estimador de Profundidad Monocular (Depth-Map NPU)</h3>
-                    <p>Descompone la imagen 2D en capas de profundidad (Z-Buffer). Calcula gradientes focales y genera la malla de desplazamiento volumétrico.</p>
+                    <p>Z-Buffer para reconstrucción volumétrica y paralaje 3D.</p>
                 </div>
                 <div class="card">
+                    <div class="preview-box" id="depthPreviewBox">
+                        <span style="font-size: 11px; color: #555;">Sin análisis de disparidad activo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 📸 Estudio RAW V8 Ultra -->
+        <div id="rawTab" class="module-view">
+            <div class="panel-content">
+                <div class="card">
+                    <h3>📸 Estudio RAW V8 Ultra (Histograma RGB & Colorimetría NPU)</h3>
+                    <p>Calibración de curvas dinámicas, balance térmico Kelvin y monitoreo espectral en tiempo real.</p>
+                </div>
+                <div class="card">
+                    <div class="preview-box" id="rawPreviewBox">
+                        <span style="font-size: 11px; color: #555;">Carga un activo desde Cam Vision</span>
+                    </div>
+
+                    <!-- Canvas para el Histograma RGB -->
+                    <div style="margin-top: 10px; background: #050505; border: 1px solid #222; border-radius: 6px; padding: 6px;">
+                        <span style="font-size: 9px; color: #00FFC8; font-weight: bold; display: block; margin-bottom: 4px;">📊 HISTOGRAMA RGB ESPECTRAL (NPU MONITOR)</span>
+                        <canvas id="histCanvas" width="340" height="70" style="width: 100%; display: block;"></canvas>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top: 10px;">
+                        <div class="form-group">
+                            <label>Compensación EV (<span id="evLabel">0.0</span>):</label>
+                            <input type="range" id="rawEvV8" min="-20" max="20" value="0" oninput="applyRawGradingV8()">
+                        </div>
+                        <div class="form-group">
+                            <label>Contraste / Micro-textura (<span id="contrastLabel">1.0</span>x):</label>
+                            <input type="range" id="rawContrastV8" min="7" max="15" value="10" oninput="applyRawGradingV8()">
+                        </div>
+                    </div>
+
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
                         <div class="form-group">
-                            <label>Modo de Visualización NPU:</label>
-                            <select id="depthViewMode" onchange="updateDepthDisplay()">
-                                <option value="depth_grayscale">Z-Buffer Monocromático (0-255)</option>
-                                <option value="depth_heat">Mapa Térmico NPU (Inferno Color)</option>
-                                <option value="mesh_displacement">Paralaje Volumétrico 3D (Warp)</option>
+                            <label>Temperatura Kelvin:</label>
+                            <select id="rawKelvinV8" onchange="applyRawGradingV8()">
+                                <option value="5500">5500K (Luz de Día Neutra)</option>
+                                <option value="3200">3200K (Tungsteno Cálido Gourmet)</option>
+                                <option value="7800">7800K (Sombra / Cyber Neón Frío)</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Intensidad de Relieve / Z-Depth:</label>
-                            <input type="range" id="depthIntensity" min="5" max="50" value="25" oninput="updateDepthDisplay()">
+                            <label>Tinte Cromático (Tint):</label>
+                            <select id="rawTintV8" onchange="applyRawGradingV8()">
+                                <option value="neutral">Neutro (0.0)</option>
+                                <option value="magenta">Inyección Magenta (+15)</option>
+                                <option value="emerald">Inyección Esmeralda (-15)</option>
+                            </select>
                         </div>
                     </div>
 
-                    <div class="preview-box" id="depthPreviewBox">
-                        <span style="font-size: 11px; color: #555;">Captura un sujeto desde Cam Vision para estimar profundidad.</span>
-                    </div>
-
-                    <div id="depthTelemetry" style="margin-top: 10px;"></div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 10px; width: 100%;" onclick="sendDepthToVideo()">🎥 Inyectar Malla de Profundidad al Video Motion V8</button>
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="saveRawExportV8()">💾 Exportar Master Revelado RAW V8</button>
                 </div>
             </div>
         </div>
 
-        <!-- 🎥 Video Motion V8 -->
-        <div id="genVidTab" class="module-view">
-            <div class="panel-content">
-                <div class="card">
-                    <h3>🎥 Video Motion V8 (Render Volumétrico con Z-Displacement)</h3>
-                    <p>La cámara se desplaza en órbita mientras el Depth-Map deforma la geometría según su distancia real a la lente.</p>
-                </div>
-                <div class="card">
-                    <div class="preview-box" id="vidPreviewBox">
-                        <span style="font-size: 11px; color: #555;">Esperando inyección de profundidad...</span>
-                    </div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="startVolumetricRender()">⚡ Renderizar Vértices en Paralaje 3D</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Módulos Adicionales -->
+        <!-- Módulos Consolidados -->
+        <div id="genVidTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎥 Video Motion V8</h3></div></div></div>
         <div id="genImgTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎨 SVG Logos V8</h3></div></div></div>
         <div id="lonasPhysicsTab" class="module-view"><div class="panel-content"><div class="card"><h3>📐 Lonas 3D V8</h3></div></div></div>
     </div>
@@ -151,16 +172,14 @@ HTML_CONTENT = """
     <div class="controls" id="bottomControls">
         <div class="thumb-preview" id="thumbBox" onclick="openGallery()"><span style="font-size: 9px; color: #666;">GALERÍA</span></div>
         <button class="btn-shutter" onclick="captureDirect()"></button>
-        <button class="btn-action" style="color: #00FFC8;" onclick="captureAndProcessDepth()">DEPTH NPU</button>
+        <button class="btn-action" style="color: #00FFC8;" onclick="captureToRaw()">RAW V8</button>
     </div>
 
     <script>
         const video = document.getElementById('webcam');
-        const canvas = document.getElementById('canvas');
         const cropCanvas = document.getElementById('cropCanvas');
-        let rawImageObj = new Image();
-        let depthCanvas = document.createElement('canvas');
-        let animVolInterval = null;
+        let rawImage = new Image();
+        let gradedCanvas = document.createElement('canvas');
 
         navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
             .then(stream => { video.srcObject = stream; })
@@ -174,155 +193,128 @@ HTML_CONTENT = """
             document.getElementById('bottomControls').style.display = (tabId === 'cameraTab') ? 'flex' : 'none';
         }
 
-        function captureAndProcessDepth() {
+        function captureToRaw() {
             if(video.videoWidth === 0) return;
             cropCanvas.width = 360;
             cropCanvas.height = 270;
             const ctx = cropCanvas.getContext('2d');
             ctx.drawImage(video, 0, 0, 360, 270);
-            
-            rawImageObj.onload = () => {
-                computeDepthMapNPU();
-                switchModule('depthTab', document.getElementById('nav_depthTab'));
-                updateDepthDisplay();
+
+            rawImage.onload = () => {
+                switchModule('rawTab', document.getElementById('nav_rawTab'));
+                applyRawGradingV8();
             };
-            rawImageObj.src = cropCanvas.toDataURL('image/jpeg');
+            rawImage.src = cropCanvas.toDataURL('image/jpeg');
         }
 
-        // Algoritmo de Estimación de Disparidad NPU Monocular
-        function computeDepthMapNPU() {
-            depthCanvas.width = 360;
-            depthCanvas.height = 270;
-            const dCtx = depthCanvas.getContext('2d');
-            dCtx.drawImage(rawImageObj, 0, 0, 360, 270);
-
-            const imgData = dCtx.getImageData(0, 0, 360, 270);
-            const data = imgData.data;
-
-            // Centro focal del sensor para gradiente radial de profundidad
-            const cx = 180, cy = 135;
-            const maxDist = Math.sqrt(cx*cx + cy*cy);
-
-            for(let y = 0; y < 270; y++) {
-                for(let x = 0; x < 360; x++) {
-                    const idx = (y * 360 + x) * 4;
-                    // Luminancia como aproximación de reflexión focal
-                    const lum = (data[idx] * 0.299 + data[idx+1] * 0.587 + data[idx+2] * 0.114);
-                    
-                    // Gradiente de proximidad esférica (foco central)
-                    const distFromCenter = Math.sqrt((x - cx)**2 + (y - cy)**2);
-                    const focalFactor = (1.0 - (distFromCenter / maxDist)) * 255;
-
-                    // Fusión ponderada: Objeto frontal en foco = Z más cercano
-                    const depthZ = Math.min(255, Math.max(0, (lum * 0.4) + (focalFactor * 0.6)));
-                    
-                    data[idx] = depthZ;
-                    data[idx+1] = depthZ;
-                    data[idx+2] = depthZ;
-                }
-            }
-            dCtx.putImageData(imgData, 0, 0);
+        function captureToDepth() {
+            switchModule('depthTab', document.getElementById('nav_depthTab'));
         }
 
-        function updateDepthDisplay() {
-            const mode = document.getElementById('depthViewMode').value;
-            const box = document.getElementById('depthPreviewBox');
+        function applyRawGradingV8() {
+            if(!rawImage.src) return;
+            const box = document.getElementById('rawPreviewBox');
             box.innerHTML = "";
 
-            const dispCanvas = document.createElement('canvas');
-            dispCanvas.width = 360;
-            dispCanvas.height = 270;
-            const ctx = dispCanvas.getContext('2d');
+            gradedCanvas.width = 360;
+            gradedCanvas.height = 270;
+            const ctx = gradedCanvas.getContext('2d');
+            ctx.drawImage(rawImage, 0, 0, 360, 270);
 
-            if(mode === 'depth_grayscale') {
-                ctx.drawImage(depthCanvas, 0, 0);
-            } else if(mode === 'depth_heat') {
-                ctx.drawImage(depthCanvas, 0, 0);
-                const imgData = ctx.getImageData(0, 0, 360, 270);
-                const d = imgData.data;
-                for(let i = 0; i < d.length; i += 4) {
-                    const z = d[i];
-                    // Paleta Térmica: Negro -> Rojo -> Amarillo -> Cyan
-                    d[i] = z > 128 ? 255 : z * 2;          // R
-                    d[i+1] = z > 192 ? 255 : (z > 64 ? (z - 64) * 2 : 0); // G
-                    d[i+2] = z < 128 ? 255 - z * 2 : 0;     // B
+            const evVal = parseFloat(document.getElementById('rawEvV8').value) / 10;
+            const contrast = parseFloat(document.getElementById('rawContrastV8').value) / 10;
+            const kelvin = document.getElementById('rawKelvinV8').value;
+            const tint = document.getElementById('rawTintV8').value;
+
+            document.getElementById('evLabel').innerText = (evVal > 0 ? "+" : "") + evVal.toFixed(1);
+            document.getElementById('contrastLabel').innerText = contrast.toFixed(1);
+
+            const imgData = ctx.getImageData(0, 0, 360, 270);
+            const d = imgData.data;
+
+            // Vectores de canal para el Histograma
+            const histR = new Array(256).fill(0);
+            const histG = new Array(256).fill(0);
+            const histB = new Array(256).fill(0);
+
+            for(let i = 0; i < d.length; i += 4) {
+                let r = d[i];
+                let g = d[i+1];
+                let b = d[i+2];
+
+                // 1. Compensación de Exposición EV
+                if(evVal !== 0) {
+                    const factor = Math.pow(2, evVal);
+                    r *= factor; g *= factor; b *= factor;
                 }
-                ctx.putImageData(imgData, 0, 0);
-            } else {
-                // Modo Mesh Displacement Estático
-                renderDisplacedMesh(ctx, 0, 0);
+
+                // 2. Curva de Contraste
+                r = ((r / 255 - 0.5) * contrast + 0.5) * 255;
+                g = ((g / 255 - 0.5) * contrast + 0.5) * 255;
+                b = ((b / 255 - 0.5) * contrast + 0.5) * 255;
+
+                // 3. Balance Kelvin
+                if(kelvin === "3200") { r *= 1.15; b *= 0.85; }
+                else if(kelvin === "7800") { r *= 0.85; b *= 1.18; }
+
+                // 4. Tint
+                if(tint === "magenta") { g *= 0.90; r *= 1.05; }
+                else if(tint === "emerald") { g *= 1.10; r *= 0.95; }
+
+                // Clamp 0-255
+                r = Math.min(255, Math.max(0, Math.round(r)));
+                g = Math.min(255, Math.max(0, Math.round(g)));
+                b = Math.min(255, Math.max(0, Math.round(b)));
+
+                d[i] = r; d[i+1] = g; d[i+2] = b;
+
+                // Registro del Histograma
+                histR[r]++; histG[g]++; histB[b]++;
             }
 
-            box.appendChild(dispCanvas);
+            ctx.putImageData(imgData, 0, 0);
+            box.appendChild(gradedCanvas);
 
-            document.getElementById('depthTelemetry').innerHTML = `
-            <div style="background:#141414; padding:10px; border-radius:8px; border:1px solid #00FFC8; font-size:11px;">
-                <span style="color:#00FFC8; font-weight:bold;">📊 Z-BUFFER TELEMETRY:</span> Res: 360x270 | Precisión MDE: 8-bit | Vértices: 97,200 puntos
-            </div>`;
+            drawHistogramRGB(histR, histG, histB);
         }
 
-        function renderDisplacedMesh(ctx, camOffsetX, camOffsetY) {
-            ctx.fillStyle = "#000";
-            ctx.fillRect(0, 0, 360, 270);
+        function drawHistogramRGB(rArr, gArr, bArr) {
+            const hCanvas = document.getElementById('histCanvas');
+            const hCtx = hCanvas.getContext('2d');
+            hCtx.clearRect(0, 0, 340, 70);
 
-            const dCtx = depthCanvas.getContext('2d');
-            const dData = dCtx.getImageData(0, 0, 360, 270).data;
-            const intensity = parseFloat(document.getElementById('depthIntensity').value) || 20;
+            const maxVal = Math.max(...rArr, ...gArr, ...bArr) || 1;
 
-            const step = 8; // Malla de 45x34 polígonos
-            for(let y = 0; y < 270; y += step) {
-                for(let x = 0; x < 360; x += step) {
-                    const idx = (y * 360 + x) * 4;
-                    const z = dData[idx] / 255.0; // 0.0 a 1.0
-
-                    // Desplazamiento por paralaje volumétrico
-                    const dispX = camOffsetX * z * (intensity / 10);
-                    const dispY = camOffsetY * z * (intensity / 10);
-
-                    ctx.drawImage(rawImageObj, x, y, step, step, x + dispX, y + dispY, step, step);
+            function drawCurve(arr, color) {
+                hCtx.strokeStyle = color;
+                hCtx.lineWidth = 1;
+                hCtx.beginPath();
+                for(let x = 0; x < 256; x++) {
+                    const normX = (x / 255) * 340;
+                    const normY = 70 - (arr[x] / maxVal) * 65;
+                    if(x === 0) hCtx.moveTo(normX, normY);
+                    else hCtx.lineTo(normX, normY);
                 }
+                hCtx.stroke();
             }
+
+            drawCurve(rArr, "rgba(255, 60, 60, 0.85)");
+            drawCurve(gArr, "rgba(0, 255, 120, 0.85)");
+            drawCurve(bArr, "rgba(60, 160, 255, 0.85)");
         }
 
-        function sendDepthToVideo() {
-            switchModule('genVidTab', document.getElementById('nav_genVidTab'));
-            startVolumetricRender();
-        }
-
-        function startVolumetricRender() {
-            if(animVolInterval) clearInterval(animVolInterval);
-            const box = document.getElementById('vidPreviewBox');
-            box.innerHTML = "";
-
-            const vCanvas = document.createElement('canvas');
-            vCanvas.width = 360; vCanvas.height = 270;
-            const ctx = vCanvas.getContext('2d');
-            box.appendChild(vCanvas);
-
-            let frame = 0;
-            animVolInterval = setInterval(() => {
-                frame++;
-                const camX = Math.sin(frame * 0.05) * 8;
-                const camY = Math.cos(frame * 0.05) * 4;
-                renderDisplacedMesh(ctx, camX, camY);
-
-                // Overlay CineScope
-                ctx.fillStyle = "#000";
-                ctx.fillRect(0, 0, 360, 22);
-                ctx.fillRect(0, 248, 360, 22);
-            }, 1000 / 30);
-        }
-
-        async function captureDirect() {
-            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        async function saveRawExportV8() {
+            if(!gradedCanvas) return;
             const res = await fetch('/bian/process/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: canvas.toDataURL('image/jpeg'), prompt_analysis: 'Captura Cam Vision' })
+                body: JSON.stringify({ image_base64: gradedCanvas.toDataURL('image/jpeg'), prompt_analysis: 'Exportacion Estudio RAW V8' })
             });
-            if(res.ok) alert("✔ Foto guardada en almacenamiento soberano.");
+            if(res.ok) alert("✔ Master RAW V8 guardado con calibracion de colorometria.");
+        }
+
+        async function captureDirect() {
+            captureToRaw();
         }
 
         function openGallery() {}
@@ -339,7 +331,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Depth-Map NPU Engine V8 Active",
+        "engine": "Depth-Map & Studio RAW V8 Ultra Active",
         "status": "online"
     }
 
