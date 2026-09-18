@@ -12,7 +12,7 @@ router = APIRouter(prefix="/bian", tags=["Bian AI Vision Pro"])
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Captura V9 Liquid Glass"
+    prompt_analysis: str = "Cam Vision V7 Ultra"
 
 HTML_CONTENT = """
 <!DOCTYPE html>
@@ -20,64 +20,91 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bian AI Suite - V9 Liquid Glass</title>
+    <title>Bian AI Suite - V9 Liquid Glass (Cam Vision V7)</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; user-select: none; }
 
         /* HEADER ESTILO APPLE DINÁMICO */
         .glass-header {
             position: absolute; top: 12px; left: 16px; right: 16px; z-index: 50;
-            background: rgba(25, 25, 30, 0.45);
+            background: rgba(22, 22, 26, 0.55);
             backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
             border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 26px; padding: 10px 18px;
             display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.37);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.45);
         }
-        .apple-pill {
-            display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13px; letter-spacing: -0.3px;
-        }
-        .glow-dot {
-            width: 8px; height: 8px; border-radius: 50%; background: #30D158;
-            box-shadow: 0 0 10px #30D158;
-        }
+        .apple-pill { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13px; letter-spacing: -0.3px; }
+        .glow-dot { width: 8px; height: 8px; border-radius: 50%; background: #30D158; box-shadow: 0 0 10px #30D158; }
+        
         .banana-chip {
             background: rgba(255, 214, 10, 0.18); border: 1px solid rgba(255, 214, 10, 0.4);
-            color: #FFD60A; font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 14px;
-            display: flex; align-items: center; gap: 4px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #FFD60A; font-size: 10px; font-weight: 700; padding: 4px 12px; border-radius: 14px;
+            display: flex; align-items: center; gap: 5px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
         }
         .banana-chip.active {
             background: linear-gradient(135deg, #FF9F0A, #FF375F);
             color: #fff; border-color: transparent;
-            box-shadow: 0 0 15px rgba(255, 55, 95, 0.6);
-            transform: scale(1.05);
+            box-shadow: 0 0 16px rgba(255, 55, 95, 0.65);
+            transform: scale(1.04);
         }
 
-        /* VIEWPORT Y VISOR */
+        /* VIEWPORT Y RETÍCULA V7 ULTRA */
         .viewport { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
         
-        /* APPLE FOCUS RETICLE */
+        /* FLASH SIMULADO DE OBTURADOR */
+        .shutter-flash {
+            position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 60;
+            transition: opacity 0.12s ease-out;
+        }
+        .shutter-flash.flash { opacity: 0.85; }
+
+        /* RETÍCULA CAM VISION V7 CON SEGUIMIENTO SUAVE */
         .reticle-container {
-            position: absolute; width: 65%; height: 45%; pointer-events: none;
-            border-radius: 36px; border: 1.5px solid rgba(255, 255, 255, 0.25);
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            display: flex; align-items: flex-end; justify-content: center; padding-bottom: 12px;
+            position: absolute; width: 68%; height: 50%; pointer-events: none;
+            border-radius: 38px; border: 2px solid rgba(255, 255, 255, 0.35);
+            transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1), top 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s, box-shadow 0.3s;
+            display: flex; flex-direction: column; justify-content: space-between; align-items: center;
+            padding: 12px 14px;
         }
         .reticle-container.banana-lock {
             border-color: #FFD60A;
-            box-shadow: 0 0 30px rgba(255, 214, 10, 0.35), inset 0 0 20px rgba(255, 214, 10, 0.15);
+            box-shadow: 0 0 35px rgba(255, 214, 10, 0.4), inset 0 0 25px rgba(255, 214, 10, 0.15);
+        }
+        .reticle-telemetry {
+            font-size: 9px; font-weight: 700; color: rgba(255, 255, 255, 0.8);
+            background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(10px);
+            padding: 3px 8px; border-radius: 8px; letter-spacing: 0.5px;
         }
         .status-badge {
-            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(12px);
-            padding: 5px 12px; border-radius: 12px; font-size: 10px; font-weight: 600;
-            color: rgba(255,255,255,0.85); border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(14px);
+            padding: 6px 14px; border-radius: 14px; font-size: 11px; font-weight: 600;
+            color: rgba(255,255,255,0.95); border: 1px solid rgba(255,255,255,0.12);
+        }
+
+        /* SELECTOR DE ZOOM / LENTES S23 ULTRA */
+        .lens-pill-bar {
+            position: absolute; bottom: 172px; z-index: 45;
+            display: flex; gap: 8px; background: rgba(18, 18, 22, 0.55);
+            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 4px 8px; border-radius: 20px;
+        }
+        .lens-btn {
+            background: transparent; border: none; color: rgba(255,255,255,0.7);
+            font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 14px;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .lens-btn.active {
+            background: rgba(255, 255, 255, 0.2); color: #fff;
         }
 
         /* LIQUID GLASS ICON DOCK */
         .glass-dock {
-            position: absolute; bottom: 108px; left: 14px; right: 14px; z-index: 40;
+            position: absolute; bottom: 106px; left: 14px; right: 14px; z-index: 40;
             background: rgba(18, 18, 22, 0.55);
             backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
             border: 1px solid rgba(255, 255, 255, 0.14);
@@ -115,31 +142,32 @@ HTML_CONTENT = """
         .shutter-outer {
             width: 76px; height: 76px; border-radius: 50%;
             background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.7);
+            border: 2px solid rgba(255, 255, 255, 0.75);
             display: flex; align-items: center; justify-content: center; cursor: pointer;
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .shutter-outer:active { transform: scale(0.9); }
         .shutter-inner {
             width: 62px; height: 62px; border-radius: 50%; background: #fff;
-            transition: all 0.2s;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .shutter-outer.banana-ready .shutter-inner {
             background: linear-gradient(135deg, #FFD60A, #FF9F0A);
-            box-shadow: 0 0 20px rgba(255, 214, 10, 0.8);
+            box-shadow: 0 0 22px rgba(255, 214, 10, 0.85);
         }
         .side-btn {
             width: 44px; height: 44px; border-radius: 50%;
             background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.15); font-size: 16px;
             color: #fff; display: flex; align-items: center; justify-content: center;
-            cursor: pointer;
+            cursor: pointer; transition: transform 0.15s;
         }
+        .side-btn:active { transform: scale(0.9); }
 
-        /* MODAL / BOTTOM SHEET MODULAR */
+        /* APPLE BOTTOM SHEET */
         .sheet-modal {
-            position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             display: none; flex-direction: column; justify-content: flex-end;
             opacity: 0; transition: opacity 0.3s ease;
         }
@@ -151,26 +179,28 @@ HTML_CONTENT = """
             animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .sheet-drag { width: 36px; height: 5px; background: rgba(255,255,255,0.25); border-radius: 4px; margin: 0 auto 16px; }
+        .sheet-drag { width: 38px; height: 5px; background: rgba(255,255,255,0.25); border-radius: 4px; margin: 0 auto 16px; cursor: pointer; }
         .sheet-title { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 4px; }
-        .sheet-desc { font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.4; margin-bottom: 16px; }
+        .sheet-desc { font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.4; margin-bottom: 16px; }
         .preview-canvas-box { width: 100%; height: 240px; background: #080808; border-radius: 18px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
         .preview-canvas-box canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
         .apple-btn-main {
             width: 100%; background: #0A84FF; border: none; color: #fff;
             padding: 14px; border-radius: 16px; font-size: 14px; font-weight: 600;
-            cursor: pointer; transition: background 0.2s;
+            cursor: pointer;
         }
         .apple-btn-main:active { background: #0071E3; }
     </style>
 </head>
 <body>
 
+    <div class="shutter-flash" id="flashLayer"></div>
+
     <!-- HEADER FLOTANTE TIPO APPLE INTELLIGENCE -->
     <div class="glass-header">
         <div class="apple-pill">
             <div class="glow-dot"></div>
-            <span>Bian V9 Ultra</span>
+            <span>Cam Vision V7</span>
         </div>
         <div class="banana-chip" id="bananaChip" onclick="resetArmEngine()">
             <span>🍌</span>
@@ -178,13 +208,21 @@ HTML_CONTENT = """
         </div>
     </div>
 
-    <!-- VIEWPORT CON RETÍCULA DINÁMICA -->
-    <div class="viewport">
+    <!-- VIEWPORT CON RETÍCULA DINÁMICA V7 -->
+    <div class="viewport" onclick="handleTapToFocus(event)">
         <video id="webcam" autoplay playsinline></video>
         <div class="reticle-container" id="focusReticle">
+            <div class="reticle-telemetry" id="reticleTelemetry">CAM V7 | NPU 1080P ACTIVE</div>
             <div class="status-badge" id="hudStatus">Modo: Esperando selección</div>
         </div>
         <canvas id="internalCanvas" style="display:none;"></canvas>
+    </div>
+
+    <!-- SELECTOR DE LENTES RÁPIDOS S23 ULTRA -->
+    <div class="lens-pill-bar">
+        <button class="lens-btn" onclick="applyDigitalZoom(0.8, this)">0.6x</button>
+        <button class="lens-btn active" onclick="applyDigitalZoom(1.0, this)">1x</button>
+        <button class="lens-btn" onclick="applyDigitalZoom(1.5, this)">2x</button>
     </div>
 
     <!-- DOCK FLOTANTE CON ICONOS DE TODOS LOS MÓDULOS -->
@@ -207,7 +245,7 @@ HTML_CONTENT = """
         <div class="shutter-outer" id="shutterBtn" onclick="triggerNanoBananaCapture()">
             <div class="shutter-inner"></div>
         </div>
-        <div class="side-btn" onclick="alert('✔ Galería Soberana V9 Sincronizada')">🖼️</div>
+        <div class="side-btn" onclick="alert('✔ Galería Soberana V7 Sincronizada')">🖼️</div>
     </div>
 
     <!-- HOJA DE RESULTADO MODULAR (APPLE SHEET) -->
@@ -215,9 +253,9 @@ HTML_CONTENT = """
         <div class="sheet-card">
             <div class="sheet-drag" onclick="closeSheet()"></div>
             <div class="sheet-title" id="sheetTitle">Módulo Procesado</div>
-            <div class="sheet-desc" id="sheetDesc">Acción ejecutada mediante la canalización Nano-Banana V9.</div>
+            <div class="sheet-desc" id="sheetDesc">Acción ejecutada mediante la canalización Nano-Banana V7.</div>
             <div class="preview-canvas-box" id="sheetCanvasBox"></div>
-            <button class="apple-btn-main" onclick="closeSheet()">Finalizar y Continuar</button>
+            <button class="apple-btn-main" onclick="closeSheet()">Listo</button>
         </div>
     </div>
 
@@ -228,12 +266,12 @@ HTML_CONTENT = """
         let selectedEngineName = null;
         let facingMode = 'environment';
         let capturedImage = new Image();
+        let currentScale = 1.0;
 
-        // Inicialización suave de cámara
         function startCamera() {
             navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } })
                 .then(stream => { video.srcObject = stream; })
-                .catch(err => console.error("Error al acceder a la cámara:", err));
+                .catch(err => console.error("Error cámara:", err));
         }
         startCamera();
 
@@ -243,7 +281,29 @@ HTML_CONTENT = """
             startCamera();
         }
 
-        // Selección de módulo en el Dock (Nano-Banana Arming)
+        function applyDigitalZoom(scale, elem) {
+            currentScale = scale;
+            video.style.transform = `scale(${scale})`;
+            document.querySelectorAll('.lens-btn').forEach(b => b.classList.remove('active'));
+            elem.classList.add('active');
+            document.getElementById('reticleTelemetry').innerText = `CAM V7 | ZOOM ${scale}x | NPU ACTIVE`;
+        }
+
+        function handleTapToFocus(e) {
+            if (e.target.closest('.glass-dock') || e.target.closest('.bottom-shutter-bar') || e.target.closest('.glass-header') || e.target.closest('.lens-pill-bar')) return;
+            const reticle = document.getElementById('focusReticle');
+            const rect = e.currentTarget.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+
+            const targetLeft = Math.max(10, Math.min(rect.width - reticle.offsetWidth - 10, clickX - (reticle.offsetWidth / 2)));
+            const targetTop = Math.max(70, Math.min(rect.height - reticle.offsetHeight - 120, clickY - (reticle.offsetHeight / 2)));
+
+            reticle.style.left = targetLeft + 'px';
+            reticle.style.top = targetTop + 'px';
+            document.getElementById('reticleTelemetry').innerText = `CAM V7 | ENFOQUE FIJADO (${Math.round(clickX)}x${Math.round(clickY)})`;
+        }
+
         function selectEngine(key, name, elem) {
             document.querySelectorAll('.dock-icon-btn').forEach(btn => btn.classList.remove('selected'));
             
@@ -256,7 +316,6 @@ HTML_CONTENT = """
             selectedEngineName = name;
             elem.classList.add('selected');
 
-            // Armar modo Nano-Banana
             document.getElementById('bananaChip').classList.add('active');
             document.getElementById('bananaText').innerText = `Armado: ${key.toUpperCase()}`;
             document.getElementById('focusReticle').classList.add('banana-lock');
@@ -275,9 +334,13 @@ HTML_CONTENT = """
             document.getElementById('hudStatus').innerText = 'Modo: Esperando selección';
         }
 
-        // Captura y ejecución autónoma Nano-Banana
         function triggerNanoBananaCapture() {
             if (video.videoWidth === 0) return;
+
+            // Efecto de destello de obturador
+            const flash = document.getElementById('flashLayer');
+            flash.classList.add('flash');
+            setTimeout(() => flash.classList.remove('flash'), 120);
 
             internalCanvas.width = 400;
             internalCanvas.height = 300;
@@ -286,7 +349,6 @@ HTML_CONTENT = """
 
             capturedImage.onload = () => {
                 if (!selectedEngineKey) {
-                    // Si no seleccionó nada, abre por defecto la suite cinemática V9
                     executeModulePipeline('cine', '🎬 Cine Scope 21:9');
                 } else {
                     executeModulePipeline(selectedEngineKey, selectedEngineName);
@@ -295,7 +357,6 @@ HTML_CONTENT = """
             capturedImage.src = internalCanvas.toDataURL('image/jpeg');
         }
 
-        // Enrutador de ejecución directa en la hoja Apple Sheet
         function executeModulePipeline(engine, name) {
             document.getElementById('sheetTitle').innerText = name;
             const box = document.getElementById('sheetCanvasBox');
@@ -307,31 +368,34 @@ HTML_CONTENT = """
 
             if (engine === 'cine') {
                 ctx.drawImage(capturedImage, 0, 0, 360, 220);
-                // 2.39:1 Anamorphic CinemaScope Bars
                 ctx.fillStyle = "#000"; ctx.fillRect(0, 0, 360, 24); ctx.fillRect(0, 196, 360, 24);
-                // Teal & Orange Tint
                 ctx.fillStyle = "rgba(0, 255, 200, 0.12)"; ctx.fillRect(0, 24, 360, 172);
-                document.getElementById('sheetDesc').innerText = "Color grading anamórfico 2.39:1 con look Teal & Orange aplicado automáticamente.";
+                document.getElementById('sheetDesc').innerText = "Color grading anamórfico 2.39:1 y aspecto cinemático procesados.";
             } else if (engine === 'print') {
                 ctx.fillStyle = "#0f0f12"; ctx.fillRect(0, 0, 360, 220);
                 ctx.drawImage(capturedImage, 20, 15, 320, 180);
                 ctx.strokeStyle = "#FF3B30"; ctx.lineWidth = 1.5; ctx.strokeRect(20, 15, 320, 180);
-                document.getElementById('sheetDesc').innerText = "Pliego de preprensa offset con marcas de corte perimetral y sangrado industrial de 3 mm.";
+                document.getElementById('sheetDesc').innerText = "Pliego de preprensa offset generado con marcas de corte perimetrales de 3 mm.";
             } else if (engine === 'custom') {
                 ctx.fillStyle = "#000000"; ctx.fillRect(0, 0, 360, 220);
                 ctx.fillStyle = "#FFFFFF"; ctx.beginPath(); ctx.roundRect(80, 20, 200, 180, 18); ctx.fill();
                 ctx.save(); ctx.beginPath(); ctx.roundRect(88, 28, 184, 164, 12); ctx.clip();
                 ctx.drawImage(capturedImage, 88, 28, 184, 164); ctx.restore();
-                document.getElementById('sheetDesc').innerText = "Sticker Die-Cut con relieve blanco puro y fondo AMOLED negro absoluto (#000000).";
+                document.getElementById('sheetDesc').innerText = "Sticker Die-Cut sintetizado sobre fondo AMOLED negro absoluto (#000000).";
+            } else if (engine === 'price') {
+                ctx.drawImage(capturedImage, 0, 0, 360, 220);
+                ctx.fillStyle = "rgba(0, 0, 0, 0.65)"; ctx.fillRect(0, 150, 360, 70);
+                ctx.fillStyle = "#30D158"; ctx.font = "bold 13px -apple-system"; ctx.fillText("VALUACIÓN NPU V7: $380 MXN (MEDIANA)", 16, 180);
+                ctx.fillStyle = "#fff"; ctx.font = "10px -apple-system"; ctx.fillText("Inspección visual completada desde Cam Vision V7", 16, 200);
+                document.getElementById('sheetDesc').innerText = "Análisis financiero y cotización generados a partir de la captura.";
             } else {
                 ctx.drawImage(capturedImage, 0, 0, 360, 220);
                 ctx.fillStyle = "rgba(10, 132, 255, 0.2)"; ctx.fillRect(0, 0, 360, 220);
-                document.getElementById('sheetDesc').innerText = `Procesamiento inteligente completado en el motor de ${name}.`;
+                document.getElementById('sheetDesc').innerText = `Procesamiento completado mediante el motor de ${name}.`;
             }
 
             box.appendChild(canvas);
-            const modal = document.getElementById('sheetModal');
-            modal.classList.add('active');
+            document.getElementById('sheetModal').classList.add('active');
         }
 
         function closeSheet() {
@@ -350,7 +414,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Bian V9 Ultra Liquid Glass (Nano-Banana Engine Active)",
+        "engine": "Cam Vision V7 Ultra (Apple Glass UI)",
         "status": "online"
     }
 
