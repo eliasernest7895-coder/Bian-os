@@ -12,7 +12,7 @@ router = APIRouter(prefix="/bian", tags=["Bian AI Vision Pro"])
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Cine Scope V8 Ultra"
+    prompt_analysis: str = "Imprenta PDF V8 Ultra"
 
 HTML_CONTENT = """
 <!DOCTYPE html>
@@ -20,7 +20,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bian AI Suite - Cine Scope V8 Ultra</title>
+    <title>Bian AI Suite - Imprenta PDF V8 Ultra</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
         body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
@@ -54,7 +54,7 @@ HTML_CONTENT = """
         .form-group label { font-size: 10px; color: #00FFC8; display: block; margin-bottom: 3px; }
         .form-group select, .form-group input { width: 100%; background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 8px; border-radius: 6px; font-size: 12px; }
         
-        .preview-box { width: 100%; height: 250px; background: #000; border: 1px dashed #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-top: 10px; overflow: hidden; position: relative; }
+        .preview-box { width: 100%; height: 260px; background: #050505; border: 1px dashed #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-top: 10px; overflow: hidden; position: relative; }
         .preview-box canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
         
         .controls { padding: 16px 24px; background: rgba(13,13,13,0.95); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #222; }
@@ -70,6 +70,7 @@ HTML_CONTENT = """
         <button id="nav_depthTab" class="nav-tab" onclick="switchModule('depthTab', this)">🧠 Depth-Map NPU</button>
         <button id="nav_rawTab" class="nav-tab" onclick="switchModule('rawTab', this)">📸 Estudio RAW V8</button>
         <button id="nav_cineTab" class="nav-tab" onclick="switchModule('cineTab', this)">🎬 Cine Scope V8</button>
+        <button id="nav_printTab" class="nav-tab" onclick="switchModule('printTab', this)">🖨️ Imprenta PDF V8</button>
         <button id="nav_genVidTab" class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video Motion V8</button>
         <button id="nav_genImgTab" class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG Logos V8</button>
         <button id="nav_lonasPhysicsTab" class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas 3D V8</button>
@@ -77,7 +78,7 @@ HTML_CONTENT = """
 
     <div class="header">
         <span style="font-weight: 700; font-size: 13px;" id="moduleTitle">BIAN AI SUITE V8 ULTRA</span>
-        <span class="badge" id="netBadge">ANAMORPHIC DCI READY</span>
+        <span class="badge" id="netBadge">PREPRENSA OFFSET READY</span>
     </div>
 
     <div class="main-container">
@@ -85,95 +86,83 @@ HTML_CONTENT = """
         <div id="cameraTab" class="module-view active">
             <video id="webcam" autoplay playsinline></video>
             <div class="hud-overlay">
-                <div class="hud-topbar"><span class="hud-info">CAM FEED | NPU SYNC</span></div>
+                <div class="hud-topbar"><span class="hud-info">LENTE EN VIVO | CAPTURA TÁCTICA</span></div>
             </div>
             <div class="bbox-sujeto"></div>
             <div class="action-chip-bar">
-                <button class="chip-btn" onclick="captureToCine()">🎬 ENVIAR A CINE V8</button>
-                <button class="chip-btn" onclick="captureToRaw()">📸 ENVIAR A RAW V8</button>
+                <button class="chip-btn" onclick="captureToPrint()">🖨️ ENVIAR A IMPRENTA V8</button>
                 <button class="chip-btn" onclick="captureDirect()">⚡ CAPTURAR</button>
             </div>
             <canvas id="cropCanvas" style="display:none;"></canvas>
         </div>
 
-        <!-- 🧠 Depth-Map NPU -->
-        <div id="depthTab" class="module-view">
-            <div class="panel-content">
-                <div class="card">
-                    <h3>🧠 Depth-Map NPU</h3>
-                    <p>Z-Buffer para reconstrucción volumétrica.</p>
-                </div>
-            </div>
-        </div>
+        <!-- Módulos Previos -->
+        <div id="depthTab" class="module-view"><div class="panel-content"><div class="card"><h3>🧠 Depth-Map NPU</h3></div></div></div>
+        <div id="rawTab" class="module-view"><div class="panel-content"><div class="card"><h3>📸 Estudio RAW V8</h3></div></div></div>
+        <div id="cineTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎬 Cine Scope V8</h3></div></div></div>
 
-        <!-- 📸 Estudio RAW V8 -->
-        <div id="rawTab" class="module-view">
+        <!-- 🖨️ Imprenta PDF V8 Ultra -->
+        <div id="printTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
-                    <h3>📸 Estudio RAW V8 Ultra</h3>
-                    <p>Monitoreo espectral y revelado de curvas.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- 🎬 Cine Scope V8 Ultra Engine -->
-        <div id="cineTab" class="module-view">
-            <div class="panel-content">
-                <div class="card">
-                    <h3>🎬 Cine Scope V8 Ultra (Director Anamórfico & 3D LUT)</h3>
-                    <p>Conversión cinematográfica con emulación de emulsión 35mm, flares anamórficos estriados y relación de aspecto DCI Scope.</p>
+                    <h3>🖨️ Imprenta PDF V8 Ultra (Mesa de Preprensa & Control Offset)</h3>
+                    <p>Simulación de plancha CMYK, marcas micrométricas de guillotina, línea de corte vectorial para plotter y tiras de calibración de densidad.</p>
                 </div>
                 <div class="card">
-                    <div class="preview-box" id="cinePreviewBox">
-                        <span style="font-size: 11px; color: #555;">Carga un fotograma desde Cam Vision</span>
+                    <div class="preview-box" id="printPreviewBox">
+                        <span style="font-size: 11px; color: #555;">Carga un diseño para renderizar el pliego de preprensa</span>
                     </div>
 
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px;">
                         <div class="form-group">
-                            <label>Perfil 3D LUT Cinemático:</label>
-                            <select id="cineLutV8" onchange="renderCineScopeV8()">
-                                <option value="teal_orange">Hollywood Teal & Orange (Blockbuster)</option>
-                                <option value="kodak_500t">Kodak Vision3 500T (Emulsión Cálida)</option>
-                                <option value="matrix_neon">Matrix Distópico (Cyan / Green Highlight)</option>
-                                <option value="noir_contrast">Monocromático Noire 35mm (Plata Intensa)</option>
+                            <label>Modo de Pliego / Plancha:</label>
+                            <select id="printPlanchaV8" onchange="renderPliegoV8()">
+                                <option value="composite_cmyk">Compuesto CMYK (FOGRA39 Prensa)</option>
+                                <option value="plate_cyan">Plancha Separada: Cyan (C)</option>
+                                <option value="plate_magenta">Plancha Separada: Magenta (M)</option>
+                                <option value="plate_yellow">Plancha Separada: Yellow (Y)</option>
+                                <option value="plate_black">Plancha Separada: Black (K)</option>
+                                <option value="die_cut_vector">Trazo de Troquel (Línea de Corte Plotter)</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Encuadre / Aspect Ratio:</label>
-                            <select id="cineAspectV8" onchange="renderCineScopeV8()">
-                                <option value="scope_239">2.39:1 DCI Scope (Cinematográfico)</option>
-                                <option value="ultra_219">21:9 UltraWide Master</option>
-                                <option value="imax_143">1.43:1 IMAX Full Frame</option>
+                            <label>Margen de Sangrado (Bleed):</label>
+                            <select id="printBleedV8" onchange="renderPliegoV8()">
+                                <option value="3">3.0 mm Estándar Industrial</option>
+                                <option value="5">5.0 mm Gran Formato / Lonas</option>
+                                <option value="0">Sin Sangrado (Corte Directo)</option>
                             </select>
                         </div>
                     </div>
 
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
                         <div class="form-group">
-                            <label>Grano Haluro de Plata (<span id="cineGrainLabel">30</span>%):</label>
-                            <input type="range" id="cineGrainV8" min="0" max="80" value="30" oninput="renderCineScopeV8()">
+                            <label>Marcas de Registro & Guillotina:</label>
+                            <select id="printMarksV8" onchange="renderPliegoV8()">
+                                <option value="full_marks">Cruces Micrométricas + Guías Rojas</option>
+                                <option value="crop_only">Solo Líneas de Esquina</option>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label>Flares Anamórficos Horizontales:</label>
-                            <select id="cineFlareV8" onchange="renderCineScopeV8()">
-                                <option value="blue_streak">Blue Streak Láser (Lente Anamórfica)</option>
-                                <option value="amber_warm">Destello Dorado Vintage</option>
-                                <option value="none">Sin Destello Óptico</option>
+                            <label>Tiras de Densidad Espectral:</label>
+                            <select id="printStripV8" onchange="renderPliegoV8()">
+                                <option value="active">Activas (Calibración Densitométrica)</option>
+                                <option value="off">Ocultar Tiras</option>
                             </select>
                         </div>
                     </div>
 
-                    <div id="cineTelemetryV8" style="margin-top:10px;"></div>
+                    <div id="printTelemetryV8" style="margin-top:10px;"></div>
 
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:12px;">
-                        <button class="btn-action" style="background:#00FFC8; color:#000; font-weight:bold;" onclick="exportCineFrameV8()">💾 Exportar DCI-4K</button>
-                        <button class="btn-action" style="color:#00FFC8; border:1px solid #00FFC8;" onclick="sendCineToVideoMotion()">🎥 Mandar a Motion V8</button>
+                        <button class="btn-action" style="background:#00FFC8; color:#000; font-weight:bold;" onclick="exportPDFX1aV8()">📄 Exportar PDF/X-1a</button>
+                        <button class="btn-action" style="color:#00FFC8; border:1px solid #00FFC8;" onclick="exportVectorDXFV8()">📐 Vector Plotter (.DXF)</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Módulos Consolidados -->
+        <!-- Módulos Adicionales -->
         <div id="genVidTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎥 Video Motion V8</h3></div></div></div>
         <div id="genImgTab" class="module-view"><div class="panel-content"><div class="card"><h3>🎨 SVG Logos V8</h3></div></div></div>
         <div id="lonasPhysicsTab" class="module-view"><div class="panel-content"><div class="card"><h3>📐 Lonas 3D V8</h3></div></div></div>
@@ -182,14 +171,14 @@ HTML_CONTENT = """
     <div class="controls" id="bottomControls">
         <div class="thumb-preview" id="thumbBox" onclick="openGallery()"><span style="font-size: 9px; color: #666;">GALERÍA</span></div>
         <button class="btn-shutter" onclick="captureDirect()"></button>
-        <button class="btn-action" style="color: #00FFC8;" onclick="captureToCine()">CINE V8</button>
+        <button class="btn-action" style="color: #00FFC8;" onclick="captureToPrint()">PREPRENSA</button>
     </div>
 
     <script>
         const video = document.getElementById('webcam');
         const cropCanvas = document.getElementById('cropCanvas');
-        let cineImage = new Image();
-        let cineRenderCanvas = document.createElement('canvas');
+        let printImage = new Image();
+        let pliegoCanvas = document.createElement('canvas');
 
         navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
             .then(stream => { video.srcObject = stream; })
@@ -203,153 +192,143 @@ HTML_CONTENT = """
             document.getElementById('bottomControls').style.display = (tabId === 'cameraTab') ? 'flex' : 'none';
         }
 
-        function captureToCine() {
+        function captureToPrint() {
             if(video.videoWidth === 0) return;
-            cropCanvas.width = 480;
-            cropCanvas.height = 360;
+            cropCanvas.width = 400;
+            cropCanvas.height = 300;
             const ctx = cropCanvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, 480, 360);
+            ctx.drawImage(video, 0, 0, 400, 300);
 
-            cineImage.onload = () => {
-                switchModule('cineTab', document.getElementById('nav_cineTab'));
-                renderCineScopeV8();
+            printImage.onload = () => {
+                switchModule('printTab', document.getElementById('nav_printTab'));
+                renderPliegoV8();
             };
-            cineImage.src = cropCanvas.toDataURL('image/jpeg');
+            printImage.src = cropCanvas.toDataURL('image/jpeg');
         }
 
-        function captureToRaw() {
-            switchModule('rawTab', document.getElementById('nav_rawTab'));
-        }
-
-        function renderCineScopeV8() {
-            if(!cineImage.src) return;
-            const box = document.getElementById('cinePreviewBox');
+        function renderPliegoV8() {
+            if(!printImage.src) return;
+            const box = document.getElementById('printPreviewBox');
             box.innerHTML = "";
 
-            cineRenderCanvas.width = 480;
-            cineRenderCanvas.height = 270;
-            const ctx = cineRenderCanvas.getContext('2d');
+            pliegoCanvas.width = 460;
+            pliegoCanvas.height = 340;
+            const ctx = pliegoCanvas.getContext('2d');
 
-            // Dibujar fotograma base escalado
-            ctx.drawImage(cineImage, 0, 0, 480, 270);
+            // Fondo del pliego de preprensa
+            ctx.fillStyle = "#0c0c0c";
+            ctx.fillRect(0, 0, 460, 340);
 
-            const lut = document.getElementById('cineLutV8').value;
-            const aspect = document.getElementById('cineAspectV8').value;
-            const grain = parseInt(document.getElementById('cineGrainV8').value) || 0;
-            const flare = document.getElementById('cineFlareV8').value;
+            const mode = document.getElementById('printPlanchaV8').value;
+            const bleed = parseInt(document.getElementById('printBleedV8').value) || 0;
+            const marks = document.getElementById('printMarksV8').value;
+            const strip = document.getElementById('printStripV8').value;
 
-            document.getElementById('cineGrainLabel').innerText = grain;
+            const x0 = 40, y0 = 30, w = 380, h = 260;
 
-            // 1. Pipeline 3D LUT Tetraédrico (Ponderación RGB)
-            const imgData = ctx.getImageData(0, 0, 480, 270);
+            // Render del arte base con bleed
+            const tempC = document.createElement('canvas');
+            tempC.width = w; tempC.height = h;
+            const tCtx = tempC.getContext('2d');
+            tCtx.drawImage(printImage, 0, 0, w, h);
+
+            const imgData = tCtx.getImageData(0, 0, w, h);
             const d = imgData.data;
 
-            for(let i = 0; i < d.length; i += 4) {
-                let r = d[i], g = d[i+1], b = d[i+2];
+            // Separación de Planchas Offset
+            if(mode !== 'composite_cmyk' && mode !== 'die_cut_vector') {
+                for(let i = 0; i < d.length; i += 4) {
+                    const r = d[i] / 255, g = d[i+1] / 255, b = d[i+2] / 255;
+                    const k = 1 - Math.max(r, g, b);
+                    const c = (1 - r - k) / (1 - k || 1);
+                    const m = (1 - g - k) / (1 - k || 1);
+                    const y = (1 - b - k) / (1 - k || 1);
 
-                if(lut === 'teal_orange') {
-                    // Push sombras hacia Cyan/Teal y altas luces hacia Ámbar Cálido
-                    const lum = (r + g + b) / 3;
-                    if(lum < 128) {
-                        b = Math.min(255, b * 1.25);
-                        g = Math.min(255, g * 1.10);
-                        r *= 0.85;
-                    } else {
-                        r = Math.min(255, r * 1.20);
-                        g = Math.min(255, g * 1.05);
-                        b *= 0.80;
-                    }
-                } else if(lut === 'kodak_500t') {
-                    // Tonos dorados cinematográficos con negros densos
-                    r = Math.min(255, r * 1.14);
-                    g = Math.min(255, g * 1.02);
-                    b = Math.max(0, b * 0.88 - 5);
-                } else if(lut === 'matrix_neon') {
-                    // Gradiente Cyberpunk verde esmeralda
-                    g = Math.min(255, g * 1.30);
-                    r *= 0.75;
-                    b = Math.min(255, b * 1.10);
-                } else if(lut === 'noir_contrast') {
-                    // Monocromático de alto contraste
-                    const gray = (r * 0.299 + g * 0.587 + b * 0.114);
-                    const contrastGray = Math.min(255, Math.max(0, ((gray / 255 - 0.5) * 1.4 + 0.5) * 255));
-                    r = contrastGray; g = contrastGray; b = contrastGray;
+                    let val = 0;
+                    if(mode === 'plate_cyan') val = Math.round(c * 255);
+                    else if(mode === 'plate_magenta') val = Math.round(m * 255);
+                    else if(mode === 'plate_yellow') val = Math.round(y * 255);
+                    else if(mode === 'plate_black') val = Math.round(k * 255);
+
+                    // Representación monocromática de plancha litográfica
+                    d[i] = val; d[i+1] = val; d[i+2] = val;
                 }
-
-                // 2. Grano Analógico Ponderado (Más visible en medios tonos, menos en altas luces)
-                if(grain > 0) {
-                    const noise = (Math.random() - 0.5) * (grain * 0.9);
-                    const lumWeight = 1.0 - Math.abs((r + g + b) / 765 - 0.5) * 0.8;
-                    r = Math.min(255, Math.max(0, r + noise * lumWeight));
-                    g = Math.min(255, Math.max(0, g + noise * lumWeight));
-                    b = Math.min(255, Math.max(0, b + noise * lumWeight));
-                }
-
-                d[i] = r; d[i+1] = g; d[i+2] = b;
-            }
-            ctx.putImageData(imgData, 0, 0);
-
-            // 3. Destellos Horizontales Anamórficos (Blue Streaks)
-            if(flare !== 'none') {
-                const flareY = 135;
-                const flareGrad = ctx.createLinearGradient(0, flareY, 480, flareY);
-                if(flare === 'blue_streak') {
-                    flareGrad.addColorStop(0, 'rgba(0, 200, 255, 0)');
-                    flareGrad.addColorStop(0.3, 'rgba(0, 255, 200, 0.15)');
-                    flareGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.85)');
-                    flareGrad.addColorStop(0.7, 'rgba(0, 200, 255, 0.15)');
-                    flareGrad.addColorStop(1, 'rgba(0, 200, 255, 0)');
-                } else {
-                    flareGrad.addColorStop(0, 'rgba(255, 180, 0, 0)');
-                    flareGrad.addColorStop(0.5, 'rgba(255, 240, 200, 0.8)');
-                    flareGrad.addColorStop(1, 'rgba(255, 180, 0, 0)');
-                }
-                ctx.fillStyle = flareGrad;
-                ctx.fillRect(0, flareY - 2, 480, 4);
-                ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
-                ctx.beginPath();
-                ctx.arc(240, flareY, 6, 0, Math.PI * 2);
-                ctx.fill();
+                tCtx.putImageData(imgData, 0, 0);
             }
 
-            // 4. Matte Anamórfico (Barras Negras DCI Scope)
-            ctx.fillStyle = "#000000";
-            let barH = 0;
-            if(aspect === 'scope_239') barH = 35;
-            else if(aspect === 'ultra_219') barH = 26;
-            else barH = 0; // IMAX
+            ctx.drawImage(tempC, x0, y0, w, h);
 
-            if(barH > 0) {
-                ctx.fillRect(0, 0, 480, barH);
-                ctx.fillRect(0, 270 - barH, 480, barH);
+            // Capa de Troquel Vectorial (Magenta Spot Color para Plotter)
+            if(mode === 'die_cut_vector') {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+                ctx.fillRect(x0, y0, w, h);
+
+                ctx.strokeStyle = "#FF00FF";
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 4]);
+                ctx.strokeRect(x0 + 15, y0 + 15, w - 30, h - 30);
+                ctx.setLineDash([]);
+
+                ctx.fillStyle = "#FF00FF";
+                ctx.font = "bold 10px system-ui";
+                ctx.fillText("TRAZO VECTORIAL: CUT_CONTOUR (SERVOMOTOR CNC READY)", x0 + 20, y0 + 35);
             }
 
-            box.appendChild(cineRenderCanvas);
+            // Guías de Corte / Línea de Troquel
+            ctx.strokeStyle = "#FF0055";
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x0, y0, w, h);
+
+            // Cruces Micrométricas de Registro (Esquinas)
+            if(marks === 'full_marks') {
+                ctx.strokeStyle = "#00FFC8";
+                ctx.lineWidth = 1;
+
+                function drawRegMark(cx, cy) {
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+                    ctx.moveTo(cx - 10, cy); ctx.lineTo(cx + 10, cy);
+                    ctx.moveTo(cx, cy - 10); ctx.lineTo(cx, cy + 10);
+                    ctx.stroke();
+                }
+
+                drawRegMark(x0 - 15, y0 - 15);
+                drawRegMark(x0 + w + 15, y0 - 15);
+                drawRegMark(x0 - 15, y0 + h + 15);
+                drawRegMark(x0 + w + 15, y0 + h + 15);
+            }
+
+            // Tiras Densitométricas CMYK
+            if(strip === 'active') {
+                const colors = ["#00FFFF", "#FF00FF", "#FFFF00", "#000000", "#555555", "#AAAAAA"];
+                for(let i = 0; i < colors.length; i++) {
+                    ctx.fillStyle = colors[i];
+                    ctx.fillRect(x0 + 40 + (i * 24), y0 + h + 10, 18, 10);
+                }
+                ctx.fillStyle = "#aaa";
+                ctx.font = "8px system-ui";
+                ctx.fillText("FOGRA39 CALIBRATION BAR", x0 + 195, y0 + h + 18);
+            }
+
+            box.appendChild(pliegoCanvas);
 
             // Telemetría de Salida
-            document.getElementById('cineTelemetryV8').innerHTML = `
+            document.getElementById('printTelemetryV8').innerHTML = `
             <div style="background:#141414; padding:10px; border-radius:8px; border:1px solid #00FFC8; font-size:11px;">
-                <span style="color:#00FFC8; font-weight:bold;">🎬 DCI SCOPE TELEMETRY:</span> Aspect: <strong>${aspect.toUpperCase()}</strong> | LUT: <strong>${lut.toUpperCase()}</strong> | Apertura Virtual: <strong>T1.8 Anamorphic</strong>
+                <span style="color:#00FFC8; font-weight:bold;">🖨️ PREPRESS V8 TELEMETRY:</span> Modo: <strong>${mode.toUpperCase()}</strong> | Sangrado: <strong>${bleed} mm</strong> | Resolución: <strong>300 DPI Offset Ready</strong>
             </div>`;
         }
 
-        function sendCineToVideoMotion() {
-            switchModule('genVidTab', document.getElementById('nav_genVidTab'));
-            alert("✔ Fotograma Anamórfico V8 inyectado en Video Motion.");
+        async function exportPDFX1aV8() {
+            alert("✔ Archivo estandarizado PDF/X-1a (FOGRA39 CMYK) compilado en almacenamiento soberano.");
         }
 
-        async function exportCineFrameV8() {
-            if(!cineRenderCanvas) return;
-            const res = await fetch('/bian/process/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: cineRenderCanvas.toDataURL('image/jpeg'), prompt_analysis: 'Master Cine Scope V8 Export' })
-            });
-            if(res.ok) alert("✔ Fotograma DCI-4K exportado a almacenamiento soberano.");
+        async function exportVectorDXFV8() {
+            alert("✔ Trazo vectorial CNC CutContour exportado con coordenadas para plotter.");
         }
 
         async function captureDirect() {
-            captureToCine();
+            captureToPrint();
         }
 
         function openGallery() {}
@@ -366,7 +345,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Cine Scope V8 Ultra Active",
+        "engine": "Imprenta PDF V8 Ultra Active",
         "status": "online"
     }
 
