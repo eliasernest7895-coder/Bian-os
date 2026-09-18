@@ -12,7 +12,7 @@ router = APIRouter(prefix="/bian", tags=["Bian AI Vision Pro"])
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Detección V6 Alpha Engine"
+    prompt_analysis: str = "Detección V8 Ultra Engine"
 
 HTML_CONTENT = """
 <!DOCTYPE html>
@@ -20,7 +20,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bian AI Vision & Creative Suite - Master V6 Ultra</title>
+    <title>Bian AI Vision & Creative Suite - Master V8 Ultra</title>
     <script src="https://unpkg.com/tesseract.js@v4.0.2/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -65,7 +65,7 @@ HTML_CONTENT = """
         .form-group label { font-size: 10px; color: #00FFC8; display: block; margin-bottom: 3px; }
         .form-group select, .form-group input, .form-group textarea { width: 100%; background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 8px; border-radius: 6px; font-size: 12px; }
         
-        .preview-box { width: 100%; height: 230px; background: #000; border: 1px dashed #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-top: 10px; overflow: hidden; position: relative; }
+        .preview-box { width: 100%; height: 240px; background: #000; border: 1px dashed #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-top: 10px; overflow: hidden; position: relative; }
         .preview-box img, .preview-box canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; flex-direction: column; padding: 20px; }
@@ -80,13 +80,13 @@ HTML_CONTENT = """
         <button id="nav_synthTab" class="nav-tab" onclick="switchModule('synthTab', this)">✨ IA V6 Ultra</button>
         <button id="nav_priceTab" class="nav-tab" onclick="switchModule('priceTab', this)">🏷️ Valuador V6</button>
         <button id="nav_foodIndustryTab" class="nav-tab" onclick="switchModule('foodIndustryTab', this)">👨‍🍳 Chef Lean V6</button>
-        <button id="nav_genVidTab" class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video V6 Pro</button>
+        <button id="nav_genVidTab" class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video Motion V8</button>
         <button id="nav_genImgTab" class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG Vectorial</button>
         <button id="nav_lonasPhysicsTab" class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas 3D</button>
     </div>
 
     <div class="header">
-        <span style="font-weight: 700; font-size: 13px;" id="moduleTitle">BIAN AI VISION V6 ULTRA</span>
+        <span style="font-weight: 700; font-size: 13px;" id="moduleTitle">BIAN AI VISION & MOTION V8 ULTRA</span>
         <span class="badge" id="netBadge">RED: AUDITANDO...</span>
     </div>
 
@@ -143,7 +143,7 @@ HTML_CONTENT = """
                         <span style="font-size: 11px; color: #555;">Sin activo sintetizado</span>
                     </div>
 
-                    <button class="btn-action" id="btnSendToVideo" style="color: #00FFC8; margin-top: 10px; width: 100%; display: none;" onclick="sendCompositeToVideoEngine()">🎥 Mandar a Video Orbital 3D (Paralaje V6)</button>
+                    <button class="btn-action" id="btnSendToVideo" style="color: #00FFC8; margin-top: 10px; width: 100%; display: none;" onclick="sendCompositeToVideoEngine()">🎥 Mandar a Video Motion V8 (Cinemática Multieje)</button>
                 </div>
             </div>
         </div>
@@ -240,17 +240,54 @@ HTML_CONTENT = """
             </div>
         </div>
 
-        <!-- 🎥 Video V6 Pro -->
+        <!-- 🎥 Video Motion V8 Ultra Engine -->
         <div id="genVidTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
-                    <h3>🎥 Motion Engine V6 (Orbital 3D & Paralaje Real)</h3>
-                    <p>Simulación de cámara cinematográfica: el fondo rota y el sujeto mantiene eje con desenfoque dinámico.</p>
+                    <h3>🎥 Motion Engine V8 Ultra (Cinemática Multieje & Shaders Ópticos)</h3>
+                    <p>Trayectorias compuestas Pan-Tilt-Roll, efecto Dolly Vertigo anamórfico, grano analógico estocástico y flares en vivo.</p>
                 </div>
                 <div class="card">
-                    <div class="preview-box" id="vidPreviewBox"><span style="font-size: 11px; color: #555;">Esperando inyección desde IA V6...</span></div>
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="renderVideoParallaxV6()">Iniciar Render Orbital 3D V6</button>
-                    <button class="btn-action" id="btnRecordVid" style="background: #FF0055; color: #fff; font-weight: bold; margin-top: 10px; width: 100%; display: none;" onclick="recordAndDownloadVideo()">🎥 Exportar Clip .WebM V6</button>
+                    <div class="preview-box" id="vidPreviewBox"><span style="font-size: 11px; color: #555;">Esperando inyección desde IA V6 o Cam Vision...</span></div>
+                    
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px;">
+                        <div class="form-group">
+                            <label>Cinemática de Cámara V8:</label>
+                            <select id="v8MotionProfile">
+                                <option value="multiaxis_orbit">Órbita 3D Compuesta (Roll + Tilt)</option>
+                                <option value="dolly_vertigo">Dolly Vertigo Anamórfico (Foco Fijo)</option>
+                                <option value="handheld_shake">Handheld Táctico (Micro-vibración)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Efecto Óptico Shader V8:</label>
+                            <select id="v8ShaderFX">
+                                <option value="anamorphic_cinescope">CineScope 21:9 + Flare Neón</option>
+                                <option value="grain_35mm">Grano 35mm Estocástico + Bokeh</option>
+                                <option value="clean_ultra">Pure Digital Ultra HD (Sin Filtro)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                        <div class="form-group">
+                            <label>Framerate Render:</label>
+                            <select id="v8FpsRate">
+                                <option value="60">60 FPS (Ultra Smooth NPU)</option>
+                                <option value="30">30 FPS (Cinemático Estándar)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Duración del Loop:</label>
+                            <select id="v8LoopDuration">
+                                <option value="3">3 Segundos (Loop Rápido)</option>
+                                <option value="5">5 Segundos (Master Pro)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="renderVideoV8Ultra()">⚡ Iniciar Render Cinemático V8</button>
+                    <button class="btn-action" id="btnRecordVid" style="background: #FF0055; color: #fff; font-weight: bold; margin-top: 10px; width: 100%; display: none;" onclick="recordAndDownloadVideoV8()">🎥 Exportar Master Clip .WebM V8</button>
                 </div>
             </div>
         </div>
@@ -303,7 +340,7 @@ HTML_CONTENT = """
         function checkConnection() {
             const isOnline = navigator.onLine;
             const badge = document.getElementById('netBadge');
-            badge.innerText = isOnline ? "ONLINE: EFECTIVIDAD 100%" : "OFFLINE: EFECTIVIDAD 85% (BD V6)";
+            badge.innerText = isOnline ? "ONLINE: EFECTIVIDAD 100%" : "OFFLINE: EFECTIVIDAD 85% (BD V8)";
             badge.style.color = isOnline ? "#00FFC8" : "#FFD700";
             badge.style.borderColor = badge.style.color;
             return isOnline;
@@ -362,7 +399,7 @@ HTML_CONTENT = """
                 const thumb = document.getElementById('priceCropThumb');
                 thumb.innerHTML = `<img src="${crop}" style="width:100%; height:100%; object-fit:contain;" />`;
             }
-            document.getElementById('itemQuery').value = "Insumo Detectado V6";
+            document.getElementById('itemQuery').value = "Insumo Detectado V8";
             runPriceValuationV6();
         }
 
@@ -373,7 +410,7 @@ HTML_CONTENT = """
                 const thumb = document.getElementById('chefCropThumb');
                 thumb.innerHTML = `<img src="${crop}" style="width:100%; height:100%; object-fit:contain;" />`;
             }
-            document.getElementById('chefCutName').value = "Corte En Foco V6 NPU";
+            document.getElementById('chefCutName').value = "Corte En Foco V8 NPU";
             runChefLeanEngineV6();
         }
 
@@ -444,13 +481,11 @@ HTML_CONTENT = """
         /* --- MOTOR CHEF LEAN V6 PRO --- */
         function runChefLeanEngineV6() {
             const cut = document.getElementById('chefCutName').value;
-            const mode = document.getElementById('chefAnalysisMode').value;
             const gross = parseFloat(document.getElementById('chefGrossWeight').value) || 1.0;
             const portionG = parseFloat(document.getElementById('chefPortionSize').value) || 300;
             const res = document.getElementById('chefResult');
 
-            // Parámetros calculados Lean
-            const trimLossPercent = 12.5; // Porcentaje de merma estimado
+            const trimLossPercent = 12.5;
             const netWeight = gross * (1 - (trimLossPercent / 100));
             const totalPortions = Math.floor((netWeight * 1000) / portionG);
             const remainingG = Math.round((netWeight * 1000) % portionG);
@@ -548,8 +583,8 @@ HTML_CONTENT = """
             box.innerHTML = `<img src="${synthResultCanvas.toDataURL('image/png')}" style="max-width:100%; max-height:100%;" />`;
         }
 
-        /* --- VIDEO V6: MOTOR ORBITAL 3D CON PARALAJE --- */
-        function renderVideoParallaxV6() {
+        /* --- VIDEO MOTION V8 ULTRA: MOTOR CINEMÁTICO MULTIEJE --- */
+        function renderVideoV8Ultra() {
             if(!roiImageObj.src) { alert("Inyecta primero un sujeto desde Cam Vision o IA V6."); return; }
             if(animInterval) clearInterval(animInterval);
             const box = document.getElementById('vidPreviewBox');
@@ -558,50 +593,112 @@ HTML_CONTENT = """
             activeCanvas.width = 440; activeCanvas.height = 320;
             const ctx = activeCanvas.getContext('2d');
             box.appendChild(activeCanvas);
+            
             let frame = 0;
+            const profile = document.getElementById('v8MotionProfile').value;
+            const shader = document.getElementById('v8ShaderFX').value;
+            const fps = parseInt(document.getElementById('v8FpsRate').value) || 60;
 
             animInterval = setInterval(() => {
                 frame++;
                 ctx.clearRect(0, 0, 440, 320);
 
-                const bgOffset = Math.sin(frame * 0.03) * 10;
-                let grad = ctx.createRadialGradient(220 + bgOffset, 160, 30, 220 + bgOffset, 160, 260);
-                grad.addColorStop(0, '#382215');
+                // Cinemática de Fondo
+                let bgX = 0, bgY = 0, bgScale = 1.0;
+                if(profile === 'multiaxis_orbit') {
+                    bgX = Math.sin(frame * 0.02) * 16;
+                    bgY = Math.cos(frame * 0.02) * 8;
+                } else if(profile === 'dolly_vertigo') {
+                    bgScale = 1.0 + Math.sin(frame * 0.05) * 0.18;
+                } else if(profile === 'handheld_shake') {
+                    bgX = (Math.random() - 0.5) * 4;
+                    bgY = (Math.random() - 0.5) * 3;
+                }
+
+                ctx.save();
+                ctx.translate(220 + bgX, 160 + bgY);
+                ctx.scale(bgScale, bgScale);
+                let grad = ctx.createRadialGradient(0, 0, 25, 0, 0, 260);
+                grad.addColorStop(0, '#3a2012');
+                grad.addColorStop(0.6, '#110905');
                 grad.addColorStop(1, '#000000');
                 ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, 440, 320);
+                ctx.fillRect(-220, -160, 440, 320);
+                ctx.restore();
 
-                const subjectX = Math.cos(frame * 0.06) * 18;
-                const subjectY = Math.sin(frame * 0.06) * 8;
-                const scale = 1.04 + Math.sin(frame * 0.04) * 0.04;
+                // Cinemática Multieje del Sujeto
+                let subjectX = 0, subjectY = 0, subjectScale = 1.0, subjectAngle = 0;
+                if(profile === 'multiaxis_orbit') {
+                    subjectX = Math.cos(frame * 0.04) * 20;
+                    subjectY = Math.sin(frame * 0.04) * 10;
+                    subjectAngle = Math.sin(frame * 0.03) * 0.04;
+                    subjectScale = 1.05 + Math.sin(frame * 0.03) * 0.05;
+                } else if(profile === 'dolly_vertigo') {
+                    subjectScale = 1.05 - Math.sin(frame * 0.05) * 0.04;
+                } else if(profile === 'handheld_shake') {
+                    subjectX = (Math.random() - 0.5) * 3;
+                    subjectY = (Math.random() - 0.5) * 2;
+                    subjectAngle = (Math.random() - 0.5) * 0.01;
+                }
 
                 ctx.save();
                 ctx.translate(220 + subjectX, 160 + subjectY);
-                ctx.scale(scale, scale);
-                ctx.shadowColor = "rgba(0,0,0,0.9)";
-                ctx.shadowBlur = 25;
-                ctx.shadowOffsetY = 15;
+                ctx.rotate(subjectAngle);
+                ctx.scale(subjectScale, subjectScale);
+                ctx.shadowColor = "rgba(0,0,0,0.95)";
+                ctx.shadowBlur = 30;
+                ctx.shadowOffsetY = 16;
                 ctx.drawImage(roiImageObj, -140, -105, 280, 210);
                 ctx.restore();
-            }, 1000 / 30);
+
+                // Shaders Ópticos V8
+                if(shader === 'anamorphic_cinescope') {
+                    // Barras CineScope 21:9
+                    ctx.fillStyle = "#000";
+                    ctx.fillRect(0, 0, 440, 36);
+                    ctx.fillRect(0, 284, 440, 36);
+
+                    // Destello Flare Neón Horizontal
+                    const flareY = 160 + Math.sin(frame * 0.04) * 20;
+                    const flareGrad = ctx.createLinearGradient(0, flareY, 440, flareY);
+                    flareGrad.addColorStop(0, 'rgba(0,255,200,0)');
+                    flareGrad.addColorStop(0.5, 'rgba(0,255,200,0.18)');
+                    flareGrad.addColorStop(1, 'rgba(0,255,200,0)');
+                    ctx.fillStyle = flareGrad;
+                    ctx.fillRect(0, flareY - 3, 440, 6);
+                } else if(shader === 'grain_35mm') {
+                    // Grano Analógico Estocástico V8
+                    const imgData = ctx.getImageData(0, 0, 440, 320);
+                    const data = imgData.data;
+                    for (let i = 0; i < data.length; i += 16) {
+                        const noise = (Math.random() - 0.5) * 18;
+                        data[i] = Math.min(255, Math.max(0, data[i] + noise));
+                        data[i+1] = Math.min(255, Math.max(0, data[i+1] + noise));
+                        data[i+2] = Math.min(255, Math.max(0, data[i+2] + noise));
+                    }
+                    ctx.putImageData(imgData, 0, 0);
+                }
+            }, 1000 / fps);
 
             document.getElementById('btnRecordVid').style.display = 'block';
         }
 
-        function recordAndDownloadVideo() {
+        function recordAndDownloadVideoV8() {
             if(!activeCanvas) return;
-            const stream = activeCanvas.captureStream(30);
+            const fps = parseInt(document.getElementById('v8FpsRate').value) || 60;
+            const stream = activeCanvas.captureStream(fps);
             const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
             const chunks = [];
             recorder.ondataavailable = e => chunks.push(e.data);
             recorder.onstop = () => {
                 const blob = new Blob(chunks, { type: 'video/webm' });
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url; a.download = `clip_v6_parallax_${Date.now()}.webm`; a.click();
+                const a = document.createElement('a'); a.href = url; a.download = `clip_v8_master_${Date.now()}.webm`; a.click();
                 if(animInterval) clearInterval(animInterval);
             };
+            const durationSec = parseInt(document.getElementById('v8LoopDuration').value) || 3;
             recorder.start();
-            setTimeout(() => recorder.stop(), 3000);
+            setTimeout(() => recorder.stop(), durationSec * 1000);
         }
 
         async function captureDirect() {
@@ -638,7 +735,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Master Unified Suite V6 (Chef Lean V6 Pro Integrated)",
+        "engine": "Master Unified Suite V8 (Video Motion V8 Ultra Integrated)",
         "status": "online"
     }
 
