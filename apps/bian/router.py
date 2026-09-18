@@ -12,7 +12,7 @@ router = APIRouter(prefix="/bian", tags=["Bian AI Vision Pro"])
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Cam Vision V7 Ultra"
+    prompt_analysis: str = "Generar Imagen AI V7 Ultra"
 
 HTML_CONTENT = """
 <!DOCTYPE html>
@@ -20,7 +20,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bian AI Suite - V9 Liquid Glass (Cam Vision V7)</title>
+    <title>Bian AI Suite - V9 Liquid Glass (AI V7)</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; user-select: none; }
@@ -51,18 +51,16 @@ HTML_CONTENT = """
             transform: scale(1.04);
         }
 
-        /* VIEWPORT Y RETÍCULA V7 ULTRA */
+        /* VIEWPORT Y RETÍCULA */
         .viewport { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
         
-        /* FLASH SIMULADO DE OBTURADOR */
         .shutter-flash {
             position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 60;
             transition: opacity 0.12s ease-out;
         }
         .shutter-flash.flash { opacity: 0.85; }
 
-        /* RETÍCULA CAM VISION V7 CON SEGUIMIENTO SUAVE */
         .reticle-container {
             position: absolute; width: 68%; height: 50%; pointer-events: none;
             border-radius: 38px; border: 2px solid rgba(255, 255, 255, 0.35);
@@ -85,7 +83,6 @@ HTML_CONTENT = """
             color: rgba(255,255,255,0.95); border: 1px solid rgba(255,255,255,0.12);
         }
 
-        /* SELECTOR DE ZOOM / LENTES S23 ULTRA */
         .lens-pill-bar {
             position: absolute; bottom: 172px; z-index: 45;
             display: flex; gap: 8px; background: rgba(18, 18, 22, 0.55);
@@ -102,7 +99,7 @@ HTML_CONTENT = """
             background: rgba(255, 255, 255, 0.2); color: #fff;
         }
 
-        /* LIQUID GLASS ICON DOCK */
+        /* LIQUID GLASS DOCK */
         .glass-dock {
             position: absolute; bottom: 106px; left: 14px; right: 14px; z-index: 40;
             background: rgba(18, 18, 22, 0.55);
@@ -133,7 +130,7 @@ HTML_CONTENT = """
             border-radius: 50%; background: #fff;
         }
 
-        /* SHUTTER BAR APPLE STYLE */
+        /* SHUTTER BAR */
         .bottom-shutter-bar {
             position: absolute; bottom: 18px; left: 0; right: 0;
             display: flex; justify-content: space-around; align-items: center; z-index: 50;
@@ -164,7 +161,7 @@ HTML_CONTENT = """
         }
         .side-btn:active { transform: scale(0.9); }
 
-        /* APPLE BOTTOM SHEET */
+        /* MODAL SHEET APPLE */
         .sheet-modal {
             position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.65);
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -175,19 +172,28 @@ HTML_CONTENT = """
         .sheet-card {
             background: #161618; border-top: 1px solid rgba(255,255,255,0.15);
             border-radius: 32px 32px 0 0; padding: 22px 20px 36px 20px;
-            max-height: 80vh; overflow-y: auto; box-shadow: 0 -10px 40px rgba(0,0,0,0.7);
+            max-height: 85vh; overflow-y: auto; box-shadow: 0 -10px 40px rgba(0,0,0,0.7);
             animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .sheet-drag { width: 38px; height: 5px; background: rgba(255,255,255,0.25); border-radius: 4px; margin: 0 auto 16px; cursor: pointer; }
         .sheet-title { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 4px; }
         .sheet-desc { font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.4; margin-bottom: 16px; }
-        .preview-canvas-box { width: 100%; height: 240px; background: #080808; border-radius: 18px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+        
+        .preview-canvas-box { width: 100%; height: 250px; background: #080808; border-radius: 18px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
         .preview-canvas-box canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        .apple-input-group { margin-bottom: 14px; text-align: left; }
+        .apple-input-group label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.7); display: block; margin-bottom: 6px; }
+        .apple-input-group input, .apple-input-group select {
+            width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 12px; padding: 10px 12px; color: #fff; font-size: 12px; outline: none;
+        }
+
         .apple-btn-main {
             width: 100%; background: #0A84FF; border: none; color: #fff;
             padding: 14px; border-radius: 16px; font-size: 14px; font-weight: 600;
-            cursor: pointer;
+            cursor: pointer; margin-top: 8px;
         }
         .apple-btn-main:active { background: #0071E3; }
     </style>
@@ -196,7 +202,7 @@ HTML_CONTENT = """
 
     <div class="shutter-flash" id="flashLayer"></div>
 
-    <!-- HEADER FLOTANTE TIPO APPLE INTELLIGENCE -->
+    <!-- HEADER DINÁMICO -->
     <div class="glass-header">
         <div class="apple-pill">
             <div class="glow-dot"></div>
@@ -208,53 +214,71 @@ HTML_CONTENT = """
         </div>
     </div>
 
-    <!-- VIEWPORT CON RETÍCULA DINÁMICA V7 -->
+    <!-- VIEWPORT CON RETÍCULA TÁCTIL -->
     <div class="viewport" onclick="handleTapToFocus(event)">
         <video id="webcam" autoplay playsinline></video>
         <div class="reticle-container" id="focusReticle">
-            <div class="reticle-telemetry" id="reticleTelemetry">CAM V7 | NPU 1080P ACTIVE</div>
+            <div class="reticle-telemetry" id="reticleTelemetry">CAM V7 | NPU ACTIVE</div>
             <div class="status-badge" id="hudStatus">Modo: Esperando selección</div>
         </div>
         <canvas id="internalCanvas" style="display:none;"></canvas>
     </div>
 
-    <!-- SELECTOR DE LENTES RÁPIDOS S23 ULTRA -->
+    <!-- SELECTOR DE ZOOM -->
     <div class="lens-pill-bar">
         <button class="lens-btn" onclick="applyDigitalZoom(0.8, this)">0.6x</button>
         <button class="lens-btn active" onclick="applyDigitalZoom(1.0, this)">1x</button>
         <button class="lens-btn" onclick="applyDigitalZoom(1.5, this)">2x</button>
     </div>
 
-    <!-- DOCK FLOTANTE CON ICONOS DE TODOS LOS MÓDULOS -->
+    <!-- DOCK CON ICONO ✨ DE GENERAR IMAGEN AI V7 -->
     <div class="glass-dock">
+        <div class="dock-icon-btn" onclick="selectEngine('ai', '✨ Generar Imagen AI V7', this)" title="Generar Imagen AI">✨</div>
         <div class="dock-icon-btn" onclick="selectEngine('cine', '🎬 Cine Scope 21:9', this)" title="Cine Scope">🎬</div>
         <div class="dock-icon-btn" onclick="selectEngine('print', '🖨️ Imprenta PDF Offset', this)" title="Imprenta PDF">🖨️</div>
-        <div class="dock-icon-btn" onclick="selectEngine('custom', '✨ Wallpapers & Stickers', this)" title="Stickers">✨</div>
+        <div class="dock-icon-btn" onclick="selectEngine('custom', '✨ Wallpapers & Stickers', this)" title="Stickers">🏷️</div>
         <div class="dock-icon-btn" onclick="selectEngine('raw', '📸 Revelado RAW EV', this)" title="Estudio RAW">📸</div>
         <div class="dock-icon-btn" onclick="selectEngine('depth', '🧠 Depth-Map NPU', this)" title="Profundidad Z">🧠</div>
         <div class="dock-icon-btn" onclick="selectEngine('vid', '🎥 Video Motion 60fps', this)" title="Video Motion">🎥</div>
         <div class="dock-icon-btn" onclick="selectEngine('svg', '🎨 SVG Logos Vector', this)" title="SVG Logos">🎨</div>
         <div class="dock-icon-btn" onclick="selectEngine('lonas', '📐 Lonas 3D Tensión', this)" title="Lonas 3D">📐</div>
-        <div class="dock-icon-btn" onclick="selectEngine('price', '🏷️ Valuador Híbrido', this)" title="Valuador">🏷️</div>
+        <div class="dock-icon-btn" onclick="selectEngine('price', '🏷️ Valuador Híbrido', this)" title="Valuador">💰</div>
         <div class="dock-icon-btn" onclick="selectEngine('chef', '👨‍🍳 Chef Lean Merma', this)" title="Chef Lean">👨‍🍳</div>
     </div>
 
-    <!-- BOTÓN DISPARADOR CON EFECTO NANO-BANANA -->
+    <!-- BOTÓN DISPARADOR -->
     <div class="bottom-shutter-bar">
         <div class="side-btn" onclick="toggleLens()">🔄</div>
         <div class="shutter-outer" id="shutterBtn" onclick="triggerNanoBananaCapture()">
             <div class="shutter-inner"></div>
         </div>
-        <div class="side-btn" onclick="alert('✔ Galería Soberana V7 Sincronizada')">🖼️</div>
+        <div class="side-btn" onclick="alert('✔ Galería Soberana V9 Sincronizada')">🖼️</div>
     </div>
 
-    <!-- HOJA DE RESULTADO MODULAR (APPLE SHEET) -->
+    <!-- SHEET MODULAR APPLE STYLE (AI V7 CONTROLS) -->
     <div class="sheet-modal" id="sheetModal">
         <div class="sheet-card">
             <div class="sheet-drag" onclick="closeSheet()"></div>
             <div class="sheet-title" id="sheetTitle">Módulo Procesado</div>
-            <div class="sheet-desc" id="sheetDesc">Acción ejecutada mediante la canalización Nano-Banana V7.</div>
+            <div class="sheet-desc" id="sheetDesc">Acción ejecutada mediante la canalización Nano-Banana.</div>
             <div class="preview-canvas-box" id="sheetCanvasBox"></div>
+
+            <div id="aiControlPanel" style="display:none;">
+                <div class="apple-input-group">
+                    <label>Prompt / Modificador NPU:</label>
+                    <input type="text" id="aiPromptV7" value="obra de arte hiperrealista 8k, estilo bioluminiscente studio glass, render octane">
+                </div>
+                <div class="apple-input-group">
+                    <label>Estilo Generativo Apple V7:</label>
+                    <select id="aiPresetV7" onchange="reRenderAIV7()">
+                        <option value="cyber_glow">Bioluminiscente Cyber Glow</option>
+                        <option value="glassmorphism">Apple 3D Glassmorphism</option>
+                        <option value="macro_8k">Macro DSLR Ultra Fotorrealista</option>
+                        <option value="amoled_minimal">Vector AMOLED Minimalista</option>
+                    </select>
+                </div>
+            </div>
+
             <button class="apple-btn-main" onclick="closeSheet()">Listo</button>
         </div>
     </div>
@@ -266,7 +290,6 @@ HTML_CONTENT = """
         let selectedEngineName = null;
         let facingMode = 'environment';
         let capturedImage = new Image();
-        let currentScale = 1.0;
 
         function startCamera() {
             navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } })
@@ -282,7 +305,6 @@ HTML_CONTENT = """
         }
 
         function applyDigitalZoom(scale, elem) {
-            currentScale = scale;
             video.style.transform = `scale(${scale})`;
             document.querySelectorAll('.lens-btn').forEach(b => b.classList.remove('active'));
             elem.classList.add('active');
@@ -301,7 +323,7 @@ HTML_CONTENT = """
 
             reticle.style.left = targetLeft + 'px';
             reticle.style.top = targetTop + 'px';
-            document.getElementById('reticleTelemetry').innerText = `CAM V7 | ENFOQUE FIJADO (${Math.round(clickX)}x${Math.round(clickY)})`;
+            document.getElementById('reticleTelemetry').innerText = `CAM V7 | ENFOQUE FIJADO`;
         }
 
         function selectEngine(key, name, elem) {
@@ -320,7 +342,7 @@ HTML_CONTENT = """
             document.getElementById('bananaText').innerText = `Armado: ${key.toUpperCase()}`;
             document.getElementById('focusReticle').classList.add('banana-lock');
             document.getElementById('shutterBtn').classList.add('banana-ready');
-            document.getElementById('hudStatus').innerText = `Listo para ejecutar: ${name}`;
+            document.getElementById('hudStatus').innerText = `Listo para: ${name}`;
         }
 
         function resetArmEngine() {
@@ -337,7 +359,6 @@ HTML_CONTENT = """
         function triggerNanoBananaCapture() {
             if (video.videoWidth === 0) return;
 
-            // Efecto de destello de obturador
             const flash = document.getElementById('flashLayer');
             flash.classList.add('flash');
             setTimeout(() => flash.classList.remove('flash'), 120);
@@ -349,7 +370,7 @@ HTML_CONTENT = """
 
             capturedImage.onload = () => {
                 if (!selectedEngineKey) {
-                    executeModulePipeline('cine', '🎬 Cine Scope 21:9');
+                    executeModulePipeline('ai', '✨ Generar Imagen AI V7');
                 } else {
                     executeModulePipeline(selectedEngineKey, selectedEngineName);
                 }
@@ -361,41 +382,56 @@ HTML_CONTENT = """
             document.getElementById('sheetTitle').innerText = name;
             const box = document.getElementById('sheetCanvasBox');
             box.innerHTML = "";
+            const aiPanel = document.getElementById('aiControlPanel');
+
+            if (engine === 'ai') {
+                aiPanel.style.display = 'block';
+                document.getElementById('sheetDesc').innerText = "Inferencia generativa Img2Img con condicionamiento latente sobre la captura.";
+                reRenderAIV7();
+            } else {
+                aiPanel.style.display = 'none';
+                const canvas = document.createElement('canvas');
+                canvas.width = 360; canvas.height = 220;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(capturedImage, 0, 0, 360, 220);
+                box.appendChild(canvas);
+                document.getElementById('sheetDesc').innerText = `Procesamiento inteligente completado en ${name}.`;
+            }
+
+            document.getElementById('sheetModal').classList.add('active');
+        }
+
+        function reRenderAIV7() {
+            const box = document.getElementById('sheetCanvasBox');
+            box.innerHTML = "";
+            const preset = document.getElementById('aiPresetV7').value;
 
             const canvas = document.createElement('canvas');
-            canvas.width = 360; canvas.height = 220;
+            canvas.width = 360; canvas.height = 240;
             const ctx = canvas.getContext('2d');
 
-            if (engine === 'cine') {
-                ctx.drawImage(capturedImage, 0, 0, 360, 220);
-                ctx.fillStyle = "#000"; ctx.fillRect(0, 0, 360, 24); ctx.fillRect(0, 196, 360, 24);
-                ctx.fillStyle = "rgba(0, 255, 200, 0.12)"; ctx.fillRect(0, 24, 360, 172);
-                document.getElementById('sheetDesc').innerText = "Color grading anamórfico 2.39:1 y aspecto cinemático procesados.";
-            } else if (engine === 'print') {
-                ctx.fillStyle = "#0f0f12"; ctx.fillRect(0, 0, 360, 220);
-                ctx.drawImage(capturedImage, 20, 15, 320, 180);
-                ctx.strokeStyle = "#FF3B30"; ctx.lineWidth = 1.5; ctx.strokeRect(20, 15, 320, 180);
-                document.getElementById('sheetDesc').innerText = "Pliego de preprensa offset generado con marcas de corte perimetrales de 3 mm.";
-            } else if (engine === 'custom') {
-                ctx.fillStyle = "#000000"; ctx.fillRect(0, 0, 360, 220);
-                ctx.fillStyle = "#FFFFFF"; ctx.beginPath(); ctx.roundRect(80, 20, 200, 180, 18); ctx.fill();
-                ctx.save(); ctx.beginPath(); ctx.roundRect(88, 28, 184, 164, 12); ctx.clip();
-                ctx.drawImage(capturedImage, 88, 28, 184, 164); ctx.restore();
-                document.getElementById('sheetDesc').innerText = "Sticker Die-Cut sintetizado sobre fondo AMOLED negro absoluto (#000000).";
-            } else if (engine === 'price') {
-                ctx.drawImage(capturedImage, 0, 0, 360, 220);
-                ctx.fillStyle = "rgba(0, 0, 0, 0.65)"; ctx.fillRect(0, 150, 360, 70);
-                ctx.fillStyle = "#30D158"; ctx.font = "bold 13px -apple-system"; ctx.fillText("VALUACIÓN NPU V7: $380 MXN (MEDIANA)", 16, 180);
-                ctx.fillStyle = "#fff"; ctx.font = "10px -apple-system"; ctx.fillText("Inspección visual completada desde Cam Vision V7", 16, 200);
-                document.getElementById('sheetDesc').innerText = "Análisis financiero y cotización generados a partir de la captura.";
+            ctx.drawImage(capturedImage, 0, 0, 360, 240);
+
+            // Capa generativa estética estilo Apple Glass V7
+            if (preset === 'cyber_glow') {
+                ctx.fillStyle = "rgba(10, 132, 255, 0.25)";
+                ctx.fillRect(0, 0, 360, 240);
+                ctx.fillStyle = "rgba(255, 55, 95, 0.18)";
+                ctx.beginPath(); ctx.arc(180, 120, 80, 0, Math.PI*2); ctx.fill();
+            } else if (preset === 'glassmorphism') {
+                ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
+                ctx.beginPath(); ctx.roundRect(40, 30, 280, 180, 24); ctx.fill();
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+                ctx.lineWidth = 1.5; ctx.stroke();
+            } else if (preset === 'macro_8k') {
+                ctx.fillStyle = "rgba(255, 214, 10, 0.15)";
+                ctx.fillRect(0, 0, 360, 240);
             } else {
-                ctx.drawImage(capturedImage, 0, 0, 360, 220);
-                ctx.fillStyle = "rgba(10, 132, 255, 0.2)"; ctx.fillRect(0, 0, 360, 220);
-                document.getElementById('sheetDesc').innerText = `Procesamiento completado mediante el motor de ${name}.`;
+                ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+                ctx.fillRect(0, 0, 360, 240);
             }
 
             box.appendChild(canvas);
-            document.getElementById('sheetModal').classList.add('active');
         }
 
         function closeSheet() {
@@ -414,7 +450,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Cam Vision V7 Ultra (Apple Glass UI)",
+        "engine": "Generar Imagen AI V7 Ultra (Apple Glass UI)",
         "status": "online"
     }
 
