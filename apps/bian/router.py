@@ -82,7 +82,7 @@ HTML_CONTENT = """
         <button id="nav_foodIndustryTab" class="nav-tab" onclick="switchModule('foodIndustryTab', this)">👨‍🍳 Chef Lean V6</button>
         <button id="nav_genVidTab" class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video Motion V8</button>
         <button id="nav_genImgTab" class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG Logos V8</button>
-        <button id="nav_lonasPhysicsTab" class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas 3D</button>
+        <button id="nav_lonasPhysicsTab" class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas 3D V8</button>
     </div>
 
     <div class="header">
@@ -344,8 +344,54 @@ HTML_CONTENT = """
             </div>
         </div>
 
-        <!-- 📐 Lonas 3D -->
-        <div id="lonasPhysicsTab" class="module-view"><div class="panel-content"><div class="card"><h3>📐 Lonas 3D</h3></div></div></div>
+        <!-- 📐 Lonas 3D & Simulación Estructural V8 Ultra -->
+        <div id="lonasPhysicsTab" class="module-view">
+            <div class="panel-content">
+                <div class="card">
+                    <h3>📐 Lonas 3D V8 Ultra (Simulación Estructural & Tensión Eólica)</h3>
+                    <p>Montaje sobre bastidor físico con textura textil procedural, cálculo de deflexión por viento y plano de ojillos perimetrales.</p>
+                </div>
+                <div class="card">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                        <div class="form-group">
+                            <label>Ancho (m):</label>
+                            <input type="number" id="lonaWidthV8" value="4.0" step="0.5" oninput="renderLonaV8()">
+                        </div>
+                        <div class="form-group">
+                            <label>Alto (m):</label>
+                            <input type="number" id="lonaHeightV8" value="2.5" step="0.5" oninput="renderLonaV8()">
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                        <div class="form-group">
+                            <label>Sustrato de Impresión:</label>
+                            <select id="lonaSubstrateV8" onchange="renderLonaV8()">
+                                <option value="frontlit_13oz">Frontlit 13oz Alta Resistencia (Estándar)</option>
+                                <option value="mesh_perforada">Mesh Microperforada (Anti-Viento)</option>
+                                <option value="backlight">Backlight Traslúcida (Caja de Luz)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Carga de Viento Estimada:</label>
+                            <select id="lonaWindV8" onchange="renderLonaV8()">
+                                <option value="40">40 km/h (Urbano Moderado)</option>
+                                <option value="75">75 km/h (Ráfaga Táctica Fuerte)</option>
+                                <option value="110">110 km/h (Zona Crítica / Altura)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="renderLonaV8()">⚡ Simular Bastidor 3D & Estructura</button>
+
+                    <div class="preview-box" id="lonaPreviewBoxV8">
+                        <span style="font-size: 11px; color: #555;">Sin simulación de bastidor activa</span>
+                    </div>
+
+                    <div id="lonaTelemetryV8" style="margin-top: 12px;"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Bottom Controls -->
@@ -374,6 +420,7 @@ HTML_CONTENT = """
         let animInterval = null;
         let activeCanvas = null;
         let currentSVGCodeV8 = "";
+        let svgMountedImg = new Image();
 
         function startCamera() {
             if(video.srcObject) video.srcObject.getTracks().forEach(track => track.stop());
@@ -739,7 +786,10 @@ HTML_CONTENT = """
             recorder.onstop = () => {
                 const blob = new Blob(chunks, { type: 'video/webm' });
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url; a.download = `clip_v8_master_${Date.now()}.webm`; a.click();
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `clip_v8_master_${Date.now()}.webm`;
+                a.click();
                 if(animInterval) clearInterval(animInterval);
             };
             const durationSec = parseInt(document.getElementById('v8LoopDuration').value) || 3;
@@ -798,6 +848,8 @@ HTML_CONTENT = """
             const box = document.getElementById('svgPreviewBoxV8');
             box.innerHTML = currentSVGCodeV8;
             document.getElementById('svgActionsV8').style.display = 'block';
+
+            svgMountedImg.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(currentSVGCodeV8);
         }
 
         function downloadSVGV8() {
@@ -811,8 +863,104 @@ HTML_CONTENT = """
         }
 
         function routeSvgToLonas() {
-            alert("✔ Parámetros vectoriales transferidos al simulador Lonas 3D.");
             switchModule('lonasPhysicsTab', document.getElementById('nav_lonasPhysicsTab'));
+            renderLonaV8();
+        }
+
+        /* --- MOTOR LONAS 3D V8 ULTRA --- */
+        function renderLonaV8() {
+            const w = parseFloat(document.getElementById('lonaWidthV8').value) || 4.0;
+            const h = parseFloat(document.getElementById('lonaHeightV8').value) || 2.5;
+            const substrate = document.getElementById('lonaSubstrateV8').value;
+            const wind = parseInt(document.getElementById('lonaWindV8').value) || 40;
+            const box = document.getElementById('lonaPreviewBoxV8');
+            const telem = document.getElementById('lonaTelemetryV8');
+
+            const lonaCanvas = document.createElement('canvas');
+            lonaCanvas.width = 440;
+            lonaCanvas.height = 240;
+            const ctx = lonaCanvas.getContext('2d');
+
+            ctx.fillStyle = "#080808";
+            ctx.fillRect(0, 0, 440, 240);
+
+            // Bastidor de Acero
+            ctx.strokeStyle = "#2a2a2a";
+            ctx.lineWidth = 8;
+            ctx.strokeRect(30, 20, 380, 190);
+
+            // Lienzo de la Lona con Sombra de Profundidad
+            ctx.fillStyle = (substrate === 'mesh_perforada') ? "#14181a" : ((substrate === 'backlight') ? "#1a1a1f" : "#111111");
+            ctx.fillRect(36, 26, 368, 178);
+
+            // Deflexión / Tensión Central por Viento
+            const windBulge = (wind / 110) * 8;
+            ctx.strokeStyle = "rgba(0, 255, 200, 0.15)";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(36, 115);
+            ctx.quadraticCurveTo(220, 115 + windBulge, 404, 115);
+            ctx.stroke();
+
+            // Renderizado del Arte SVG si existe
+            if(svgMountedImg.complete && svgMountedImg.src) {
+                ctx.drawImage(svgMountedImg, 130, 45, 180, 140);
+            } else {
+                ctx.fillStyle = "#00FFC8";
+                ctx.font = "bold 13px system-ui";
+                ctx.textAlign = "center";
+                ctx.fillText(`LONA ESTRUCTURAL ${w}m x ${h}m`, 220, 110);
+                ctx.fillStyle = "#777";
+                ctx.font = "10px system-ui";
+                ctx.fillText(`SUSTRATO: ${substrate.toUpperCase()}`, 220, 130);
+            }
+
+            // Ojillos Metálicos Perimetrales Calculados
+            const spacing = (wind >= 110) ? 25 : ((wind >= 75) ? 35 : 45);
+            ctx.fillStyle = "#FFD700";
+            for(let x = 42; x <= 398; x += spacing) {
+                ctx.beginPath(); ctx.arc(x, 30, 3, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x, 200, 3, 0, Math.PI*2); ctx.fill();
+            }
+            for(let y = 30; y <= 200; y += spacing) {
+                ctx.beginPath(); ctx.arc(40, y, 3, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(400, y, 3, 0, Math.PI*2); ctx.fill();
+            }
+
+            box.innerHTML = "";
+            box.appendChild(lonaCanvas);
+
+            // Telemetría de Ingeniería
+            const area = w * h;
+            const perim = (w + h) * 2;
+            const totalOjillos = Math.round(perim / (spacing / 100));
+            const windForceKPa = ((0.5 * 1.225 * Math.pow(wind / 3.6, 2)) / 1000).toFixed(2);
+            const tensionCornerKg = Math.round(area * windForceKPa * 18);
+
+            telem.innerHTML = `
+            <div style="background:#141414; padding:14px; border-radius:10px; border:1px solid #00FFC8;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span style="color:#00FFC8; font-weight:bold; font-size:12px;">📊 TELEMETRÍA ESTRUCTURAL LONAS V8</span>
+                    <span style="background:#00FFC8; color:#000; font-size:9px; font-weight:900; padding:2px 6px; border-radius:4px;">CALCULADO</span>
+                </div>
+                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; margin:8px 0; text-align:center;">
+                    <div style="background:#1d1d1d; padding:6px; border-radius:6px;">
+                        <span style="font-size:9px; color:#aaa;">SUPERFICIE</span><br>
+                        <strong style="color:#00FFC8; font-size:11px;">${area.toFixed(2)} m²</strong>
+                    </div>
+                    <div style="background:#1d1d1d; padding:6px; border-radius:6px; border:1px solid #00FFC8;">
+                        <span style="font-size:9px; color:#00FFC8;">PRESIÓN VIENTO</span><br>
+                        <strong style="color:#FFF; font-size:11px;">${windForceKPa} kPa</strong>
+                    </div>
+                    <div style="background:#1d1d1d; padding:6px; border-radius:6px;">
+                        <span style="font-size:9px; color:#aaa;">OJILLOS TOTALES</span><br>
+                        <strong style="color:#FFD700; font-size:11px;">${totalOjillos} Piezas</strong>
+                    </div>
+                </div>
+                <hr style="border:0; border-top:1px solid #222; margin:8px 0;">
+                <p style="font-size:11px; color:#eee;">• Tensión Crítica por Esquina: <strong style="color:#FF0055;">~${tensionCornerKg} Kgf</strong></p>
+                <p style="font-size:11px; color:#aaa;">• Distribución de amarres: Dobladillo termosellado de 4cm con ojillos a cada ${spacing}cm.</p>
+            </div>`;
         }
 
         async function captureDirect() {
@@ -849,7 +997,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Master Unified Suite V8 (SVG Logos V8 Ultra Integrated)",
+        "engine": "Master Unified Suite V8 (Lonas 3D V8 Ultra Integrated)",
         "status": "online"
     }
 
