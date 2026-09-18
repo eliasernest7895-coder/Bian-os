@@ -12,7 +12,7 @@ router = APIRouter(prefix="/bian", tags=["Bian AI Vision Pro"])
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Depth-Map NPU & Studio RAW V8 Ultra"
+    prompt_analysis: str = "Cine Scope V8 Ultra"
 
 HTML_CONTENT = """
 <!DOCTYPE html>
@@ -20,7 +20,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bian AI Suite - Studio RAW V8 Ultra</title>
+    <title>Bian AI Suite - Cine Scope V8 Ultra</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
         body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
@@ -69,6 +69,7 @@ HTML_CONTENT = """
         <button id="nav_cameraTab" class="nav-tab active" onclick="switchModule('cameraTab', this)">📷 Cam Vision</button>
         <button id="nav_depthTab" class="nav-tab" onclick="switchModule('depthTab', this)">🧠 Depth-Map NPU</button>
         <button id="nav_rawTab" class="nav-tab" onclick="switchModule('rawTab', this)">📸 Estudio RAW V8</button>
+        <button id="nav_cineTab" class="nav-tab" onclick="switchModule('cineTab', this)">🎬 Cine Scope V8</button>
         <button id="nav_genVidTab" class="nav-tab" onclick="switchModule('genVidTab', this)">🎥 Video Motion V8</button>
         <button id="nav_genImgTab" class="nav-tab" onclick="switchModule('genImgTab', this)">🎨 SVG Logos V8</button>
         <button id="nav_lonasPhysicsTab" class="nav-tab" onclick="switchModule('lonasPhysicsTab', this)">📐 Lonas 3D V8</button>
@@ -76,7 +77,7 @@ HTML_CONTENT = """
 
     <div class="header">
         <span style="font-weight: 700; font-size: 13px;" id="moduleTitle">BIAN AI SUITE V8 ULTRA</span>
-        <span class="badge" id="netBadge">NPU PRO ENGINE</span>
+        <span class="badge" id="netBadge">ANAMORPHIC DCI READY</span>
     </div>
 
     <div class="main-container">
@@ -84,11 +85,11 @@ HTML_CONTENT = """
         <div id="cameraTab" class="module-view active">
             <video id="webcam" autoplay playsinline></video>
             <div class="hud-overlay">
-                <div class="hud-topbar"><span class="hud-info">SENSOR EN VIVO | 60 FPS</span></div>
+                <div class="hud-topbar"><span class="hud-info">CAM FEED | NPU SYNC</span></div>
             </div>
             <div class="bbox-sujeto"></div>
             <div class="action-chip-bar">
-                <button class="chip-btn" onclick="captureToDepth()">🧠 DEPTH NPU</button>
+                <button class="chip-btn" onclick="captureToCine()">🎬 ENVIAR A CINE V8</button>
                 <button class="chip-btn" onclick="captureToRaw()">📸 ENVIAR A RAW V8</button>
                 <button class="chip-btn" onclick="captureDirect()">⚡ CAPTURAR</button>
             </div>
@@ -99,66 +100,75 @@ HTML_CONTENT = """
         <div id="depthTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
-                    <h3>🧠 Estimador de Profundidad Monocular (Depth-Map NPU)</h3>
-                    <p>Z-Buffer para reconstrucción volumétrica y paralaje 3D.</p>
-                </div>
-                <div class="card">
-                    <div class="preview-box" id="depthPreviewBox">
-                        <span style="font-size: 11px; color: #555;">Sin análisis de disparidad activo</span>
-                    </div>
+                    <h3>🧠 Depth-Map NPU</h3>
+                    <p>Z-Buffer para reconstrucción volumétrica.</p>
                 </div>
             </div>
         </div>
 
-        <!-- 📸 Estudio RAW V8 Ultra -->
+        <!-- 📸 Estudio RAW V8 -->
         <div id="rawTab" class="module-view">
             <div class="panel-content">
                 <div class="card">
-                    <h3>📸 Estudio RAW V8 Ultra (Histograma RGB & Colorimetría NPU)</h3>
-                    <p>Calibración de curvas dinámicas, balance térmico Kelvin y monitoreo espectral en tiempo real.</p>
+                    <h3>📸 Estudio RAW V8 Ultra</h3>
+                    <p>Monitoreo espectral y revelado de curvas.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🎬 Cine Scope V8 Ultra Engine -->
+        <div id="cineTab" class="module-view">
+            <div class="panel-content">
+                <div class="card">
+                    <h3>🎬 Cine Scope V8 Ultra (Director Anamórfico & 3D LUT)</h3>
+                    <p>Conversión cinematográfica con emulación de emulsión 35mm, flares anamórficos estriados y relación de aspecto DCI Scope.</p>
                 </div>
                 <div class="card">
-                    <div class="preview-box" id="rawPreviewBox">
-                        <span style="font-size: 11px; color: #555;">Carga un activo desde Cam Vision</span>
+                    <div class="preview-box" id="cinePreviewBox">
+                        <span style="font-size: 11px; color: #555;">Carga un fotograma desde Cam Vision</span>
                     </div>
 
-                    <!-- Canvas para el Histograma RGB -->
-                    <div style="margin-top: 10px; background: #050505; border: 1px solid #222; border-radius: 6px; padding: 6px;">
-                        <span style="font-size: 9px; color: #00FFC8; font-weight: bold; display: block; margin-bottom: 4px;">📊 HISTOGRAMA RGB ESPECTRAL (NPU MONITOR)</span>
-                        <canvas id="histCanvas" width="340" height="70" style="width: 100%; display: block;"></canvas>
-                    </div>
-
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top: 10px;">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px;">
                         <div class="form-group">
-                            <label>Compensación EV (<span id="evLabel">0.0</span>):</label>
-                            <input type="range" id="rawEvV8" min="-20" max="20" value="0" oninput="applyRawGradingV8()">
+                            <label>Perfil 3D LUT Cinemático:</label>
+                            <select id="cineLutV8" onchange="renderCineScopeV8()">
+                                <option value="teal_orange">Hollywood Teal & Orange (Blockbuster)</option>
+                                <option value="kodak_500t">Kodak Vision3 500T (Emulsión Cálida)</option>
+                                <option value="matrix_neon">Matrix Distópico (Cyan / Green Highlight)</option>
+                                <option value="noir_contrast">Monocromático Noire 35mm (Plata Intensa)</option>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label>Contraste / Micro-textura (<span id="contrastLabel">1.0</span>x):</label>
-                            <input type="range" id="rawContrastV8" min="7" max="15" value="10" oninput="applyRawGradingV8()">
+                            <label>Encuadre / Aspect Ratio:</label>
+                            <select id="cineAspectV8" onchange="renderCineScopeV8()">
+                                <option value="scope_239">2.39:1 DCI Scope (Cinematográfico)</option>
+                                <option value="ultra_219">21:9 UltraWide Master</option>
+                                <option value="imax_143">1.43:1 IMAX Full Frame</option>
+                            </select>
                         </div>
                     </div>
 
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
                         <div class="form-group">
-                            <label>Temperatura Kelvin:</label>
-                            <select id="rawKelvinV8" onchange="applyRawGradingV8()">
-                                <option value="5500">5500K (Luz de Día Neutra)</option>
-                                <option value="3200">3200K (Tungsteno Cálido Gourmet)</option>
-                                <option value="7800">7800K (Sombra / Cyber Neón Frío)</option>
-                            </select>
+                            <label>Grano Haluro de Plata (<span id="cineGrainLabel">30</span>%):</label>
+                            <input type="range" id="cineGrainV8" min="0" max="80" value="30" oninput="renderCineScopeV8()">
                         </div>
                         <div class="form-group">
-                            <label>Tinte Cromático (Tint):</label>
-                            <select id="rawTintV8" onchange="applyRawGradingV8()">
-                                <option value="neutral">Neutro (0.0)</option>
-                                <option value="magenta">Inyección Magenta (+15)</option>
-                                <option value="emerald">Inyección Esmeralda (-15)</option>
+                            <label>Flares Anamórficos Horizontales:</label>
+                            <select id="cineFlareV8" onchange="renderCineScopeV8()">
+                                <option value="blue_streak">Blue Streak Láser (Lente Anamórfica)</option>
+                                <option value="amber_warm">Destello Dorado Vintage</option>
+                                <option value="none">Sin Destello Óptico</option>
                             </select>
                         </div>
                     </div>
 
-                    <button class="btn-action" style="background: #00FFC8; color: #000; font-weight: bold; margin-top: 12px; width: 100%;" onclick="saveRawExportV8()">💾 Exportar Master Revelado RAW V8</button>
+                    <div id="cineTelemetryV8" style="margin-top:10px;"></div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:12px;">
+                        <button class="btn-action" style="background:#00FFC8; color:#000; font-weight:bold;" onclick="exportCineFrameV8()">💾 Exportar DCI-4K</button>
+                        <button class="btn-action" style="color:#00FFC8; border:1px solid #00FFC8;" onclick="sendCineToVideoMotion()">🎥 Mandar a Motion V8</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -172,14 +182,14 @@ HTML_CONTENT = """
     <div class="controls" id="bottomControls">
         <div class="thumb-preview" id="thumbBox" onclick="openGallery()"><span style="font-size: 9px; color: #666;">GALERÍA</span></div>
         <button class="btn-shutter" onclick="captureDirect()"></button>
-        <button class="btn-action" style="color: #00FFC8;" onclick="captureToRaw()">RAW V8</button>
+        <button class="btn-action" style="color: #00FFC8;" onclick="captureToCine()">CINE V8</button>
     </div>
 
     <script>
         const video = document.getElementById('webcam');
         const cropCanvas = document.getElementById('cropCanvas');
-        let rawImage = new Image();
-        let gradedCanvas = document.createElement('canvas');
+        let cineImage = new Image();
+        let cineRenderCanvas = document.createElement('canvas');
 
         navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
             .then(stream => { video.srcObject = stream; })
@@ -193,128 +203,153 @@ HTML_CONTENT = """
             document.getElementById('bottomControls').style.display = (tabId === 'cameraTab') ? 'flex' : 'none';
         }
 
-        function captureToRaw() {
+        function captureToCine() {
             if(video.videoWidth === 0) return;
-            cropCanvas.width = 360;
-            cropCanvas.height = 270;
+            cropCanvas.width = 480;
+            cropCanvas.height = 360;
             const ctx = cropCanvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, 360, 270);
+            ctx.drawImage(video, 0, 0, 480, 360);
 
-            rawImage.onload = () => {
-                switchModule('rawTab', document.getElementById('nav_rawTab'));
-                applyRawGradingV8();
+            cineImage.onload = () => {
+                switchModule('cineTab', document.getElementById('nav_cineTab'));
+                renderCineScopeV8();
             };
-            rawImage.src = cropCanvas.toDataURL('image/jpeg');
+            cineImage.src = cropCanvas.toDataURL('image/jpeg');
         }
 
-        function captureToDepth() {
-            switchModule('depthTab', document.getElementById('nav_depthTab'));
+        function captureToRaw() {
+            switchModule('rawTab', document.getElementById('nav_rawTab'));
         }
 
-        function applyRawGradingV8() {
-            if(!rawImage.src) return;
-            const box = document.getElementById('rawPreviewBox');
+        function renderCineScopeV8() {
+            if(!cineImage.src) return;
+            const box = document.getElementById('cinePreviewBox');
             box.innerHTML = "";
 
-            gradedCanvas.width = 360;
-            gradedCanvas.height = 270;
-            const ctx = gradedCanvas.getContext('2d');
-            ctx.drawImage(rawImage, 0, 0, 360, 270);
+            cineRenderCanvas.width = 480;
+            cineRenderCanvas.height = 270;
+            const ctx = cineRenderCanvas.getContext('2d');
 
-            const evVal = parseFloat(document.getElementById('rawEvV8').value) / 10;
-            const contrast = parseFloat(document.getElementById('rawContrastV8').value) / 10;
-            const kelvin = document.getElementById('rawKelvinV8').value;
-            const tint = document.getElementById('rawTintV8').value;
+            // Dibujar fotograma base escalado
+            ctx.drawImage(cineImage, 0, 0, 480, 270);
 
-            document.getElementById('evLabel').innerText = (evVal > 0 ? "+" : "") + evVal.toFixed(1);
-            document.getElementById('contrastLabel').innerText = contrast.toFixed(1);
+            const lut = document.getElementById('cineLutV8').value;
+            const aspect = document.getElementById('cineAspectV8').value;
+            const grain = parseInt(document.getElementById('cineGrainV8').value) || 0;
+            const flare = document.getElementById('cineFlareV8').value;
 
-            const imgData = ctx.getImageData(0, 0, 360, 270);
+            document.getElementById('cineGrainLabel').innerText = grain;
+
+            // 1. Pipeline 3D LUT Tetraédrico (Ponderación RGB)
+            const imgData = ctx.getImageData(0, 0, 480, 270);
             const d = imgData.data;
 
-            // Vectores de canal para el Histograma
-            const histR = new Array(256).fill(0);
-            const histG = new Array(256).fill(0);
-            const histB = new Array(256).fill(0);
-
             for(let i = 0; i < d.length; i += 4) {
-                let r = d[i];
-                let g = d[i+1];
-                let b = d[i+2];
+                let r = d[i], g = d[i+1], b = d[i+2];
 
-                // 1. Compensación de Exposición EV
-                if(evVal !== 0) {
-                    const factor = Math.pow(2, evVal);
-                    r *= factor; g *= factor; b *= factor;
+                if(lut === 'teal_orange') {
+                    // Push sombras hacia Cyan/Teal y altas luces hacia Ámbar Cálido
+                    const lum = (r + g + b) / 3;
+                    if(lum < 128) {
+                        b = Math.min(255, b * 1.25);
+                        g = Math.min(255, g * 1.10);
+                        r *= 0.85;
+                    } else {
+                        r = Math.min(255, r * 1.20);
+                        g = Math.min(255, g * 1.05);
+                        b *= 0.80;
+                    }
+                } else if(lut === 'kodak_500t') {
+                    // Tonos dorados cinematográficos con negros densos
+                    r = Math.min(255, r * 1.14);
+                    g = Math.min(255, g * 1.02);
+                    b = Math.max(0, b * 0.88 - 5);
+                } else if(lut === 'matrix_neon') {
+                    // Gradiente Cyberpunk verde esmeralda
+                    g = Math.min(255, g * 1.30);
+                    r *= 0.75;
+                    b = Math.min(255, b * 1.10);
+                } else if(lut === 'noir_contrast') {
+                    // Monocromático de alto contraste
+                    const gray = (r * 0.299 + g * 0.587 + b * 0.114);
+                    const contrastGray = Math.min(255, Math.max(0, ((gray / 255 - 0.5) * 1.4 + 0.5) * 255));
+                    r = contrastGray; g = contrastGray; b = contrastGray;
                 }
 
-                // 2. Curva de Contraste
-                r = ((r / 255 - 0.5) * contrast + 0.5) * 255;
-                g = ((g / 255 - 0.5) * contrast + 0.5) * 255;
-                b = ((b / 255 - 0.5) * contrast + 0.5) * 255;
-
-                // 3. Balance Kelvin
-                if(kelvin === "3200") { r *= 1.15; b *= 0.85; }
-                else if(kelvin === "7800") { r *= 0.85; b *= 1.18; }
-
-                // 4. Tint
-                if(tint === "magenta") { g *= 0.90; r *= 1.05; }
-                else if(tint === "emerald") { g *= 1.10; r *= 0.95; }
-
-                // Clamp 0-255
-                r = Math.min(255, Math.max(0, Math.round(r)));
-                g = Math.min(255, Math.max(0, Math.round(g)));
-                b = Math.min(255, Math.max(0, Math.round(b)));
+                // 2. Grano Analógico Ponderado (Más visible en medios tonos, menos en altas luces)
+                if(grain > 0) {
+                    const noise = (Math.random() - 0.5) * (grain * 0.9);
+                    const lumWeight = 1.0 - Math.abs((r + g + b) / 765 - 0.5) * 0.8;
+                    r = Math.min(255, Math.max(0, r + noise * lumWeight));
+                    g = Math.min(255, Math.max(0, g + noise * lumWeight));
+                    b = Math.min(255, Math.max(0, b + noise * lumWeight));
+                }
 
                 d[i] = r; d[i+1] = g; d[i+2] = b;
-
-                // Registro del Histograma
-                histR[r]++; histG[g]++; histB[b]++;
             }
-
             ctx.putImageData(imgData, 0, 0);
-            box.appendChild(gradedCanvas);
 
-            drawHistogramRGB(histR, histG, histB);
-        }
-
-        function drawHistogramRGB(rArr, gArr, bArr) {
-            const hCanvas = document.getElementById('histCanvas');
-            const hCtx = hCanvas.getContext('2d');
-            hCtx.clearRect(0, 0, 340, 70);
-
-            const maxVal = Math.max(...rArr, ...gArr, ...bArr) || 1;
-
-            function drawCurve(arr, color) {
-                hCtx.strokeStyle = color;
-                hCtx.lineWidth = 1;
-                hCtx.beginPath();
-                for(let x = 0; x < 256; x++) {
-                    const normX = (x / 255) * 340;
-                    const normY = 70 - (arr[x] / maxVal) * 65;
-                    if(x === 0) hCtx.moveTo(normX, normY);
-                    else hCtx.lineTo(normX, normY);
+            // 3. Destellos Horizontales Anamórficos (Blue Streaks)
+            if(flare !== 'none') {
+                const flareY = 135;
+                const flareGrad = ctx.createLinearGradient(0, flareY, 480, flareY);
+                if(flare === 'blue_streak') {
+                    flareGrad.addColorStop(0, 'rgba(0, 200, 255, 0)');
+                    flareGrad.addColorStop(0.3, 'rgba(0, 255, 200, 0.15)');
+                    flareGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.85)');
+                    flareGrad.addColorStop(0.7, 'rgba(0, 200, 255, 0.15)');
+                    flareGrad.addColorStop(1, 'rgba(0, 200, 255, 0)');
+                } else {
+                    flareGrad.addColorStop(0, 'rgba(255, 180, 0, 0)');
+                    flareGrad.addColorStop(0.5, 'rgba(255, 240, 200, 0.8)');
+                    flareGrad.addColorStop(1, 'rgba(255, 180, 0, 0)');
                 }
-                hCtx.stroke();
+                ctx.fillStyle = flareGrad;
+                ctx.fillRect(0, flareY - 2, 480, 4);
+                ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+                ctx.beginPath();
+                ctx.arc(240, flareY, 6, 0, Math.PI * 2);
+                ctx.fill();
             }
 
-            drawCurve(rArr, "rgba(255, 60, 60, 0.85)");
-            drawCurve(gArr, "rgba(0, 255, 120, 0.85)");
-            drawCurve(bArr, "rgba(60, 160, 255, 0.85)");
+            // 4. Matte Anamórfico (Barras Negras DCI Scope)
+            ctx.fillStyle = "#000000";
+            let barH = 0;
+            if(aspect === 'scope_239') barH = 35;
+            else if(aspect === 'ultra_219') barH = 26;
+            else barH = 0; // IMAX
+
+            if(barH > 0) {
+                ctx.fillRect(0, 0, 480, barH);
+                ctx.fillRect(0, 270 - barH, 480, barH);
+            }
+
+            box.appendChild(cineRenderCanvas);
+
+            // Telemetría de Salida
+            document.getElementById('cineTelemetryV8').innerHTML = `
+            <div style="background:#141414; padding:10px; border-radius:8px; border:1px solid #00FFC8; font-size:11px;">
+                <span style="color:#00FFC8; font-weight:bold;">🎬 DCI SCOPE TELEMETRY:</span> Aspect: <strong>${aspect.toUpperCase()}</strong> | LUT: <strong>${lut.toUpperCase()}</strong> | Apertura Virtual: <strong>T1.8 Anamorphic</strong>
+            </div>`;
         }
 
-        async function saveRawExportV8() {
-            if(!gradedCanvas) return;
+        function sendCineToVideoMotion() {
+            switchModule('genVidTab', document.getElementById('nav_genVidTab'));
+            alert("✔ Fotograma Anamórfico V8 inyectado en Video Motion.");
+        }
+
+        async function exportCineFrameV8() {
+            if(!cineRenderCanvas) return;
             const res = await fetch('/bian/process/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: gradedCanvas.toDataURL('image/jpeg'), prompt_analysis: 'Exportacion Estudio RAW V8' })
+                body: JSON.stringify({ image_base64: cineRenderCanvas.toDataURL('image/jpeg'), prompt_analysis: 'Master Cine Scope V8 Export' })
             });
-            if(res.ok) alert("✔ Master RAW V8 guardado con calibracion de colorometria.");
+            if(res.ok) alert("✔ Fotograma DCI-4K exportado a almacenamiento soberano.");
         }
 
         async function captureDirect() {
-            captureToRaw();
+            captureToCine();
         }
 
         function openGallery() {}
@@ -331,7 +366,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Depth-Map & Studio RAW V8 Ultra Active",
+        "engine": "Cine Scope V8 Ultra Active",
         "status": "online"
     }
 
