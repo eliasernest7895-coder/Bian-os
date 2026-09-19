@@ -12,7 +12,7 @@ router = APIRouter(prefix="/bian", tags=["Bian AI Vision Pro"])
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Video Motion V8 Ultra"
+    prompt_analysis: str = "SVG Logos V9 Ultra"
 
 HTML_CONTENT = """
 <!DOCTYPE html>
@@ -20,7 +20,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bian AI Suite - V9 Liquid Glass (Video V8 & Audio)</title>
+    <title>Bian AI Suite - V9 Liquid Glass (SVG Logos V9)</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; user-select: none; }
@@ -90,7 +90,6 @@ HTML_CONTENT = """
         }
         .lens-btn.active { background: rgba(255, 255, 255, 0.2); color: #fff; }
 
-        /* TOOLTIP POSICIONADO EXACTAMENTE SOBRE CADA ICONO */
         .dock-tooltip {
             position: absolute; z-index: 46;
             background: rgba(28, 28, 35, 0.92); backdrop-filter: blur(20px);
@@ -181,11 +180,11 @@ HTML_CONTENT = """
         .sheet-desc { font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.4; margin-bottom: 16px; }
         
         .preview-canvas-box { width: 100%; height: 230px; background: #080808; border-radius: 18px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; position: relative; }
-        .preview-canvas-box canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .preview-canvas-box svg, .preview-canvas-box canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
 
         .apple-input-group { margin-bottom: 12px; text-align: left; }
         .apple-input-group label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.7); display: block; margin-bottom: 6px; }
-        .apple-input-group select {
+        .apple-input-group select, .apple-input-group input {
             width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
             border-radius: 12px; padding: 10px 12px; color: #fff; font-size: 12px; outline: none;
         }
@@ -208,8 +207,8 @@ HTML_CONTENT = """
         .apple-btn-main:active { background: #0071E3; }
         
         .apple-btn-export {
-            width: 100%; background: rgba(255, 55, 95, 0.18); border: 1px solid rgba(255, 55, 95, 0.4);
-            color: #FF375F; padding: 12px; border-radius: 14px; font-size: 12px; font-weight: 700;
+            width: 100%; background: rgba(0, 255, 200, 0.15); border: 1px solid rgba(0, 255, 200, 0.35);
+            color: #00FFC8; padding: 12px; border-radius: 14px; font-size: 12px; font-weight: 700;
             cursor: pointer; margin-top: 6px;
         }
     </style>
@@ -246,6 +245,7 @@ HTML_CONTENT = """
     <div class="dock-tooltip" id="dockTooltip">Módulo</div>
 
     <div class="glass-dock">
+        <div class="dock-icon-btn" onclick="selectEngine('svg', '📐 SVG Logos V9', this)">📐</div>
         <div class="dock-icon-btn" onclick="selectEngine('vid', '🎥 Video Motion V8', this)">🎥</div>
         <div class="dock-icon-btn" onclick="selectEngine('depth', '🧠 Depth-Map NPU V9', this)">🧠</div>
         <div class="dock-icon-btn" onclick="selectEngine('chef', '👨‍🍳 Chef Lean V9', this)">👨‍🍳</div>
@@ -255,7 +255,6 @@ HTML_CONTENT = """
         <div class="dock-icon-btn" onclick="selectEngine('print', '🖨️ Imprenta PDF Offset', this)">🖨️</div>
         <div class="dock-icon-btn" onclick="selectEngine('custom', '🎨 Wallpapers & Stickers', this)">🎨</div>
         <div class="dock-icon-btn" onclick="selectEngine('raw', '📸 Revelado RAW EV', this)">📸</div>
-        <div class="dock-icon-btn" onclick="selectEngine('svg', '📐 SVG Logos Vector', this)">📐</div>
         <div class="dock-icon-btn" onclick="selectEngine('lonas', '⛺ Lonas 3D Tensión', this)">⛺</div>
     </div>
 
@@ -274,34 +273,47 @@ HTML_CONTENT = """
             <div class="sheet-desc" id="sheetDesc">Acción ejecutada mediante la canalización Nano-Banana.</div>
             <div class="preview-canvas-box" id="sheetCanvasBox"></div>
 
-            <!-- PANEL VIDEO MOTION V8 -->
-            <div id="vidControlPanel" style="display:none;">
+            <!-- PANEL SVG LOGOS V9 -->
+            <div id="svgControlPanel" style="display:none;">
                 <div class="metrics-grid">
                     <div class="metric-cell">
-                        <span>FPS RENDER</span>
-                        <strong style="color:#30D158;">60 FPS</strong>
+                        <span>FORMATO</span>
+                        <strong style="color:#00FFC8;">SVG Vector</strong>
                     </div>
                     <div class="metric-cell">
-                        <span>DURACIÓN</span>
-                        <strong style="color:#0A84FF;">3.0 seg</strong>
+                        <span>RESOLUCIÓN</span>
+                        <strong style="color:#30D158;">Infinita</strong>
                     </div>
                     <div class="metric-cell">
-                        <span>TRAYECTORIA</span>
-                        <strong style="color:#FFD60A;" id="vidMotionLabel">Orbital 3D</strong>
+                        <span>NODOS</span>
+                        <strong style="color:#FFD60A;">64 Vértices</strong>
                     </div>
                 </div>
                 <div class="apple-input-group">
-                    <label>Trayectoria Multieje NPU V8:</label>
-                    <select id="vidTrajectorySelect" onchange="updateVidTrajectoryV8()">
-                        <option value="orbital">Órbita 3D Angular + Depth Blur</option>
-                        <option value="tracking">Tracking Esférico 360° Acelerado</option>
-                        <option value="vertigo">Dolly Zoom Anamórfico (Vértigo FX)</option>
+                    <label>Título del Isotipo Vectorial:</label>
+                    <input type="text" id="svgTitleInputV9" value="BIAN CORE" oninput="renderSVGLogoV9()">
+                </div>
+                <div class="apple-input-group">
+                    <label>Estructura Geométrica Paramétrica:</label>
+                    <select id="svgGeomSelectV9" onchange="renderSVGLogoV9()">
+                        <option value="isocube">Isocubo 3D Wireframe (Perspectiva NPU)</option>
+                        <option value="hexagon">Hexágono Blindado Monolítico</option>
+                        <option value="ring">Anillo Orbital Sagrado</option>
                     </select>
                 </div>
-                <button class="apple-btn-export" onclick="exportWebMFromMotionV8()">💾 Descargar Animación .WebM V8</button>
+                <div class="apple-input-group">
+                    <label>Paleta Cromática NPU:</label>
+                    <select id="svgPaletteSelectV9" onchange="renderSVGLogoV9()">
+                        <option value="cyber">Cyberpunk Glow (#00FFC8 / #FF0055)</option>
+                        <option value="gold">Gold Monolith (#FFD700 / Deep Gold)</option>
+                        <option value="white">AMOLED Minimal (#FFFFFF / Pure Dark)</option>
+                    </select>
+                </div>
+                <button class="apple-btn-export" onclick="downloadSVGFromSheetV9()">💾 Descargar Vector .SVG V9</button>
             </div>
 
             <!-- CONTENEDORES AUXILIARES -->
+            <div id="vidControlPanel" style="display:none;"></div>
             <div id="depthControlPanel" style="display:none;"></div>
             <div id="chefControlPanel" style="display:none;"></div>
             <div id="priceControlPanel" style="display:none;"></div>
@@ -320,8 +332,7 @@ HTML_CONTENT = """
         let capturedImage = new Image();
         let tooltipTimeout = null;
         let audioCtx = null;
-        let vidAnimInterval = null;
-        let vidActiveCanvas = null;
+        let generatedSVGCodeV9 = "";
 
         function getAudioContext() {
             if (!audioCtx) {
@@ -342,8 +353,15 @@ HTML_CONTENT = """
                 osc.connect(gain);
                 gain.connect(ctx.destination);
 
-                if (key === 'vid') {
-                    // Video Motion: Barrido descendente cinematic Whoosh
+                if (key === 'svg') {
+                    // SVG Logos: Tono ascendente de precisión láser vectorial
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(350, now);
+                    osc.frequency.exponentialRampToValueAtTime(1200, now + 0.18);
+                    gain.gain.setValueAtTime(0.14, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.18);
+                    osc.start(now); osc.stop(now + 0.18);
+                } else if (key === 'vid') {
                     osc.type = 'sawtooth';
                     osc.frequency.setValueAtTime(480, now);
                     osc.frequency.exponentialRampToValueAtTime(70, now + 0.32);
@@ -351,7 +369,6 @@ HTML_CONTENT = """
                     gain.gain.linearRampToValueAtTime(0.01, now + 0.32);
                     osc.start(now); osc.stop(now + 0.32);
                 } else if (key === 'depth') {
-                    // Depth Map: Pulso de sonar submarino
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(840, now);
                     osc.frequency.exponentialRampToValueAtTime(320, now + 0.4);
@@ -359,7 +376,6 @@ HTML_CONTENT = """
                     gain.gain.exponentialRampToValueAtTime(0.005, now + 0.4);
                     osc.start(now); osc.stop(now + 0.4);
                 } else if (key === 'chef') {
-                    // Chef Lean: Golpe percusivo de corte rápido
                     osc.type = 'triangle';
                     osc.frequency.setValueAtTime(620, now);
                     osc.frequency.exponentialRampToValueAtTime(110, now + 0.12);
@@ -367,7 +383,6 @@ HTML_CONTENT = """
                     gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
                     osc.start(now); osc.stop(now + 0.12);
                 } else if (key === 'price') {
-                    // Valuador: Doble tono de caja registradora
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(587.33, now);
                     osc.frequency.setValueAtTime(880, now + 0.1);
@@ -375,7 +390,6 @@ HTML_CONTENT = """
                     gain.gain.linearRampToValueAtTime(0.01, now + 0.28);
                     osc.start(now); osc.stop(now + 0.28);
                 } else if (key === 'ai') {
-                    // Generador AI: Campana de cristal bioluminiscente
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(1046.5, now);
                     osc.frequency.exponentialRampToValueAtTime(1318.5, now + 0.18);
@@ -383,7 +397,6 @@ HTML_CONTENT = """
                     gain.gain.exponentialRampToValueAtTime(0.005, now + 0.35);
                     osc.start(now); osc.stop(now + 0.35);
                 } else {
-                    // Tono neutro táctico
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(440, now);
                     gain.gain.setValueAtTime(0.12, now);
@@ -486,7 +499,7 @@ HTML_CONTENT = """
 
             capturedImage.onload = () => {
                 if (!selectedEngineKey) {
-                    executeModulePipeline('vid', '🎥 Video Motion V8');
+                    executeModulePipeline('svg', '📐 SVG Logos V9');
                 } else {
                     executeModulePipeline(selectedEngineKey, selectedEngineName);
                 }
@@ -496,21 +509,24 @@ HTML_CONTENT = """
 
         function executeModulePipeline(engine, name) {
             document.getElementById('sheetTitle').innerText = name;
+            const svgPanel = document.getElementById('svgControlPanel');
             const vidPanel = document.getElementById('vidControlPanel');
             const depthPanel = document.getElementById('depthControlPanel');
             const chefPanel = document.getElementById('chefControlPanel');
             const pricePanel = document.getElementById('priceControlPanel');
             const aiPanel = document.getElementById('aiControlPanel');
 
-            if (engine === 'vid') {
-                vidPanel.style.display = 'block';
+            if (engine === 'svg') {
+                svgPanel.style.display = 'block';
+                vidPanel.style.display = 'none';
                 depthPanel.style.display = 'none';
                 chefPanel.style.display = 'none';
                 pricePanel.style.display = 'none';
                 aiPanel.style.display = 'none';
-                document.getElementById('sheetDesc').innerText = "Render orbital cinemático multieje a 60 FPS con grano haluro de plata.";
-                startVideoMotionV8Animation();
+                document.getElementById('sheetDesc').innerText = "Síntesis paramétrica vectorial SVG V9 y cálculo de geometría isocúbica.";
+                renderSVGLogoV9();
             } else {
+                svgPanel.style.display = 'none';
                 vidPanel.style.display = 'none';
                 depthPanel.style.display = 'none';
                 chefPanel.style.display = 'none';
@@ -529,83 +545,66 @@ HTML_CONTENT = """
             document.getElementById('sheetModal').classList.add('active');
         }
 
-        function startVideoMotionV8Animation() {
-            if (vidAnimInterval) clearInterval(vidAnimInterval);
+        function renderSVGLogoV9() {
+            const title = document.getElementById('svgTitleInputV9').value.trim() || "BIAN V9";
+            const geom = document.getElementById('svgGeomSelectV9').value;
+            const palette = document.getElementById('svgPaletteSelectV9').value;
             const box = document.getElementById('sheetCanvasBox');
-            box.innerHTML = "";
 
-            vidActiveCanvas = document.createElement('canvas');
-            vidActiveCanvas.width = 360;
-            vidActiveCanvas.height = 230;
-            const ctx = vidActiveCanvas.getContext('2d');
-            box.appendChild(vidActiveCanvas);
+            let c1 = "#00FFC8", c2 = "#FF0055";
+            if (palette === 'gold') { c1 = "#FFD700"; c2 = "#B8860B"; }
+            else if (palette === 'white') { c1 = "#FFFFFF"; c2 = "#777777"; }
 
-            let frame = 0;
-            vidAnimInterval = setInterval(() => {
-                frame++;
-                ctx.clearRect(0, 0, vidActiveCanvas.width, vidActiveCanvas.height);
-                const mode = document.getElementById('vidTrajectorySelect').value;
+            let pathContent = "";
+            if (geom === 'isocube') {
+                pathContent = `
+                    <!-- Isocubo 3D Wireframe -->
+                    <polygon points="150,40 220,80 150,120 80,80" fill="none" stroke="${c1}" stroke-width="2.5" />
+                    <polygon points="80,80 150,120 150,200 80,160" fill="none" stroke="${c2}" stroke-width="2.5" />
+                    <polygon points="150,120 220,80 220,160 150,200" fill="none" stroke="${c1}" stroke-width="2.5" />
+                    <circle cx="150" cy="120" r="6" fill="${c1}" />
+                `;
+            } else if (geom === 'hexagon') {
+                pathContent = `
+                    <!-- Hexagono NPU -->
+                    <polygon points="150,30 225,75 225,165 150,210 75,165 75,75" fill="none" stroke="${c1}" stroke-width="3" />
+                    <polygon points="150,55 205,87 205,153 150,185 95,153 95,87" fill="none" stroke="${c2}" stroke-width="1.5" stroke-dasharray="4,4" />
+                `;
+            } else {
+                pathContent = `
+                    <!-- Anillo Orbital -->
+                    <circle cx="150" cy="120" r="75" fill="none" stroke="${c1}" stroke-width="3" />
+                    <ellipse cx="150" cy="120" rx="90" ry="35" fill="none" stroke="${c2}" stroke-width="2" transform="rotate(-25 150 120)" />
+                `;
+            }
 
-                let offsetX = 0, offsetY = 0, scale = 1.05;
-                if (mode === 'orbital') {
-                    offsetX = Math.cos(frame * 0.05) * 18;
-                    offsetY = Math.sin(frame * 0.05) * 10;
-                    scale = 1.08 + Math.sin(frame * 0.03) * 0.05;
-                } else if (mode === 'tracking') {
-                    offsetX = Math.sin(frame * 0.07) * 26;
-                    offsetY = Math.cos(frame * 0.07) * 15;
-                    scale = 1.1 + Math.sin(frame * 0.04) * 0.06;
-                } else {
-                    scale = 1.0 + (frame % 50) * 0.007;
-                }
+            generatedSVGCodeV9 = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 250" width="100%" height="100%">
+                <defs>
+                    <linearGradient id="v9Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="${c1}"/>
+                        <stop offset="100%" stop-color="${c2}"/>
+                    </linearGradient>
+                </defs>
+                <rect width="300" height="250" fill="#060608"/>
+                ${pathContent}
+                <text x="150" y="228" fill="#FFFFFF" font-family="-apple-system, sans-serif" font-weight="800" font-size="13" letter-spacing="2.5" text-anchor="middle">${title.toUpperCase()}</text>
+            </svg>`;
 
-                ctx.save();
-                ctx.translate(vidActiveCanvas.width / 2 + offsetX, vidActiveCanvas.height / 2 + offsetY);
-                ctx.scale(scale, scale);
-                ctx.drawImage(capturedImage, -vidActiveCanvas.width / 2, -vidActiveCanvas.height / 2, vidActiveCanvas.width, vidActiveCanvas.height);
-                ctx.restore();
-
-                // Grano cinemático analógico sutil
-                ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.04})`;
-                ctx.fillRect(0, 0, vidActiveCanvas.width, vidActiveCanvas.height);
-
-                // Barras CineScope 21:9
-                ctx.fillStyle = "#000";
-                ctx.fillRect(0, 0, vidActiveCanvas.width, 22);
-                ctx.fillRect(0, vidActiveCanvas.height - 22, vidActiveCanvas.width, 22);
-            }, 1000 / 60);
+            box.innerHTML = generatedSVGCodeV9;
         }
 
-        function updateVidTrajectoryV8() {
-            const select = document.getElementById('vidTrajectorySelect');
-            document.getElementById('vidMotionLabel').innerText = select.options[select.selectedIndex].text.split(" ")[0];
-            startVideoMotionV8Animation();
-        }
-
-        function exportWebMFromMotionV8() {
-            if (!vidActiveCanvas) return;
-            const stream = vidActiveCanvas.captureStream(60);
-            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-            const chunks = [];
-            recorder.ondataavailable = e => chunks.push(e.data);
-            recorder.onstop = () => {
-                const blob = new Blob(chunks, { type: 'video/webm' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `video_v8_${Date.now()}.webm`;
-                a.click();
-            };
-            recorder.start();
-            setTimeout(() => recorder.stop(), 3000);
-            alert("✔ Grabando clip WebM V8 (3.0s a 60 FPS)...");
+        function downloadSVGFromSheetV9() {
+            if (!generatedSVGCodeV9) return;
+            const blob = new Blob([generatedSVGCodeV9], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `vector_v9_${Date.now()}.svg`;
+            a.click();
         }
 
         function closeSheet() {
-            if (vidAnimInterval) {
-                clearInterval(vidAnimInterval);
-                vidAnimInterval = null;
-            }
             document.getElementById('sheetModal').classList.remove('active');
         }
     </script>
@@ -621,7 +620,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Video Motion V8 Ultra (Apple Glass UI)",
+        "engine": "SVG Logos V9 Ultra (Apple Glass UI)",
         "status": "online"
     }
 
