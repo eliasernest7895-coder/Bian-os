@@ -12,7 +12,7 @@ router = APIRouter(prefix="/bian", tags=["Bian AI Vision Pro"])
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Chef Lean V9 Ultra"
+    prompt_analysis: str = "Depth-Map NPU V9 Ultra"
 
 HTML_CONTENT = """
 <!DOCTYPE html>
@@ -20,12 +20,11 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bian AI Suite - V9 Liquid Glass (Chef Lean V9)</title>
+    <title>Bian AI Suite - V9 Liquid Glass (Depth V9)</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; user-select: none; }
 
-        /* HEADER APPLE GLASS */
         .glass-header {
             position: absolute; top: 12px; left: 16px; right: 16px; z-index: 50;
             background: rgba(22, 22, 26, 0.55);
@@ -51,7 +50,6 @@ HTML_CONTENT = """
             transform: scale(1.04);
         }
 
-        /* VIEWPORT Y RETÍCULA V9 */
         .viewport { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
         
@@ -95,11 +93,8 @@ HTML_CONTENT = """
             font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 14px;
             cursor: pointer; transition: all 0.2s;
         }
-        .lens-btn.active {
-            background: rgba(255, 255, 255, 0.2); color: #fff;
-        }
+        .lens-btn.active { background: rgba(255, 255, 255, 0.2); color: #fff; }
 
-        /* TOOLTIP FLOTANTE DE NOMBRE DE MÓDULO */
         .dock-tooltip {
             position: absolute; bottom: 156px; z-index: 46;
             background: rgba(28, 28, 35, 0.85); backdrop-filter: blur(20px);
@@ -111,7 +106,6 @@ HTML_CONTENT = """
         }
         .dock-tooltip.visible { opacity: 1; transform: translateY(0); }
 
-        /* LIQUID GLASS DOCK */
         .glass-dock {
             position: absolute; bottom: 104px; left: 14px; right: 14px; z-index: 40;
             background: rgba(18, 18, 22, 0.55);
@@ -142,7 +136,6 @@ HTML_CONTENT = """
             border-radius: 50%; background: #fff;
         }
 
-        /* SHUTTER BAR */
         .bottom-shutter-bar {
             position: absolute; bottom: 18px; left: 0; right: 0;
             display: flex; justify-content: space-around; align-items: center; z-index: 50;
@@ -173,7 +166,6 @@ HTML_CONTENT = """
         }
         .side-btn:active { transform: scale(0.9); }
 
-        /* MODAL SHEET APPLE */
         .sheet-modal {
             position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.65);
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -197,7 +189,7 @@ HTML_CONTENT = """
 
         .apple-input-group { margin-bottom: 12px; text-align: left; }
         .apple-input-group label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.7); display: block; margin-bottom: 6px; }
-        .apple-input-group input, .apple-input-group select {
+        .apple-input-group select {
             width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
             border-radius: 12px; padding: 10px 12px; color: #fff; font-size: 12px; outline: none;
         }
@@ -250,11 +242,10 @@ HTML_CONTENT = """
         <button class="lens-btn" onclick="applyDigitalZoom(1.5, this)">2x</button>
     </div>
 
-    <!-- TOOLTIP QUE INDICA EL NOMBRE DEL ICONO TOCADO -->
     <div class="dock-tooltip" id="dockTooltip">Módulo</div>
 
-    <!-- DOCK FLOTANTE CON TODOS LOS ICONOS Y NOMBRES AL TOCAR -->
     <div class="glass-dock">
+        <div class="dock-icon-btn" onclick="selectEngine('depth', '🧠 Depth-Map NPU V9', this)" title="Depth-Map V9">🧠</div>
         <div class="dock-icon-btn" onclick="selectEngine('chef', '👨‍🍳 Chef Lean V9', this)" title="Chef Lean V9">👨‍🍳</div>
         <div class="dock-icon-btn" onclick="selectEngine('price', '🏷️ Valuador Híbrido V7', this)" title="Valuador V7">🏷️</div>
         <div class="dock-icon-btn" onclick="selectEngine('ai', '✨ Generar Imagen AI V7', this)" title="Generar Imagen AI">✨</div>
@@ -262,7 +253,6 @@ HTML_CONTENT = """
         <div class="dock-icon-btn" onclick="selectEngine('print', '🖨️ Imprenta PDF Offset', this)" title="Imprenta PDF">🖨️</div>
         <div class="dock-icon-btn" onclick="selectEngine('custom', '🎨 Wallpapers & Stickers', this)" title="Wallpapers & Stickers">🎨</div>
         <div class="dock-icon-btn" onclick="selectEngine('raw', '📸 Revelado RAW EV', this)" title="Estudio RAW">📸</div>
-        <div class="dock-icon-btn" onclick="selectEngine('depth', '🧠 Depth-Map NPU', this)" title="Profundidad Z">🧠</div>
         <div class="dock-icon-btn" onclick="selectEngine('vid', '🎥 Video Motion 60fps', this)" title="Video Motion">🎥</div>
         <div class="dock-icon-btn" onclick="selectEngine('svg', '📐 SVG Logos Vector', this)" title="SVG Logos">📐</div>
         <div class="dock-icon-btn" onclick="selectEngine('lonas', '⛺ Lonas 3D Tensión', this)" title="Lonas 3D">⛺</div>
@@ -276,7 +266,6 @@ HTML_CONTENT = """
         <div class="side-btn" onclick="alert('✔ Galería Soberana Sincronizada')">🖼️</div>
     </div>
 
-    <!-- MODAL SHEET CON CHEF LEAN V9 -->
     <div class="sheet-modal" id="sheetModal">
         <div class="sheet-card">
             <div class="sheet-drag" onclick="closeSheet()"></div>
@@ -284,41 +273,34 @@ HTML_CONTENT = """
             <div class="sheet-desc" id="sheetDesc">Acción ejecutada mediante la canalización Nano-Banana.</div>
             <div class="preview-canvas-box" id="sheetCanvasBox"></div>
 
-            <!-- PANEL ESPECÍFICO DE CHEF LEAN V9 -->
-            <div id="chefControlPanel" style="display:none;">
+            <!-- PANEL DEPTH-MAP NPU V9 -->
+            <div id="depthControlPanel" style="display:none;">
                 <div class="metrics-grid">
                     <div class="metric-cell">
-                        <span>PESO NETO ÚTIL</span>
-                        <strong style="color:#30D158;" id="chefNetWeight">3.01 Kg</strong>
+                        <span>PLANO NEAR (Z)</span>
+                        <strong style="color:#30D158;" id="depthNear">0.35 m</strong>
                     </div>
                     <div class="metric-cell">
-                        <span>PORCIONES</span>
-                        <strong style="color:#0A84FF;" id="chefPortions">13 platos</strong>
+                        <span>PLANO FAR (Z)</span>
+                        <strong style="color:#0A84FF;" id="depthFar">4.20 m</strong>
                     </div>
                     <div class="metric-cell">
-                        <span>P.V.P SUGERIDO</span>
-                        <strong style="color:#FF9F0A;" id="chefPlatoPrice">$185 MXN</strong>
+                        <span>FOCO SUJETO</span>
+                        <strong style="color:#FFD60A;" id="depthFocus">1.10 m</strong>
                     </div>
                 </div>
                 <div class="apple-input-group">
-                    <label>Gramaje por Porción Objetivo:</label>
-                    <select id="chefPortionSelect" onchange="recalculateChefV9()">
-                        <option value="220">220g (Corte Estándar Gourmet)</option>
-                        <option value="250">250g (Porción Premium Steak)</option>
-                        <option value="180">180g (Porción Ligera / Taquería Lean)</option>
-                        <option value="350">350g (Tomahawk / Cowboy Cut)</option>
-                    </select>
-                </div>
-                <div class="apple-input-group">
-                    <label>Destino de Mermas (Desperdicio Cero):</label>
-                    <select id="chefMermaTarget">
-                        <option value="fondo">Fondo Oscuro / Consomé Artesanal</option>
-                        <option value="grasa">Procesamiento de Manteca / Tallow Gourmet</option>
+                    <label>Modo de Visualización de Profundidad Z:</label>
+                    <select id="depthPaletteSelect" onchange="renderDepthMapV9()">
+                        <option value="grayscale">Z-Buffer Monocromático (Profundidad Pura)</option>
+                        <option value="inferno">Gradiente Térmico NPU (Inferno Range)</option>
+                        <option value="cyberpunk">Relieve Neón Cyberpunk (#00FFC8 / Magenta)</option>
                     </select>
                 </div>
             </div>
 
-            <!-- OTROS PANELES PREVIOS -->
+            <!-- CONTENEDORES AUXILIARES -->
+            <div id="chefControlPanel" style="display:none;"></div>
             <div id="priceControlPanel" style="display:none;"></div>
             <div id="aiControlPanel" style="display:none;"></div>
 
@@ -375,14 +357,11 @@ HTML_CONTENT = """
             tooltip.innerText = name;
             tooltip.classList.add('visible');
             if (tooltipTimeout) clearTimeout(tooltipTimeout);
-            tooltipTimeout = setTimeout(() => {
-                tooltip.classList.remove('visible');
-            }, 1800);
+            tooltipTimeout = setTimeout(() => { tooltip.classList.remove('visible'); }, 1800);
         }
 
         function selectEngine(key, name, elem) {
             showDockTooltip(name);
-
             document.querySelectorAll('.dock-icon-btn').forEach(btn => btn.classList.remove('selected'));
             
             if (selectedEngineKey === key) {
@@ -426,7 +405,7 @@ HTML_CONTENT = """
 
             capturedImage.onload = () => {
                 if (!selectedEngineKey) {
-                    executeModulePipeline('chef', '👨‍🍳 Chef Lean V9');
+                    executeModulePipeline('depth', '🧠 Depth-Map NPU V9');
                 } else {
                     executeModulePipeline(selectedEngineKey, selectedEngineName);
                 }
@@ -436,17 +415,20 @@ HTML_CONTENT = """
 
         function executeModulePipeline(engine, name) {
             document.getElementById('sheetTitle').innerText = name;
+            const depthPanel = document.getElementById('depthControlPanel');
             const chefPanel = document.getElementById('chefControlPanel');
             const pricePanel = document.getElementById('priceControlPanel');
             const aiPanel = document.getElementById('aiControlPanel');
 
-            if (engine === 'chef') {
-                chefPanel.style.display = 'block';
+            if (engine === 'depth') {
+                depthPanel.style.display = 'block';
+                chefPanel.style.display = 'none';
                 pricePanel.style.display = 'none';
                 aiPanel.style.display = 'none';
-                document.getElementById('sheetDesc').innerText = "Inspección de mioglobina y análisis de porcionado cárnico Lean V9 completados.";
-                recalculateChefV9();
+                document.getElementById('sheetDesc').innerText = "Inferencia monocular de profundidad Z y extracción de Z-Buffer NPU completada.";
+                renderDepthMapV9();
             } else {
+                depthPanel.style.display = 'none';
                 chefPanel.style.display = 'none';
                 pricePanel.style.display = 'none';
                 aiPanel.style.display = 'none';
@@ -463,41 +445,51 @@ HTML_CONTENT = """
             document.getElementById('sheetModal').classList.add('active');
         }
 
-        function recalculateChefV9() {
-            const portionGrams = parseInt(document.getElementById('chefPortionSelect').value) || 220;
-            const grossWeight = 3.5;
-            const mermaRatio = 0.14;
-            const netWeight = (grossWeight * (1 - mermaRatio)).toFixed(2);
-            const portions = Math.floor((netWeight * 1000) / portionGrams);
-            const costPerPortion = ((portionGrams / 1000) * (220 / (1 - mermaRatio)));
-            const suggestedPrice = Math.round(costPerPortion * 3.2);
-
-            document.getElementById('chefNetWeight').innerText = `${netWeight} Kg`;
-            document.getElementById('chefPortions').innerText = `${portions} platos`;
-            document.getElementById('chefPlatoPrice').innerText = `$${suggestedPrice} MXN`;
-
+        function renderDepthMapV9() {
+            const palette = document.getElementById('depthPaletteSelect').value;
             const box = document.getElementById('sheetCanvasBox');
             box.innerHTML = "";
+
             const canvas = document.createElement('canvas');
-            canvas.width = 360; canvas.height = 230;
+            canvas.width = 360; canvas.height = 240;
             const ctx = canvas.getContext('2d');
 
-            ctx.drawImage(capturedImage, 0, 0, 360, 230);
+            ctx.drawImage(capturedImage, 0, 0, 360, 240);
+            const imgData = ctx.getImageData(0, 0, 360, 240);
+            const data = imgData.data;
 
-            // Overlay degradado
-            const grad = ctx.createLinearGradient(0, 140, 0, 230);
+            for (let i = 0; i < data.length; i += 4) {
+                const brightness = (data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114);
+                if (palette === 'grayscale') {
+                    data[i] = brightness;
+                    data[i+1] = brightness;
+                    data[i+2] = brightness;
+                } else if (palette === 'inferno') {
+                    data[i] = Math.min(255, brightness * 1.4);
+                    data[i+1] = Math.max(0, brightness * 0.7 - 20);
+                    data[i+2] = Math.max(0, 220 - brightness);
+                } else {
+                    data[i] = Math.max(0, 255 - brightness);
+                    data[i+1] = brightness;
+                    data[i+2] = 200;
+                }
+            }
+            ctx.putImageData(imgData, 0, 0);
+
+            // Overlay telemétrico Z
+            const grad = ctx.createLinearGradient(0, 160, 0, 240);
             grad.addColorStop(0, "rgba(0,0,0,0)");
-            grad.addColorStop(1, "rgba(0,0,0,0.85)");
+            grad.addColorStop(1, "rgba(0,0,0,0.8)");
             ctx.fillStyle = grad;
-            ctx.fillRect(0, 140, 360, 90);
+            ctx.fillRect(0, 160, 360, 80);
 
             ctx.fillStyle = "#30D158";
-            ctx.font = "bold 13px -apple-system";
-            ctx.fillText(`CHEF LEAN V9: ${portions} PORCIONES (${portionGrams}g)`, 16, 190);
+            ctx.font = "bold 11px -apple-system";
+            ctx.fillText("Z-BUFFER NPU V9 | RANGO: 0.35m - 4.20m", 16, 210);
 
-            ctx.fillStyle = "rgba(255,255,255,0.8)";
+            ctx.fillStyle = "rgba(255,255,255,0.7)";
             ctx.font = "10px -apple-system";
-            ctx.fillText(`Neto: ${netWeight} Kg | Merma 14% a Caldo Base | P.V.P: $${suggestedPrice} MXN`, 16, 210);
+            ctx.fillText(`Paleta: ${palette.toUpperCase()} | Enfoque central calibrado`, 16, 226);
 
             box.appendChild(canvas);
         }
@@ -518,7 +510,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Chef Lean V9 Ultra (Apple Glass UI)",
+        "engine": "Depth-Map NPU V9 Ultra (Apple Glass UI)",
         "status": "online"
     }
 
