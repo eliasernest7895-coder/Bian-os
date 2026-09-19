@@ -12,7 +12,7 @@ router = APIRouter(prefix="/bian", tags=["Bian AI Vision Pro"])
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Estudio RAW V9 Ultra"
+    prompt_analysis: str = "Cine Scope V9 Ultra"
 
 HTML_CONTENT = """
 <!DOCTYPE html>
@@ -20,7 +20,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bian AI Suite - V9 Liquid Glass (Estudio RAW V9)</title>
+    <title>Bian AI Suite - V9 Liquid Glass (Cine Scope V9)</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; user-select: none; }
@@ -59,12 +59,31 @@ HTML_CONTENT = """
         }
         .shutter-flash.flash { opacity: 0.85; }
 
+        /* HALO ONDULANTE DE AGUA AL TACTO */
+        .water-ripple-ring {
+            position: absolute; border-radius: 50%;
+            border: 2px solid rgba(0, 255, 200, 0.85);
+            box-shadow: 0 0 20px rgba(0, 255, 200, 0.6);
+            pointer-events: none; z-index: 35;
+            animation: waterRipple 0.65s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+        }
+        @keyframes waterRipple {
+            0% { width: 10px; height: 10px; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { width: 180px; height: 180px; opacity: 0; transform: translate(-50%, -50%) scale(1.4); }
+        }
+
+        /* RETICULA ADAPTATIVA CON DIFUMINADO TEMPORAL */
         .reticle-container {
             position: absolute; width: 68%; height: 50%; pointer-events: none;
             border-radius: 38px; border: 2px solid rgba(255, 255, 255, 0.35);
-            transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1), top 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s, box-shadow 0.3s;
+            transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1), top 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s, opacity 0.8s ease, box-shadow 0.4s ease;
             display: flex; flex-direction: column; justify-content: flex-start; align-items: center;
-            padding: 12px 14px;
+            padding: 12px 14px; opacity: 1;
+        }
+        .reticle-container.faded {
+            opacity: 0.12;
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: none;
         }
         .reticle-container.banana-lock {
             border-color: #FFD60A;
@@ -207,8 +226,8 @@ HTML_CONTENT = """
         .apple-btn-main:active { background: #0071E3; }
         
         .apple-btn-export {
-            width: 100%; background: rgba(255, 214, 10, 0.15); border: 1px solid rgba(255, 214, 10, 0.35);
-            color: #FFD60A; padding: 12px; border-radius: 14px; font-size: 12px; font-weight: 700;
+            width: 100%; background: rgba(0, 255, 200, 0.15); border: 1px solid rgba(0, 255, 200, 0.35);
+            color: #00FFC8; padding: 12px; border-radius: 14px; font-size: 12px; font-weight: 700;
             cursor: pointer; margin-top: 6px;
         }
     </style>
@@ -228,7 +247,7 @@ HTML_CONTENT = """
         </div>
     </div>
 
-    <div class="viewport" onclick="handleTapToFocus(event)">
+    <div class="viewport" id="viewportArea" onclick="handleTapToFocus(event)">
         <video id="webcam" autoplay playsinline></video>
         <div class="reticle-container" id="focusReticle">
             <div class="reticle-telemetry" id="reticleTelemetry">CAM V7 | NPU ACTIVE</div>
@@ -245,6 +264,7 @@ HTML_CONTENT = """
     <div class="dock-tooltip" id="dockTooltip">Módulo</div>
 
     <div class="glass-dock">
+        <div class="dock-icon-btn" onclick="selectEngine('cine', '🎬 Cine Scope V9', this)">🎬</div>
         <div class="dock-icon-btn" onclick="selectEngine('raw', '📸 Revelado RAW V9', this)">📸</div>
         <div class="dock-icon-btn" onclick="selectEngine('svg', '📐 SVG Logos V9', this)">📐</div>
         <div class="dock-icon-btn" onclick="selectEngine('vid', '🎥 Video Motion V8', this)">🎥</div>
@@ -252,7 +272,6 @@ HTML_CONTENT = """
         <div class="dock-icon-btn" onclick="selectEngine('chef', '👨‍🍳 Chef Lean V9', this)">👨‍🍳</div>
         <div class="dock-icon-btn" onclick="selectEngine('price', '🏷️ Valuador Híbrido V7', this)">🏷️</div>
         <div class="dock-icon-btn" onclick="selectEngine('ai', '✨ Generar Imagen AI V7', this)">✨</div>
-        <div class="dock-icon-btn" onclick="selectEngine('cine', '🎬 Cine Scope 21:9', this)">🎬</div>
         <div class="dock-icon-btn" onclick="selectEngine('print', '🖨️ Imprenta PDF Offset', this)">🖨️</div>
         <div class="dock-icon-btn" onclick="selectEngine('custom', '🎨 Wallpapers & Stickers', this)">🎨</div>
         <div class="dock-icon-btn" onclick="selectEngine('lonas', '⛺ Lonas 3D Tensión', this)">⛺</div>
@@ -273,38 +292,40 @@ HTML_CONTENT = """
             <div class="sheet-desc" id="sheetDesc">Acción ejecutada mediante la canalización Nano-Banana.</div>
             <div class="preview-canvas-box" id="sheetCanvasBox"></div>
 
-            <!-- PANEL ESTUDIO RAW V9 -->
-            <div id="rawControlPanel" style="display:none;">
+            <!-- PANEL CINE SCOPE V9 ULTRA -->
+            <div id="cineControlPanel" style="display:none;">
                 <div class="metrics-grid">
                     <div class="metric-cell">
-                        <span>EV EXPOSICIÓN</span>
-                        <strong style="color:#30D158;" id="rawEvLabel">0.0 EV</strong>
+                        <span>FORMATO</span>
+                        <strong style="color:#00FFC8;">21:9 Scope</strong>
                     </div>
                     <div class="metric-cell">
-                        <span>KELVIN</span>
-                        <strong style="color:#FFD60A;" id="rawKelvinLabel">5500K</strong>
+                        <span>ÓPTICA</span>
+                        <strong style="color:#FFD60A;">Anamórfica</strong>
                     </div>
                     <div class="metric-cell">
-                        <span>CLARIDAD NPU</span>
-                        <strong style="color:#0A84FF;">Espectral</strong>
+                        <span>GRANO</span>
+                        <strong style="color:#30D158;" id="cineGrainLabel">35mm Haluro</strong>
                     </div>
                 </div>
                 <div class="apple-input-group">
-                    <label>Compensación EV (-2.0 a +2.0 stops):</label>
-                    <input type="range" id="rawEvSlider" min="-2.0" max="2.0" step="0.1" value="0.0" oninput="renderStudioRAWV9()">
-                </div>
-                <div class="apple-input-group">
-                    <label>Temperatura Kelvin / Balance de Blancos:</label>
-                    <select id="rawTempSelect" onchange="renderStudioRAWV9()">
-                        <option value="5500">5500K - Luz de Día Natural</option>
-                        <option value="3200">3200K - Tungsteno Cálido</option>
-                        <option value="7500">7500K - Sombra Cyber Fría</option>
+                    <label>Perfil 3D LUT Tetraédrico:</label>
+                    <select id="cineLutSelectV9" onchange="renderCineScopeV9()">
+                        <option value="teal_orange">Teal & Orange Anamorphic (Hollywood Blockbuster)</option>
+                        <option value="gold_streak">Gold Flare 70mm (Sci-Fi Warm Streak)</option>
+                        <option value="matrix_green">Cyber Matrix Phosphor (#00FFC8 Injected)</option>
+                        <option value="noir">Noir Kodak Tri-X 35mm (Alto Contraste)</option>
                     </select>
                 </div>
-                <button class="apple-btn-export" onclick="exportDevelopedRAWV9()">💾 Guardar Revelado RAW .JPG V9</button>
+                <div class="apple-input-group">
+                    <label>Destello Horizontal Óptico (Blue Streak Flare):</label>
+                    <input type="range" id="cineFlareSliderV9" min="0" max="100" step="5" value="40" oninput="renderCineScopeV9()">
+                </div>
+                <button class="apple-btn-export" onclick="exportCineScopeV9()">💾 Guardar Master 21:9 .JPG V9</button>
             </div>
 
             <!-- CONTENEDORES AUXILIARES -->
+            <div id="rawControlPanel" style="display:none;"></div>
             <div id="svgControlPanel" style="display:none;"></div>
             <div id="vidControlPanel" style="display:none;"></div>
             <div id="depthControlPanel" style="display:none;"></div>
@@ -325,7 +346,8 @@ HTML_CONTENT = """
         let capturedImage = new Image();
         let tooltipTimeout = null;
         let audioCtx = null;
-        let rawActiveCanvas = null;
+        let cineActiveCanvas = null;
+        let fadeReticleTimeout = null;
 
         function getAudioContext() {
             if (!audioCtx) {
@@ -346,8 +368,15 @@ HTML_CONTENT = """
                 osc.connect(gain);
                 gain.connect(ctx.destination);
 
-                if (key === 'raw') {
-                    // Clic mecánico de obturador réflex analógico
+                if (key === 'cine') {
+                    // Motor de obturación y arrastre de celuloide 35mm
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(120, now);
+                    osc.frequency.linearRampToValueAtTime(80, now + 0.22);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.22);
+                    osc.start(now); osc.stop(now + 0.22);
+                } else if (key === 'raw') {
                     osc.type = 'triangle';
                     osc.frequency.setValueAtTime(240, now);
                     osc.frequency.exponentialRampToValueAtTime(60, now + 0.08);
@@ -408,7 +437,10 @@ HTML_CONTENT = """
 
         function startCamera() {
             navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } })
-                .then(stream => { video.srcObject = stream; })
+                .then(stream => { 
+                    video.srcObject = stream;
+                    triggerReticleTimer();
+                })
                 .catch(err => console.error("Error cámara:", err));
         }
         startCamera();
@@ -424,21 +456,44 @@ HTML_CONTENT = """
             document.querySelectorAll('.lens-btn').forEach(b => b.classList.remove('active'));
             elem.classList.add('active');
             document.getElementById('reticleTelemetry').innerText = `CAM V7 | ZOOM ${scale}x | NPU ACTIVE`;
+            triggerReticleTimer();
+        }
+
+        function triggerReticleTimer() {
+            const reticle = document.getElementById('focusReticle');
+            reticle.classList.remove('faded');
+            if (fadeReticleTimeout) clearTimeout(fadeReticleTimeout);
+            fadeReticleTimeout = setTimeout(() => {
+                reticle.classList.add('faded');
+            }, 1800);
         }
 
         function handleTapToFocus(e) {
             if (e.target.closest('.glass-dock') || e.target.closest('.bottom-shutter-bar') || e.target.closest('.glass-header') || e.target.closest('.lens-pill-bar') || e.target.closest('.dock-tooltip')) return;
-            const reticle = document.getElementById('focusReticle');
-            const rect = e.currentTarget.getBoundingClientRect();
+            
+            const viewport = document.getElementById('viewportArea');
+            const rect = viewport.getBoundingClientRect();
             const clickX = e.clientX - rect.left;
             const clickY = e.clientY - rect.top;
 
+            // Halo Ondulante de Agua
+            const ripple = document.createElement('div');
+            ripple.className = 'water-ripple-ring';
+            ripple.style.left = clickX + 'px';
+            ripple.style.top = clickY + 'px';
+            viewport.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 700);
+
+            // Resituar e iluminar retícula
+            const reticle = document.getElementById('focusReticle');
             const targetLeft = Math.max(10, Math.min(rect.width - reticle.offsetWidth - 10, clickX - (reticle.offsetWidth / 2)));
             const targetTop = Math.max(70, Math.min(rect.height - reticle.offsetHeight - 120, clickY - (reticle.offsetHeight / 2)));
 
             reticle.style.left = targetLeft + 'px';
             reticle.style.top = targetTop + 'px';
             document.getElementById('reticleTelemetry').innerText = `CAM V7 | ENFOQUE FIJADO`;
+
+            triggerReticleTimer();
         }
 
         function showDockTooltipAboveElement(name, elem) {
@@ -473,6 +528,7 @@ HTML_CONTENT = """
             document.getElementById('bananaText').innerText = `Armado: ${key.toUpperCase()}`;
             document.getElementById('focusReticle').classList.add('banana-lock');
             document.getElementById('shutterBtn').classList.add('banana-ready');
+            triggerReticleTimer();
         }
 
         function resetArmEngine() {
@@ -483,6 +539,7 @@ HTML_CONTENT = """
             document.getElementById('bananaText').innerText = 'Nano-Banana Auto';
             document.getElementById('focusReticle').classList.remove('banana-lock');
             document.getElementById('shutterBtn').classList.remove('banana-ready');
+            triggerReticleTimer();
         }
 
         function triggerNanoBananaCapture() {
@@ -499,7 +556,7 @@ HTML_CONTENT = """
 
             capturedImage.onload = () => {
                 if (!selectedEngineKey) {
-                    executeModulePipeline('raw', '📸 Revelado RAW V9');
+                    executeModulePipeline('cine', '🎬 Cine Scope V9');
                 } else {
                     executeModulePipeline(selectedEngineKey, selectedEngineName);
                 }
@@ -509,6 +566,7 @@ HTML_CONTENT = """
 
         function executeModulePipeline(engine, name) {
             document.getElementById('sheetTitle').innerText = name;
+            const cinePanel = document.getElementById('cineControlPanel');
             const rawPanel = document.getElementById('rawControlPanel');
             const svgPanel = document.getElementById('svgControlPanel');
             const vidPanel = document.getElementById('vidControlPanel');
@@ -517,17 +575,19 @@ HTML_CONTENT = """
             const pricePanel = document.getElementById('priceControlPanel');
             const aiPanel = document.getElementById('aiControlPanel');
 
-            if (engine === 'raw') {
-                rawPanel.style.display = 'block';
+            if (engine === 'cine') {
+                cinePanel.style.display = 'block';
+                rawPanel.style.display = 'none';
                 svgPanel.style.display = 'none';
                 vidPanel.style.display = 'none';
                 depthPanel.style.display = 'none';
                 chefPanel.style.display = 'none';
                 pricePanel.style.display = 'none';
                 aiPanel.style.display = 'none';
-                document.getElementById('sheetDesc').innerText = "Revelado digital por curvas de compensación EV e histograma RGB espectral en tiempo real.";
-                renderStudioRAWV9();
+                document.getElementById('sheetDesc').innerText = "Colorimetría anamórfica 21:9, destello óptico horizontal y emulsión analógica.";
+                renderCineScopeV9();
             } else {
+                cinePanel.style.display = 'none';
                 rawPanel.style.display = 'none';
                 svgPanel.style.display = 'none';
                 vidPanel.style.display = 'none';
@@ -548,79 +608,66 @@ HTML_CONTENT = """
             document.getElementById('sheetModal').classList.add('active');
         }
 
-        function renderStudioRAWV9() {
-            const ev = parseFloat(document.getElementById('rawEvSlider').value);
-            const temp = document.getElementById('rawTempSelect').value;
-            document.getElementById('rawEvLabel').innerText = (ev > 0 ? '+' : '') + ev.toFixed(1) + " EV";
-            document.getElementById('rawKelvinLabel').innerText = temp + "K";
-
+        function renderCineScopeV9() {
+            const lut = document.getElementById('cineLutSelectV9').value;
+            const flare = parseInt(document.getElementById('cineFlareSliderV9').value);
             const box = document.getElementById('sheetCanvasBox');
             box.innerHTML = "";
 
-            rawActiveCanvas = document.createElement('canvas');
-            rawActiveCanvas.width = 360;
-            rawActiveCanvas.height = 230;
-            const ctx = rawActiveCanvas.getContext('2d');
+            cineActiveCanvas = document.createElement('canvas');
+            cineActiveCanvas.width = 360;
+            cineActiveCanvas.height = 210;
+            const ctx = cineActiveCanvas.getContext('2d');
 
-            // Dibujar imagen base
-            ctx.drawImage(capturedImage, 0, 0, 360, 230);
+            // Dibujo imagen fotograma
+            ctx.drawImage(capturedImage, 0, 0, 360, 210);
 
-            // Capa de Compensación EV
-            if (ev > 0) {
-                ctx.fillStyle = `rgba(255, 255, 255, ${ev * 0.16})`;
+            // Capa LUT Tetraédrica
+            if (lut === 'teal_orange') {
+                ctx.fillStyle = "rgba(0, 200, 210, 0.18)"; ctx.fillRect(0, 0, 360, 210);
+                ctx.fillStyle = "rgba(255, 120, 0, 0.14)"; ctx.fillRect(0, 0, 360, 210);
+            } else if (lut === 'gold_streak') {
+                ctx.fillStyle = "rgba(255, 215, 0, 0.22)"; ctx.fillRect(0, 0, 360, 210);
+            } else if (lut === 'matrix_green') {
+                ctx.fillStyle = "rgba(0, 255, 160, 0.20)"; ctx.fillRect(0, 0, 360, 210);
             } else {
-                ctx.fillStyle = `rgba(0, 0, 0, ${Math.abs(ev) * 0.26})`;
-            }
-            ctx.fillRect(0, 0, 360, 230);
-
-            // Capa Kelvin
-            if (temp === '3200') {
-                ctx.fillStyle = "rgba(255, 140, 0, 0.12)";
-                ctx.fillRect(0, 0, 360, 230);
-            } else if (temp === '7500') {
-                ctx.fillStyle = "rgba(0, 140, 255, 0.12)";
-                ctx.fillRect(0, 0, 360, 230);
+                ctx.fillStyle = "rgba(0, 0, 0, 0.38)"; ctx.fillRect(0, 0, 360, 210);
             }
 
-            // Histograma Espectral RGB Dinámico
-            ctx.fillStyle = "rgba(10, 10, 14, 0.75)";
-            ctx.fillRect(12, 12, 110, 52);
-            ctx.strokeStyle = "rgba(255,255,255,0.18)";
-            ctx.strokeRect(12, 12, 110, 52);
+            // Destello Anamórfico (Blue Streak Flare)
+            if (flare > 0) {
+                const alpha = (flare / 100) * 0.45;
+                const grad = ctx.createLinearGradient(0, 103, 360, 107);
+                grad.addColorStop(0, "rgba(0, 140, 255, 0)");
+                grad.addColorStop(0.5, `rgba(0, 220, 255, ${alpha})`);
+                grad.addColorStop(1, "rgba(0, 140, 255, 0)");
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 102, 360, 6);
+            }
 
-            // Trazado Canales R, G, B
-            ctx.lineWidth = 1.2;
-            // Rojo
-            ctx.strokeStyle = "#FF453A";
-            ctx.beginPath();
-            ctx.moveTo(14, 60); ctx.lineTo(35, 30); ctx.lineTo(60, 48); ctx.lineTo(85, 22); ctx.lineTo(120, 60);
-            ctx.stroke();
+            // Grano Procedural Analógico 35mm
+            ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.05})`;
+            ctx.fillRect(0, 0, 360, 210);
 
-            // Verde
-            ctx.strokeStyle = "#30D158";
-            ctx.beginPath();
-            ctx.moveTo(14, 60); ctx.lineTo(40, 38); ctx.lineTo(70, 26); ctx.lineTo(95, 42); ctx.lineTo(120, 60);
-            ctx.stroke();
+            // Barras Negras CineScope 21:9
+            ctx.fillStyle = "#000000";
+            ctx.fillRect(0, 0, 360, 22);
+            ctx.fillRect(0, 188, 360, 22);
 
-            // Azul
-            ctx.strokeStyle = "#0A84FF";
-            ctx.beginPath();
-            ctx.moveTo(14, 60); ctx.lineTo(30, 44); ctx.lineTo(55, 20); ctx.lineTo(90, 34); ctx.lineTo(120, 60);
-            ctx.stroke();
-
-            box.appendChild(rawActiveCanvas);
+            box.appendChild(cineActiveCanvas);
         }
 
-        function exportDevelopedRAWV9() {
-            if (!rawActiveCanvas) return;
+        function exportCineScopeV9() {
+            if (!cineActiveCanvas) return;
             const a = document.createElement('a');
-            a.href = rawActiveCanvas.toDataURL('image/jpeg', 0.95);
-            a.download = `revelado_raw_v9_${Date.now()}.jpg`;
+            a.href = cineActiveCanvas.toDataURL('image/jpeg', 0.95);
+            a.download = `cinescope_v9_${Date.now()}.jpg`;
             a.click();
         }
 
         function closeSheet() {
             document.getElementById('sheetModal').classList.remove('active');
+            triggerReticleTimer();
         }
     </script>
 </body>
@@ -635,7 +682,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Estudio RAW V9 Ultra (Apple Glass UI)",
+        "engine": "Cine Scope V9 Ultra (Water Ripple Focus & Apple Glass UI)",
         "status": "online"
     }
 
