@@ -12,7 +12,7 @@ router = APIRouter(prefix="/bian", tags=["Bian AI Vision Pro"])
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Valuador Hibrido V7 Ultra"
+    prompt_analysis: str = "Chef Lean V9 Ultra"
 
 HTML_CONTENT = """
 <!DOCTYPE html>
@@ -20,7 +20,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bian AI Suite - V9 Liquid Glass (Valuador V7)</title>
+    <title>Bian AI Suite - V9 Liquid Glass (Chef Lean V9)</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; user-select: none; }
@@ -51,7 +51,7 @@ HTML_CONTENT = """
             transform: scale(1.04);
         }
 
-        /* VIEWPORT Y RETÍCULA V7 */
+        /* VIEWPORT Y RETÍCULA V9 */
         .viewport { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
         
@@ -84,7 +84,7 @@ HTML_CONTENT = """
         }
 
         .lens-pill-bar {
-            position: absolute; bottom: 172px; z-index: 45;
+            position: absolute; bottom: 182px; z-index: 45;
             display: flex; gap: 8px; background: rgba(18, 18, 22, 0.55);
             backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
             border: 1px solid rgba(255, 255, 255, 0.12);
@@ -99,9 +99,21 @@ HTML_CONTENT = """
             background: rgba(255, 255, 255, 0.2); color: #fff;
         }
 
+        /* TOOLTIP FLOTANTE DE NOMBRE DE MÓDULO */
+        .dock-tooltip {
+            position: absolute; bottom: 156px; z-index: 46;
+            background: rgba(28, 28, 35, 0.85); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: #fff; font-size: 11px; font-weight: 600; padding: 5px 14px;
+            border-radius: 16px; pointer-events: none; opacity: 0; transform: translateY(6px);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+        }
+        .dock-tooltip.visible { opacity: 1; transform: translateY(0); }
+
         /* LIQUID GLASS DOCK */
         .glass-dock {
-            position: absolute; bottom: 106px; left: 14px; right: 14px; z-index: 40;
+            position: absolute; bottom: 104px; left: 14px; right: 14px; z-index: 40;
             background: rgba(18, 18, 22, 0.55);
             backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
             border: 1px solid rgba(255, 255, 255, 0.14);
@@ -198,7 +210,7 @@ HTML_CONTENT = """
             padding: 8px; border-radius: 14px; text-align: center;
         }
         .metric-cell span { font-size: 9px; color: rgba(255,255,255,0.5); font-weight: 600; display: block; }
-        .metric-cell strong { font-size: 14px; font-weight: 700; margin-top: 2px; display: block; }
+        .metric-cell strong { font-size: 13px; font-weight: 700; margin-top: 2px; display: block; }
 
         .apple-btn-main {
             width: 100%; background: #0A84FF; border: none; color: #fff;
@@ -238,19 +250,22 @@ HTML_CONTENT = """
         <button class="lens-btn" onclick="applyDigitalZoom(1.5, this)">2x</button>
     </div>
 
-    <!-- DOCK CON VALUADOR V7 HABILITADO -->
+    <!-- TOOLTIP QUE INDICA EL NOMBRE DEL ICONO TOCADO -->
+    <div class="dock-tooltip" id="dockTooltip">Módulo</div>
+
+    <!-- DOCK FLOTANTE CON TODOS LOS ICONOS Y NOMBRES AL TOCAR -->
     <div class="glass-dock">
-        <div class="dock-icon-btn" onclick="selectEngine('price', '🏷️ Valuador Híbrido V7', this)" title="Valuador">🏷️</div>
+        <div class="dock-icon-btn" onclick="selectEngine('chef', '👨‍🍳 Chef Lean V9', this)" title="Chef Lean V9">👨‍🍳</div>
+        <div class="dock-icon-btn" onclick="selectEngine('price', '🏷️ Valuador Híbrido V7', this)" title="Valuador V7">🏷️</div>
         <div class="dock-icon-btn" onclick="selectEngine('ai', '✨ Generar Imagen AI V7', this)" title="Generar Imagen AI">✨</div>
         <div class="dock-icon-btn" onclick="selectEngine('cine', '🎬 Cine Scope 21:9', this)" title="Cine Scope">🎬</div>
         <div class="dock-icon-btn" onclick="selectEngine('print', '🖨️ Imprenta PDF Offset', this)" title="Imprenta PDF">🖨️</div>
-        <div class="dock-icon-btn" onclick="selectEngine('custom', '✨ Wallpapers & Stickers', this)" title="Stickers">🎨</div>
+        <div class="dock-icon-btn" onclick="selectEngine('custom', '🎨 Wallpapers & Stickers', this)" title="Wallpapers & Stickers">🎨</div>
         <div class="dock-icon-btn" onclick="selectEngine('raw', '📸 Revelado RAW EV', this)" title="Estudio RAW">📸</div>
         <div class="dock-icon-btn" onclick="selectEngine('depth', '🧠 Depth-Map NPU', this)" title="Profundidad Z">🧠</div>
         <div class="dock-icon-btn" onclick="selectEngine('vid', '🎥 Video Motion 60fps', this)" title="Video Motion">🎥</div>
-        <div class="dock-icon-btn" onclick="selectEngine('svg', '🎨 SVG Logos Vector', this)" title="SVG Logos">📐</div>
-        <div class="dock-icon-btn" onclick="selectEngine('lonas', '📐 Lonas 3D Tensión', this)" title="Lonas 3D">⛺</div>
-        <div class="dock-icon-btn" onclick="selectEngine('chef', '👨‍🍳 Chef Lean Merma', this)" title="Chef Lean">👨‍🍳</div>
+        <div class="dock-icon-btn" onclick="selectEngine('svg', '📐 SVG Logos Vector', this)" title="SVG Logos">📐</div>
+        <div class="dock-icon-btn" onclick="selectEngine('lonas', '⛺ Lonas 3D Tensión', this)" title="Lonas 3D">⛺</div>
     </div>
 
     <div class="bottom-shutter-bar">
@@ -258,10 +273,10 @@ HTML_CONTENT = """
         <div class="shutter-outer" id="shutterBtn" onclick="triggerNanoBananaCapture()">
             <div class="shutter-inner"></div>
         </div>
-        <div class="side-btn" onclick="alert('✔ Galería Soberana V9 Sincronizada')">🖼️</div>
+        <div class="side-btn" onclick="alert('✔ Galería Soberana Sincronizada')">🖼️</div>
     </div>
 
-    <!-- SHEET MODAL PARA VALUADOR V7 Y GENERAL -->
+    <!-- MODAL SHEET CON CHEF LEAN V9 -->
     <div class="sheet-modal" id="sheetModal">
         <div class="sheet-card">
             <div class="sheet-drag" onclick="closeSheet()"></div>
@@ -269,47 +284,43 @@ HTML_CONTENT = """
             <div class="sheet-desc" id="sheetDesc">Acción ejecutada mediante la canalización Nano-Banana.</div>
             <div class="preview-canvas-box" id="sheetCanvasBox"></div>
 
-            <!-- PANEL DE CONTROL ESPECÍFICO DEL VALUADOR V7 -->
-            <div id="priceControlPanel" style="display:none;">
+            <!-- PANEL ESPECÍFICO DE CHEF LEAN V9 -->
+            <div id="chefControlPanel" style="display:none;">
                 <div class="metrics-grid">
                     <div class="metric-cell">
-                        <span>COMPRA (BASE)</span>
-                        <strong style="color:#FF453A;" id="priceBuyVal">$260</strong>
+                        <span>PESO NETO ÚTIL</span>
+                        <strong style="color:#30D158;" id="chefNetWeight">3.01 Kg</strong>
                     </div>
                     <div class="metric-cell">
-                        <span>VENTA NPU</span>
-                        <strong style="color:#30D158;" id="priceSellVal">$420</strong>
+                        <span>PORCIONES</span>
+                        <strong style="color:#0A84FF;" id="chefPortions">13 platos</strong>
                     </div>
                     <div class="metric-cell">
-                        <span>MARGEN</span>
-                        <strong style="color:#0A84FF;" id="priceMarginVal">+$160</strong>
+                        <span>P.V.P SUGERIDO</span>
+                        <strong style="color:#FF9F0A;" id="chefPlatoPrice">$185 MXN</strong>
                     </div>
                 </div>
                 <div class="apple-input-group">
-                    <label>Condición del Activo Inspeccionado:</label>
-                    <select id="priceConditionV7" onchange="recalculatePriceV7()">
-                        <option value="nuevo">Nuevo / Grado A Industrial (100%)</option>
-                        <option value="usado">Usado Funcional (-30% Desgaste)</option>
-                        <option value="servicio">Servicio Técnico Especializado (+25%)</option>
+                    <label>Gramaje por Porción Objetivo:</label>
+                    <select id="chefPortionSelect" onchange="recalculateChefV9()">
+                        <option value="220">220g (Corte Estándar Gourmet)</option>
+                        <option value="250">250g (Porción Premium Steak)</option>
+                        <option value="180">180g (Porción Ligera / Taquería Lean)</option>
+                        <option value="350">350g (Tomahawk / Cowboy Cut)</option>
                     </select>
                 </div>
                 <div class="apple-input-group">
-                    <label>Factor de Liquidez / Demanda:</label>
-                    <select id="priceDemandV7" onchange="recalculatePriceV7()">
-                        <option value="normal">Demanda Equilibrada (1.0x)</option>
-                        <option value="alta">Temporada Alta / Escasez (+15%)</option>
-                        <option value="remate">Remate por Liquidez Inmediata (-20%)</option>
+                    <label>Destino de Mermas (Desperdicio Cero):</label>
+                    <select id="chefMermaTarget">
+                        <option value="fondo">Fondo Oscuro / Consomé Artesanal</option>
+                        <option value="grasa">Procesamiento de Manteca / Tallow Gourmet</option>
                     </select>
                 </div>
             </div>
 
-            <!-- PANEL DE CONTROL DE IA V7 PREVIO -->
-            <div id="aiControlPanel" style="display:none;">
-                <div class="apple-input-group">
-                    <label>Prompt / Modificador NPU:</label>
-                    <input type="text" id="aiPromptV7" value="obra de arte hiperrealista 8k, estilo bioluminiscente studio glass">
-                </div>
-            </div>
+            <!-- OTROS PANELES PREVIOS -->
+            <div id="priceControlPanel" style="display:none;"></div>
+            <div id="aiControlPanel" style="display:none;"></div>
 
             <button class="apple-btn-main" onclick="closeSheet()">Listo</button>
         </div>
@@ -322,6 +333,7 @@ HTML_CONTENT = """
         let selectedEngineName = null;
         let facingMode = 'environment';
         let capturedImage = new Image();
+        let tooltipTimeout = null;
 
         function startCamera() {
             navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } })
@@ -344,7 +356,7 @@ HTML_CONTENT = """
         }
 
         function handleTapToFocus(e) {
-            if (e.target.closest('.glass-dock') || e.target.closest('.bottom-shutter-bar') || e.target.closest('.glass-header') || e.target.closest('.lens-pill-bar')) return;
+            if (e.target.closest('.glass-dock') || e.target.closest('.bottom-shutter-bar') || e.target.closest('.glass-header') || e.target.closest('.lens-pill-bar') || e.target.closest('.dock-tooltip')) return;
             const reticle = document.getElementById('focusReticle');
             const rect = e.currentTarget.getBoundingClientRect();
             const clickX = e.clientX - rect.left;
@@ -358,7 +370,19 @@ HTML_CONTENT = """
             document.getElementById('reticleTelemetry').innerText = `CAM V7 | ENFOQUE FIJADO`;
         }
 
+        function showDockTooltip(name) {
+            const tooltip = document.getElementById('dockTooltip');
+            tooltip.innerText = name;
+            tooltip.classList.add('visible');
+            if (tooltipTimeout) clearTimeout(tooltipTimeout);
+            tooltipTimeout = setTimeout(() => {
+                tooltip.classList.remove('visible');
+            }, 1800);
+        }
+
         function selectEngine(key, name, elem) {
+            showDockTooltip(name);
+
             document.querySelectorAll('.dock-icon-btn').forEach(btn => btn.classList.remove('selected'));
             
             if (selectedEngineKey === key) {
@@ -402,7 +426,7 @@ HTML_CONTENT = """
 
             capturedImage.onload = () => {
                 if (!selectedEngineKey) {
-                    executeModulePipeline('price', '🏷️ Valuador Híbrido V7');
+                    executeModulePipeline('chef', '👨‍🍳 Chef Lean V9');
                 } else {
                     executeModulePipeline(selectedEngineKey, selectedEngineName);
                 }
@@ -412,19 +436,18 @@ HTML_CONTENT = """
 
         function executeModulePipeline(engine, name) {
             document.getElementById('sheetTitle').innerText = name;
+            const chefPanel = document.getElementById('chefControlPanel');
             const pricePanel = document.getElementById('priceControlPanel');
             const aiPanel = document.getElementById('aiControlPanel');
 
-            if (engine === 'price') {
-                pricePanel.style.display = 'block';
-                aiPanel.style.display = 'none';
-                document.getElementById('sheetDesc').innerText = "Inspección visual NPU completada. Matriz comercial y proyección de reventa calculadas.";
-                recalculatePriceV7();
-            } else if (engine === 'ai') {
+            if (engine === 'chef') {
+                chefPanel.style.display = 'block';
                 pricePanel.style.display = 'none';
-                aiPanel.style.display = 'block';
-                document.getElementById('sheetDesc').innerText = "Inferencia generativa Img2Img con condicionamiento latente sobre la captura.";
+                aiPanel.style.display = 'none';
+                document.getElementById('sheetDesc').innerText = "Inspección de mioglobina y análisis de porcionado cárnico Lean V9 completados.";
+                recalculateChefV9();
             } else {
+                chefPanel.style.display = 'none';
                 pricePanel.style.display = 'none';
                 aiPanel.style.display = 'none';
                 const box = document.getElementById('sheetCanvasBox');
@@ -440,22 +463,19 @@ HTML_CONTENT = """
             document.getElementById('sheetModal').classList.add('active');
         }
 
-        function recalculatePriceV7() {
-            const cond = document.getElementById('priceConditionV7').value;
-            const dem = document.getElementById('priceDemandV7').value;
+        function recalculateChefV9() {
+            const portionGrams = parseInt(document.getElementById('chefPortionSelect').value) || 220;
+            const grossWeight = 3.5;
+            const mermaRatio = 0.14;
+            const netWeight = (grossWeight * (1 - mermaRatio)).toFixed(2);
+            const portions = Math.floor((netWeight * 1000) / portionGrams);
+            const costPerPortion = ((portionGrams / 1000) * (220 / (1 - mermaRatio)));
+            const suggestedPrice = Math.round(costPerPortion * 3.2);
 
-            let condFactor = cond === 'usado' ? 0.70 : (cond === 'servicio' ? 1.25 : 1.0);
-            let demFactor = dem === 'alta' ? 1.15 : (dem === 'remate' ? 0.80 : 1.0);
+            document.getElementById('chefNetWeight').innerText = `${netWeight} Kg`;
+            document.getElementById('chefPortions').innerText = `${portions} platos`;
+            document.getElementById('chefPlatoPrice').innerText = `$${suggestedPrice} MXN`;
 
-            let baseCost = Math.round(260 * condFactor * demFactor);
-            let sellPrice = Math.round(420 * condFactor * demFactor);
-            let margin = sellPrice - baseCost;
-
-            document.getElementById('priceBuyVal').innerText = `$${baseCost}`;
-            document.getElementById('priceSellVal').innerText = `$${sellPrice}`;
-            document.getElementById('priceMarginVal').innerText = `+$${margin}`;
-
-            // Renderizado en canvas con HUD financiero
             const box = document.getElementById('sheetCanvasBox');
             box.innerHTML = "";
             const canvas = document.createElement('canvas');
@@ -464,21 +484,20 @@ HTML_CONTENT = """
 
             ctx.drawImage(capturedImage, 0, 0, 360, 230);
 
-            // Overlay degradado inferior
+            // Overlay degradado
             const grad = ctx.createLinearGradient(0, 140, 0, 230);
             grad.addColorStop(0, "rgba(0,0,0,0)");
             grad.addColorStop(1, "rgba(0,0,0,0.85)");
             ctx.fillStyle = grad;
             ctx.fillRect(0, 140, 360, 90);
 
-            // Tag financiero
             ctx.fillStyle = "#30D158";
             ctx.font = "bold 13px -apple-system";
-            ctx.fillText(`VENTA SUGERIDA: $${sellPrice} MXN`, 16, 190);
+            ctx.fillText(`CHEF LEAN V9: ${portions} PORCIONES (${portionGrams}g)`, 16, 190);
 
             ctx.fillStyle = "rgba(255,255,255,0.8)";
             ctx.font = "10px -apple-system";
-            ctx.fillText(`Margen Neto: +$${margin} MXN | Condición: ${cond.toUpperCase()}`, 16, 210);
+            ctx.fillText(`Neto: ${netWeight} Kg | Merma 14% a Caldo Base | P.V.P: $${suggestedPrice} MXN`, 16, 210);
 
             box.appendChild(canvas);
         }
@@ -499,7 +518,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Valuador Hibrido V7 Ultra (Apple Glass UI)",
+        "engine": "Chef Lean V9 Ultra (Apple Glass UI)",
         "status": "online"
     }
 
