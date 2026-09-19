@@ -12,7 +12,7 @@ router = APIRouter(prefix="/bian", tags=["Bian AI Vision Pro"])
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Depth-Map NPU V9 Ultra"
+    prompt_analysis: str = "Video Motion V8 Ultra"
 
 HTML_CONTENT = """
 <!DOCTYPE html>
@@ -20,7 +20,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bian AI Suite - V9 Liquid Glass (Depth V9)</title>
+    <title>Bian AI Suite - V9 Liquid Glass (Video V8 & Audio)</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; user-select: none; }
@@ -63,7 +63,7 @@ HTML_CONTENT = """
             position: absolute; width: 68%; height: 50%; pointer-events: none;
             border-radius: 38px; border: 2px solid rgba(255, 255, 255, 0.35);
             transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1), top 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s, box-shadow 0.3s;
-            display: flex; flex-direction: column; justify-content: space-between; align-items: center;
+            display: flex; flex-direction: column; justify-content: flex-start; align-items: center;
             padding: 12px 14px;
         }
         .reticle-container.banana-lock {
@@ -74,11 +74,6 @@ HTML_CONTENT = """
             font-size: 9px; font-weight: 700; color: rgba(255, 255, 255, 0.8);
             background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(10px);
             padding: 3px 8px; border-radius: 8px; letter-spacing: 0.5px;
-        }
-        .status-badge {
-            background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(14px);
-            padding: 6px 14px; border-radius: 14px; font-size: 11px; font-weight: 600;
-            color: rgba(255,255,255,0.95); border: 1px solid rgba(255,255,255,0.12);
         }
 
         .lens-pill-bar {
@@ -95,16 +90,17 @@ HTML_CONTENT = """
         }
         .lens-btn.active { background: rgba(255, 255, 255, 0.2); color: #fff; }
 
+        /* TOOLTIP POSICIONADO EXACTAMENTE SOBRE CADA ICONO */
         .dock-tooltip {
-            position: absolute; bottom: 156px; z-index: 46;
-            background: rgba(28, 28, 35, 0.85); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            color: #fff; font-size: 11px; font-weight: 600; padding: 5px 14px;
-            border-radius: 16px; pointer-events: none; opacity: 0; transform: translateY(6px);
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+            position: absolute; z-index: 46;
+            background: rgba(28, 28, 35, 0.92); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            color: #fff; font-size: 10px; font-weight: 600; padding: 4px 12px;
+            border-radius: 14px; pointer-events: none; opacity: 0; transform: translate(-50%, 6px);
+            transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.6); white-space: nowrap;
         }
-        .dock-tooltip.visible { opacity: 1; transform: translateY(0); }
+        .dock-tooltip.visible { opacity: 1; transform: translate(-50%, 0); }
 
         .glass-dock {
             position: absolute; bottom: 104px; left: 14px; right: 14px; z-index: 40;
@@ -184,7 +180,7 @@ HTML_CONTENT = """
         .sheet-title { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 4px; }
         .sheet-desc { font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.4; margin-bottom: 16px; }
         
-        .preview-canvas-box { width: 100%; height: 230px; background: #080808; border-radius: 18px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+        .preview-canvas-box { width: 100%; height: 230px; background: #080808; border-radius: 18px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; position: relative; }
         .preview-canvas-box canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
 
         .apple-input-group { margin-bottom: 12px; text-align: left; }
@@ -210,6 +206,12 @@ HTML_CONTENT = """
             cursor: pointer; margin-top: 8px;
         }
         .apple-btn-main:active { background: #0071E3; }
+        
+        .apple-btn-export {
+            width: 100%; background: rgba(255, 55, 95, 0.18); border: 1px solid rgba(255, 55, 95, 0.4);
+            color: #FF375F; padding: 12px; border-radius: 14px; font-size: 12px; font-weight: 700;
+            cursor: pointer; margin-top: 6px;
+        }
     </style>
 </head>
 <body>
@@ -231,7 +233,6 @@ HTML_CONTENT = """
         <video id="webcam" autoplay playsinline></video>
         <div class="reticle-container" id="focusReticle">
             <div class="reticle-telemetry" id="reticleTelemetry">CAM V7 | NPU ACTIVE</div>
-            <div class="status-badge" id="hudStatus">Modo: Esperando selección</div>
         </div>
         <canvas id="internalCanvas" style="display:none;"></canvas>
     </div>
@@ -245,17 +246,17 @@ HTML_CONTENT = """
     <div class="dock-tooltip" id="dockTooltip">Módulo</div>
 
     <div class="glass-dock">
-        <div class="dock-icon-btn" onclick="selectEngine('depth', '🧠 Depth-Map NPU V9', this)" title="Depth-Map V9">🧠</div>
-        <div class="dock-icon-btn" onclick="selectEngine('chef', '👨‍🍳 Chef Lean V9', this)" title="Chef Lean V9">👨‍🍳</div>
-        <div class="dock-icon-btn" onclick="selectEngine('price', '🏷️ Valuador Híbrido V7', this)" title="Valuador V7">🏷️</div>
-        <div class="dock-icon-btn" onclick="selectEngine('ai', '✨ Generar Imagen AI V7', this)" title="Generar Imagen AI">✨</div>
-        <div class="dock-icon-btn" onclick="selectEngine('cine', '🎬 Cine Scope 21:9', this)" title="Cine Scope">🎬</div>
-        <div class="dock-icon-btn" onclick="selectEngine('print', '🖨️ Imprenta PDF Offset', this)" title="Imprenta PDF">🖨️</div>
-        <div class="dock-icon-btn" onclick="selectEngine('custom', '🎨 Wallpapers & Stickers', this)" title="Wallpapers & Stickers">🎨</div>
-        <div class="dock-icon-btn" onclick="selectEngine('raw', '📸 Revelado RAW EV', this)" title="Estudio RAW">📸</div>
-        <div class="dock-icon-btn" onclick="selectEngine('vid', '🎥 Video Motion 60fps', this)" title="Video Motion">🎥</div>
-        <div class="dock-icon-btn" onclick="selectEngine('svg', '📐 SVG Logos Vector', this)" title="SVG Logos">📐</div>
-        <div class="dock-icon-btn" onclick="selectEngine('lonas', '⛺ Lonas 3D Tensión', this)" title="Lonas 3D">⛺</div>
+        <div class="dock-icon-btn" onclick="selectEngine('vid', '🎥 Video Motion V8', this)">🎥</div>
+        <div class="dock-icon-btn" onclick="selectEngine('depth', '🧠 Depth-Map NPU V9', this)">🧠</div>
+        <div class="dock-icon-btn" onclick="selectEngine('chef', '👨‍🍳 Chef Lean V9', this)">👨‍🍳</div>
+        <div class="dock-icon-btn" onclick="selectEngine('price', '🏷️ Valuador Híbrido V7', this)">🏷️</div>
+        <div class="dock-icon-btn" onclick="selectEngine('ai', '✨ Generar Imagen AI V7', this)">✨</div>
+        <div class="dock-icon-btn" onclick="selectEngine('cine', '🎬 Cine Scope 21:9', this)">🎬</div>
+        <div class="dock-icon-btn" onclick="selectEngine('print', '🖨️ Imprenta PDF Offset', this)">🖨️</div>
+        <div class="dock-icon-btn" onclick="selectEngine('custom', '🎨 Wallpapers & Stickers', this)">🎨</div>
+        <div class="dock-icon-btn" onclick="selectEngine('raw', '📸 Revelado RAW EV', this)">📸</div>
+        <div class="dock-icon-btn" onclick="selectEngine('svg', '📐 SVG Logos Vector', this)">📐</div>
+        <div class="dock-icon-btn" onclick="selectEngine('lonas', '⛺ Lonas 3D Tensión', this)">⛺</div>
     </div>
 
     <div class="bottom-shutter-bar">
@@ -273,33 +274,35 @@ HTML_CONTENT = """
             <div class="sheet-desc" id="sheetDesc">Acción ejecutada mediante la canalización Nano-Banana.</div>
             <div class="preview-canvas-box" id="sheetCanvasBox"></div>
 
-            <!-- PANEL DEPTH-MAP NPU V9 -->
-            <div id="depthControlPanel" style="display:none;">
+            <!-- PANEL VIDEO MOTION V8 -->
+            <div id="vidControlPanel" style="display:none;">
                 <div class="metrics-grid">
                     <div class="metric-cell">
-                        <span>PLANO NEAR (Z)</span>
-                        <strong style="color:#30D158;" id="depthNear">0.35 m</strong>
+                        <span>FPS RENDER</span>
+                        <strong style="color:#30D158;">60 FPS</strong>
                     </div>
                     <div class="metric-cell">
-                        <span>PLANO FAR (Z)</span>
-                        <strong style="color:#0A84FF;" id="depthFar">4.20 m</strong>
+                        <span>DURACIÓN</span>
+                        <strong style="color:#0A84FF;">3.0 seg</strong>
                     </div>
                     <div class="metric-cell">
-                        <span>FOCO SUJETO</span>
-                        <strong style="color:#FFD60A;" id="depthFocus">1.10 m</strong>
+                        <span>TRAYECTORIA</span>
+                        <strong style="color:#FFD60A;" id="vidMotionLabel">Orbital 3D</strong>
                     </div>
                 </div>
                 <div class="apple-input-group">
-                    <label>Modo de Visualización de Profundidad Z:</label>
-                    <select id="depthPaletteSelect" onchange="renderDepthMapV9()">
-                        <option value="grayscale">Z-Buffer Monocromático (Profundidad Pura)</option>
-                        <option value="inferno">Gradiente Térmico NPU (Inferno Range)</option>
-                        <option value="cyberpunk">Relieve Neón Cyberpunk (#00FFC8 / Magenta)</option>
+                    <label>Trayectoria Multieje NPU V8:</label>
+                    <select id="vidTrajectorySelect" onchange="updateVidTrajectoryV8()">
+                        <option value="orbital">Órbita 3D Angular + Depth Blur</option>
+                        <option value="tracking">Tracking Esférico 360° Acelerado</option>
+                        <option value="vertigo">Dolly Zoom Anamórfico (Vértigo FX)</option>
                     </select>
                 </div>
+                <button class="apple-btn-export" onclick="exportWebMFromMotionV8()">💾 Descargar Animación .WebM V8</button>
             </div>
 
             <!-- CONTENEDORES AUXILIARES -->
+            <div id="depthControlPanel" style="display:none;"></div>
             <div id="chefControlPanel" style="display:none;"></div>
             <div id="priceControlPanel" style="display:none;"></div>
             <div id="aiControlPanel" style="display:none;"></div>
@@ -316,6 +319,79 @@ HTML_CONTENT = """
         let facingMode = 'environment';
         let capturedImage = new Image();
         let tooltipTimeout = null;
+        let audioCtx = null;
+        let vidAnimInterval = null;
+        let vidActiveCanvas = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playModuleSound(key) {
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                if (key === 'vid') {
+                    // Video Motion: Barrido descendente cinematic Whoosh
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(480, now);
+                    osc.frequency.exponentialRampToValueAtTime(70, now + 0.32);
+                    gain.gain.setValueAtTime(0.18, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.32);
+                    osc.start(now); osc.stop(now + 0.32);
+                } else if (key === 'depth') {
+                    // Depth Map: Pulso de sonar submarino
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(840, now);
+                    osc.frequency.exponentialRampToValueAtTime(320, now + 0.4);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.005, now + 0.4);
+                    osc.start(now); osc.stop(now + 0.4);
+                } else if (key === 'chef') {
+                    // Chef Lean: Golpe percusivo de corte rápido
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(620, now);
+                    osc.frequency.exponentialRampToValueAtTime(110, now + 0.12);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
+                    osc.start(now); osc.stop(now + 0.12);
+                } else if (key === 'price') {
+                    // Valuador: Doble tono de caja registradora
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(587.33, now);
+                    osc.frequency.setValueAtTime(880, now + 0.1);
+                    gain.gain.setValueAtTime(0.16, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.28);
+                    osc.start(now); osc.stop(now + 0.28);
+                } else if (key === 'ai') {
+                    // Generador AI: Campana de cristal bioluminiscente
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(1046.5, now);
+                    osc.frequency.exponentialRampToValueAtTime(1318.5, now + 0.18);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.005, now + 0.35);
+                    osc.start(now); osc.stop(now + 0.35);
+                } else {
+                    // Tono neutro táctico
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(440, now);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now); osc.stop(now + 0.15);
+                }
+            } catch(e) { console.error("Audio error:", e); }
+        }
 
         function startCamera() {
             navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } })
@@ -352,16 +428,23 @@ HTML_CONTENT = """
             document.getElementById('reticleTelemetry').innerText = `CAM V7 | ENFOQUE FIJADO`;
         }
 
-        function showDockTooltip(name) {
+        function showDockTooltipAboveElement(name, elem) {
             const tooltip = document.getElementById('dockTooltip');
+            const btnRect = elem.getBoundingClientRect();
+            
             tooltip.innerText = name;
+            tooltip.style.left = (btnRect.left + (btnRect.width / 2)) + 'px';
+            tooltip.style.bottom = (window.innerHeight - btnRect.top + 8) + 'px';
             tooltip.classList.add('visible');
+
             if (tooltipTimeout) clearTimeout(tooltipTimeout);
             tooltipTimeout = setTimeout(() => { tooltip.classList.remove('visible'); }, 1800);
         }
 
         function selectEngine(key, name, elem) {
-            showDockTooltip(name);
+            showDockTooltipAboveElement(name, elem);
+            playModuleSound(key);
+
             document.querySelectorAll('.dock-icon-btn').forEach(btn => btn.classList.remove('selected'));
             
             if (selectedEngineKey === key) {
@@ -377,7 +460,6 @@ HTML_CONTENT = """
             document.getElementById('bananaText').innerText = `Armado: ${key.toUpperCase()}`;
             document.getElementById('focusReticle').classList.add('banana-lock');
             document.getElementById('shutterBtn').classList.add('banana-ready');
-            document.getElementById('hudStatus').innerText = `Listo para: ${name}`;
         }
 
         function resetArmEngine() {
@@ -388,7 +470,6 @@ HTML_CONTENT = """
             document.getElementById('bananaText').innerText = 'Nano-Banana Auto';
             document.getElementById('focusReticle').classList.remove('banana-lock');
             document.getElementById('shutterBtn').classList.remove('banana-ready');
-            document.getElementById('hudStatus').innerText = 'Modo: Esperando selección';
         }
 
         function triggerNanoBananaCapture() {
@@ -405,7 +486,7 @@ HTML_CONTENT = """
 
             capturedImage.onload = () => {
                 if (!selectedEngineKey) {
-                    executeModulePipeline('depth', '🧠 Depth-Map NPU V9');
+                    executeModulePipeline('vid', '🎥 Video Motion V8');
                 } else {
                     executeModulePipeline(selectedEngineKey, selectedEngineName);
                 }
@@ -415,19 +496,22 @@ HTML_CONTENT = """
 
         function executeModulePipeline(engine, name) {
             document.getElementById('sheetTitle').innerText = name;
+            const vidPanel = document.getElementById('vidControlPanel');
             const depthPanel = document.getElementById('depthControlPanel');
             const chefPanel = document.getElementById('chefControlPanel');
             const pricePanel = document.getElementById('priceControlPanel');
             const aiPanel = document.getElementById('aiControlPanel');
 
-            if (engine === 'depth') {
-                depthPanel.style.display = 'block';
+            if (engine === 'vid') {
+                vidPanel.style.display = 'block';
+                depthPanel.style.display = 'none';
                 chefPanel.style.display = 'none';
                 pricePanel.style.display = 'none';
                 aiPanel.style.display = 'none';
-                document.getElementById('sheetDesc').innerText = "Inferencia monocular de profundidad Z y extracción de Z-Buffer NPU completada.";
-                renderDepthMapV9();
+                document.getElementById('sheetDesc').innerText = "Render orbital cinemático multieje a 60 FPS con grano haluro de plata.";
+                startVideoMotionV8Animation();
             } else {
+                vidPanel.style.display = 'none';
                 depthPanel.style.display = 'none';
                 chefPanel.style.display = 'none';
                 pricePanel.style.display = 'none';
@@ -439,62 +523,89 @@ HTML_CONTENT = """
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(capturedImage, 0, 0, 360, 220);
                 box.appendChild(canvas);
-                document.getElementById('sheetDesc').innerText = `Procesamiento inteligente completado en ${name}.`;
+                document.getElementById('sheetDesc').innerText = `Procesamiento completado en ${name}.`;
             }
 
             document.getElementById('sheetModal').classList.add('active');
         }
 
-        function renderDepthMapV9() {
-            const palette = document.getElementById('depthPaletteSelect').value;
+        function startVideoMotionV8Animation() {
+            if (vidAnimInterval) clearInterval(vidAnimInterval);
             const box = document.getElementById('sheetCanvasBox');
             box.innerHTML = "";
 
-            const canvas = document.createElement('canvas');
-            canvas.width = 360; canvas.height = 240;
-            const ctx = canvas.getContext('2d');
+            vidActiveCanvas = document.createElement('canvas');
+            vidActiveCanvas.width = 360;
+            vidActiveCanvas.height = 230;
+            const ctx = vidActiveCanvas.getContext('2d');
+            box.appendChild(vidActiveCanvas);
 
-            ctx.drawImage(capturedImage, 0, 0, 360, 240);
-            const imgData = ctx.getImageData(0, 0, 360, 240);
-            const data = imgData.data;
+            let frame = 0;
+            vidAnimInterval = setInterval(() => {
+                frame++;
+                ctx.clearRect(0, 0, vidActiveCanvas.width, vidActiveCanvas.height);
+                const mode = document.getElementById('vidTrajectorySelect').value;
 
-            for (let i = 0; i < data.length; i += 4) {
-                const brightness = (data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114);
-                if (palette === 'grayscale') {
-                    data[i] = brightness;
-                    data[i+1] = brightness;
-                    data[i+2] = brightness;
-                } else if (palette === 'inferno') {
-                    data[i] = Math.min(255, brightness * 1.4);
-                    data[i+1] = Math.max(0, brightness * 0.7 - 20);
-                    data[i+2] = Math.max(0, 220 - brightness);
+                let offsetX = 0, offsetY = 0, scale = 1.05;
+                if (mode === 'orbital') {
+                    offsetX = Math.cos(frame * 0.05) * 18;
+                    offsetY = Math.sin(frame * 0.05) * 10;
+                    scale = 1.08 + Math.sin(frame * 0.03) * 0.05;
+                } else if (mode === 'tracking') {
+                    offsetX = Math.sin(frame * 0.07) * 26;
+                    offsetY = Math.cos(frame * 0.07) * 15;
+                    scale = 1.1 + Math.sin(frame * 0.04) * 0.06;
                 } else {
-                    data[i] = Math.max(0, 255 - brightness);
-                    data[i+1] = brightness;
-                    data[i+2] = 200;
+                    scale = 1.0 + (frame % 50) * 0.007;
                 }
-            }
-            ctx.putImageData(imgData, 0, 0);
 
-            // Overlay telemétrico Z
-            const grad = ctx.createLinearGradient(0, 160, 0, 240);
-            grad.addColorStop(0, "rgba(0,0,0,0)");
-            grad.addColorStop(1, "rgba(0,0,0,0.8)");
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 160, 360, 80);
+                ctx.save();
+                ctx.translate(vidActiveCanvas.width / 2 + offsetX, vidActiveCanvas.height / 2 + offsetY);
+                ctx.scale(scale, scale);
+                ctx.drawImage(capturedImage, -vidActiveCanvas.width / 2, -vidActiveCanvas.height / 2, vidActiveCanvas.width, vidActiveCanvas.height);
+                ctx.restore();
 
-            ctx.fillStyle = "#30D158";
-            ctx.font = "bold 11px -apple-system";
-            ctx.fillText("Z-BUFFER NPU V9 | RANGO: 0.35m - 4.20m", 16, 210);
+                // Grano cinemático analógico sutil
+                ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.04})`;
+                ctx.fillRect(0, 0, vidActiveCanvas.width, vidActiveCanvas.height);
 
-            ctx.fillStyle = "rgba(255,255,255,0.7)";
-            ctx.font = "10px -apple-system";
-            ctx.fillText(`Paleta: ${palette.toUpperCase()} | Enfoque central calibrado`, 16, 226);
+                // Barras CineScope 21:9
+                ctx.fillStyle = "#000";
+                ctx.fillRect(0, 0, vidActiveCanvas.width, 22);
+                ctx.fillRect(0, vidActiveCanvas.height - 22, vidActiveCanvas.width, 22);
+            }, 1000 / 60);
+        }
 
-            box.appendChild(canvas);
+        function updateVidTrajectoryV8() {
+            const select = document.getElementById('vidTrajectorySelect');
+            document.getElementById('vidMotionLabel').innerText = select.options[select.selectedIndex].text.split(" ")[0];
+            startVideoMotionV8Animation();
+        }
+
+        function exportWebMFromMotionV8() {
+            if (!vidActiveCanvas) return;
+            const stream = vidActiveCanvas.captureStream(60);
+            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            const chunks = [];
+            recorder.ondataavailable = e => chunks.push(e.data);
+            recorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `video_v8_${Date.now()}.webm`;
+                a.click();
+            };
+            recorder.start();
+            setTimeout(() => recorder.stop(), 3000);
+            alert("✔ Grabando clip WebM V8 (3.0s a 60 FPS)...");
         }
 
         function closeSheet() {
+            if (vidAnimInterval) {
+                clearInterval(vidAnimInterval);
+                vidAnimInterval = null;
+            }
             document.getElementById('sheetModal').classList.remove('active');
         }
     </script>
@@ -510,7 +621,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Depth-Map NPU V9 Ultra (Apple Glass UI)",
+        "engine": "Video Motion V8 Ultra (Apple Glass UI)",
         "status": "online"
     }
 
