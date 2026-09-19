@@ -12,7 +12,7 @@ router = APIRouter(prefix="/bian", tags=["Bian AI Vision Pro"])
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Generar Imagen AI V7 Ultra"
+    prompt_analysis: str = "Valuador Hibrido V7 Ultra"
 
 HTML_CONTENT = """
 <!DOCTYPE html>
@@ -20,12 +20,12 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bian AI Suite - V9 Liquid Glass (AI V7)</title>
+    <title>Bian AI Suite - V9 Liquid Glass (Valuador V7)</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; user-select: none; }
 
-        /* HEADER ESTILO APPLE DINÁMICO */
+        /* HEADER APPLE GLASS */
         .glass-header {
             position: absolute; top: 12px; left: 16px; right: 16px; z-index: 50;
             background: rgba(22, 22, 26, 0.55);
@@ -51,7 +51,7 @@ HTML_CONTENT = """
             transform: scale(1.04);
         }
 
-        /* VIEWPORT Y RETÍCULA */
+        /* VIEWPORT Y RETÍCULA V7 */
         .viewport { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
         
@@ -180,15 +180,25 @@ HTML_CONTENT = """
         .sheet-title { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 4px; }
         .sheet-desc { font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.4; margin-bottom: 16px; }
         
-        .preview-canvas-box { width: 100%; height: 250px; background: #080808; border-radius: 18px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+        .preview-canvas-box { width: 100%; height: 230px; background: #080808; border-radius: 18px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
         .preview-canvas-box canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
 
-        .apple-input-group { margin-bottom: 14px; text-align: left; }
+        .apple-input-group { margin-bottom: 12px; text-align: left; }
         .apple-input-group label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.7); display: block; margin-bottom: 6px; }
         .apple-input-group input, .apple-input-group select {
             width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
             border-radius: 12px; padding: 10px 12px; color: #fff; font-size: 12px; outline: none;
         }
+
+        .metrics-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px;
+        }
+        .metric-cell {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+            padding: 8px; border-radius: 14px; text-align: center;
+        }
+        .metric-cell span { font-size: 9px; color: rgba(255,255,255,0.5); font-weight: 600; display: block; }
+        .metric-cell strong { font-size: 14px; font-weight: 700; margin-top: 2px; display: block; }
 
         .apple-btn-main {
             width: 100%; background: #0A84FF; border: none; color: #fff;
@@ -202,7 +212,6 @@ HTML_CONTENT = """
 
     <div class="shutter-flash" id="flashLayer"></div>
 
-    <!-- HEADER DINÁMICO -->
     <div class="glass-header">
         <div class="apple-pill">
             <div class="glow-dot"></div>
@@ -214,7 +223,6 @@ HTML_CONTENT = """
         </div>
     </div>
 
-    <!-- VIEWPORT CON RETÍCULA TÁCTIL -->
     <div class="viewport" onclick="handleTapToFocus(event)">
         <video id="webcam" autoplay playsinline></video>
         <div class="reticle-container" id="focusReticle">
@@ -224,29 +232,27 @@ HTML_CONTENT = """
         <canvas id="internalCanvas" style="display:none;"></canvas>
     </div>
 
-    <!-- SELECTOR DE ZOOM -->
     <div class="lens-pill-bar">
         <button class="lens-btn" onclick="applyDigitalZoom(0.8, this)">0.6x</button>
         <button class="lens-btn active" onclick="applyDigitalZoom(1.0, this)">1x</button>
         <button class="lens-btn" onclick="applyDigitalZoom(1.5, this)">2x</button>
     </div>
 
-    <!-- DOCK CON ICONO ✨ DE GENERAR IMAGEN AI V7 -->
+    <!-- DOCK CON VALUADOR V7 HABILITADO -->
     <div class="glass-dock">
+        <div class="dock-icon-btn" onclick="selectEngine('price', '🏷️ Valuador Híbrido V7', this)" title="Valuador">🏷️</div>
         <div class="dock-icon-btn" onclick="selectEngine('ai', '✨ Generar Imagen AI V7', this)" title="Generar Imagen AI">✨</div>
         <div class="dock-icon-btn" onclick="selectEngine('cine', '🎬 Cine Scope 21:9', this)" title="Cine Scope">🎬</div>
         <div class="dock-icon-btn" onclick="selectEngine('print', '🖨️ Imprenta PDF Offset', this)" title="Imprenta PDF">🖨️</div>
-        <div class="dock-icon-btn" onclick="selectEngine('custom', '✨ Wallpapers & Stickers', this)" title="Stickers">🏷️</div>
+        <div class="dock-icon-btn" onclick="selectEngine('custom', '✨ Wallpapers & Stickers', this)" title="Stickers">🎨</div>
         <div class="dock-icon-btn" onclick="selectEngine('raw', '📸 Revelado RAW EV', this)" title="Estudio RAW">📸</div>
         <div class="dock-icon-btn" onclick="selectEngine('depth', '🧠 Depth-Map NPU', this)" title="Profundidad Z">🧠</div>
         <div class="dock-icon-btn" onclick="selectEngine('vid', '🎥 Video Motion 60fps', this)" title="Video Motion">🎥</div>
-        <div class="dock-icon-btn" onclick="selectEngine('svg', '🎨 SVG Logos Vector', this)" title="SVG Logos">🎨</div>
-        <div class="dock-icon-btn" onclick="selectEngine('lonas', '📐 Lonas 3D Tensión', this)" title="Lonas 3D">📐</div>
-        <div class="dock-icon-btn" onclick="selectEngine('price', '🏷️ Valuador Híbrido', this)" title="Valuador">💰</div>
+        <div class="dock-icon-btn" onclick="selectEngine('svg', '🎨 SVG Logos Vector', this)" title="SVG Logos">📐</div>
+        <div class="dock-icon-btn" onclick="selectEngine('lonas', '📐 Lonas 3D Tensión', this)" title="Lonas 3D">⛺</div>
         <div class="dock-icon-btn" onclick="selectEngine('chef', '👨‍🍳 Chef Lean Merma', this)" title="Chef Lean">👨‍🍳</div>
     </div>
 
-    <!-- BOTÓN DISPARADOR -->
     <div class="bottom-shutter-bar">
         <div class="side-btn" onclick="toggleLens()">🔄</div>
         <div class="shutter-outer" id="shutterBtn" onclick="triggerNanoBananaCapture()">
@@ -255,7 +261,7 @@ HTML_CONTENT = """
         <div class="side-btn" onclick="alert('✔ Galería Soberana V9 Sincronizada')">🖼️</div>
     </div>
 
-    <!-- SHEET MODULAR APPLE STYLE (AI V7 CONTROLS) -->
+    <!-- SHEET MODAL PARA VALUADOR V7 Y GENERAL -->
     <div class="sheet-modal" id="sheetModal">
         <div class="sheet-card">
             <div class="sheet-drag" onclick="closeSheet()"></div>
@@ -263,19 +269,45 @@ HTML_CONTENT = """
             <div class="sheet-desc" id="sheetDesc">Acción ejecutada mediante la canalización Nano-Banana.</div>
             <div class="preview-canvas-box" id="sheetCanvasBox"></div>
 
+            <!-- PANEL DE CONTROL ESPECÍFICO DEL VALUADOR V7 -->
+            <div id="priceControlPanel" style="display:none;">
+                <div class="metrics-grid">
+                    <div class="metric-cell">
+                        <span>COMPRA (BASE)</span>
+                        <strong style="color:#FF453A;" id="priceBuyVal">$260</strong>
+                    </div>
+                    <div class="metric-cell">
+                        <span>VENTA NPU</span>
+                        <strong style="color:#30D158;" id="priceSellVal">$420</strong>
+                    </div>
+                    <div class="metric-cell">
+                        <span>MARGEN</span>
+                        <strong style="color:#0A84FF;" id="priceMarginVal">+$160</strong>
+                    </div>
+                </div>
+                <div class="apple-input-group">
+                    <label>Condición del Activo Inspeccionado:</label>
+                    <select id="priceConditionV7" onchange="recalculatePriceV7()">
+                        <option value="nuevo">Nuevo / Grado A Industrial (100%)</option>
+                        <option value="usado">Usado Funcional (-30% Desgaste)</option>
+                        <option value="servicio">Servicio Técnico Especializado (+25%)</option>
+                    </select>
+                </div>
+                <div class="apple-input-group">
+                    <label>Factor de Liquidez / Demanda:</label>
+                    <select id="priceDemandV7" onchange="recalculatePriceV7()">
+                        <option value="normal">Demanda Equilibrada (1.0x)</option>
+                        <option value="alta">Temporada Alta / Escasez (+15%)</option>
+                        <option value="remate">Remate por Liquidez Inmediata (-20%)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- PANEL DE CONTROL DE IA V7 PREVIO -->
             <div id="aiControlPanel" style="display:none;">
                 <div class="apple-input-group">
                     <label>Prompt / Modificador NPU:</label>
-                    <input type="text" id="aiPromptV7" value="obra de arte hiperrealista 8k, estilo bioluminiscente studio glass, render octane">
-                </div>
-                <div class="apple-input-group">
-                    <label>Estilo Generativo Apple V7:</label>
-                    <select id="aiPresetV7" onchange="reRenderAIV7()">
-                        <option value="cyber_glow">Bioluminiscente Cyber Glow</option>
-                        <option value="glassmorphism">Apple 3D Glassmorphism</option>
-                        <option value="macro_8k">Macro DSLR Ultra Fotorrealista</option>
-                        <option value="amoled_minimal">Vector AMOLED Minimalista</option>
-                    </select>
+                    <input type="text" id="aiPromptV7" value="obra de arte hiperrealista 8k, estilo bioluminiscente studio glass">
                 </div>
             </div>
 
@@ -370,7 +402,7 @@ HTML_CONTENT = """
 
             capturedImage.onload = () => {
                 if (!selectedEngineKey) {
-                    executeModulePipeline('ai', '✨ Generar Imagen AI V7');
+                    executeModulePipeline('price', '🏷️ Valuador Híbrido V7');
                 } else {
                     executeModulePipeline(selectedEngineKey, selectedEngineName);
                 }
@@ -380,16 +412,23 @@ HTML_CONTENT = """
 
         function executeModulePipeline(engine, name) {
             document.getElementById('sheetTitle').innerText = name;
-            const box = document.getElementById('sheetCanvasBox');
-            box.innerHTML = "";
+            const pricePanel = document.getElementById('priceControlPanel');
             const aiPanel = document.getElementById('aiControlPanel');
 
-            if (engine === 'ai') {
+            if (engine === 'price') {
+                pricePanel.style.display = 'block';
+                aiPanel.style.display = 'none';
+                document.getElementById('sheetDesc').innerText = "Inspección visual NPU completada. Matriz comercial y proyección de reventa calculadas.";
+                recalculatePriceV7();
+            } else if (engine === 'ai') {
+                pricePanel.style.display = 'none';
                 aiPanel.style.display = 'block';
                 document.getElementById('sheetDesc').innerText = "Inferencia generativa Img2Img con condicionamiento latente sobre la captura.";
-                reRenderAIV7();
             } else {
+                pricePanel.style.display = 'none';
                 aiPanel.style.display = 'none';
+                const box = document.getElementById('sheetCanvasBox');
+                box.innerHTML = "";
                 const canvas = document.createElement('canvas');
                 canvas.width = 360; canvas.height = 220;
                 const ctx = canvas.getContext('2d');
@@ -401,35 +440,45 @@ HTML_CONTENT = """
             document.getElementById('sheetModal').classList.add('active');
         }
 
-        function reRenderAIV7() {
+        function recalculatePriceV7() {
+            const cond = document.getElementById('priceConditionV7').value;
+            const dem = document.getElementById('priceDemandV7').value;
+
+            let condFactor = cond === 'usado' ? 0.70 : (cond === 'servicio' ? 1.25 : 1.0);
+            let demFactor = dem === 'alta' ? 1.15 : (dem === 'remate' ? 0.80 : 1.0);
+
+            let baseCost = Math.round(260 * condFactor * demFactor);
+            let sellPrice = Math.round(420 * condFactor * demFactor);
+            let margin = sellPrice - baseCost;
+
+            document.getElementById('priceBuyVal').innerText = `$${baseCost}`;
+            document.getElementById('priceSellVal').innerText = `$${sellPrice}`;
+            document.getElementById('priceMarginVal').innerText = `+$${margin}`;
+
+            // Renderizado en canvas con HUD financiero
             const box = document.getElementById('sheetCanvasBox');
             box.innerHTML = "";
-            const preset = document.getElementById('aiPresetV7').value;
-
             const canvas = document.createElement('canvas');
-            canvas.width = 360; canvas.height = 240;
+            canvas.width = 360; canvas.height = 230;
             const ctx = canvas.getContext('2d');
 
-            ctx.drawImage(capturedImage, 0, 0, 360, 240);
+            ctx.drawImage(capturedImage, 0, 0, 360, 230);
 
-            // Capa generativa estética estilo Apple Glass V7
-            if (preset === 'cyber_glow') {
-                ctx.fillStyle = "rgba(10, 132, 255, 0.25)";
-                ctx.fillRect(0, 0, 360, 240);
-                ctx.fillStyle = "rgba(255, 55, 95, 0.18)";
-                ctx.beginPath(); ctx.arc(180, 120, 80, 0, Math.PI*2); ctx.fill();
-            } else if (preset === 'glassmorphism') {
-                ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
-                ctx.beginPath(); ctx.roundRect(40, 30, 280, 180, 24); ctx.fill();
-                ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
-                ctx.lineWidth = 1.5; ctx.stroke();
-            } else if (preset === 'macro_8k') {
-                ctx.fillStyle = "rgba(255, 214, 10, 0.15)";
-                ctx.fillRect(0, 0, 360, 240);
-            } else {
-                ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-                ctx.fillRect(0, 0, 360, 240);
-            }
+            // Overlay degradado inferior
+            const grad = ctx.createLinearGradient(0, 140, 0, 230);
+            grad.addColorStop(0, "rgba(0,0,0,0)");
+            grad.addColorStop(1, "rgba(0,0,0,0.85)");
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 140, 360, 90);
+
+            // Tag financiero
+            ctx.fillStyle = "#30D158";
+            ctx.font = "bold 13px -apple-system";
+            ctx.fillText(`VENTA SUGERIDA: $${sellPrice} MXN`, 16, 190);
+
+            ctx.fillStyle = "rgba(255,255,255,0.8)";
+            ctx.font = "10px -apple-system";
+            ctx.fillText(`Margen Neto: +$${margin} MXN | Condición: ${cond.toUpperCase()}`, 16, 210);
 
             box.appendChild(canvas);
         }
@@ -450,7 +499,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Generar Imagen AI V7 Ultra (Apple Glass UI)",
+        "engine": "Valuador Hibrido V7 Ultra (Apple Glass UI)",
         "status": "online"
     }
 
