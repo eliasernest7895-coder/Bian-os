@@ -12,7 +12,7 @@ router = APIRouter(prefix="/bian", tags=["Bian AI Vision Pro"])
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Imprenta PDF V9 Ultra"
+    prompt_analysis: str = "Wallpapers & Stickers V9 Ultra"
 
 HTML_CONTENT = """
 <!DOCTYPE html>
@@ -20,31 +20,34 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bian AI Suite - V9 Liquid Glass (Imprenta PDF V9)</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <title>Bian AI Suite - V9 Liquid Glass (Wallpapers & Stickers V9)</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; user-select: none; }
 
-        .glass-header {
-            position: absolute; top: 12px; left: 16px; right: 16px; z-index: 50;
-            background: rgba(22, 22, 26, 0.55);
+        /* HEADER DESARTICULADO (SIN BLOQUE CONTENEDOR) */
+        .top-float-left {
+            position: absolute; top: 16px; left: 18px; z-index: 50;
+            background: rgba(22, 22, 26, 0.6);
             backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 26px; padding: 10px 18px;
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 20px; padding: 7px 14px;
+            display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 12px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.4);
         }
-        .apple-pill { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13px; letter-spacing: -0.3px; }
-        .glow-dot { width: 8px; height: 8px; border-radius: 50%; background: #30D158; box-shadow: 0 0 10px #30D158; }
-        
-        .banana-chip {
-            background: rgba(255, 214, 10, 0.18); border: 1px solid rgba(255, 214, 10, 0.4);
-            color: #FFD60A; font-size: 10px; font-weight: 700; padding: 4px 12px; border-radius: 14px;
-            display: flex; align-items: center; gap: 5px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
+        .glow-dot { width: 7px; height: 7px; border-radius: 50%; background: #30D158; box-shadow: 0 0 8px #30D158; }
+
+        .top-float-right {
+            position: absolute; top: 16px; right: 18px; z-index: 50;
+            background: rgba(255, 214, 10, 0.16);
+            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 214, 10, 0.38);
+            color: #FFD60A; font-size: 11px; font-weight: 700; padding: 7px 14px; border-radius: 20px;
+            display: flex; align-items: center; gap: 6px; cursor: pointer;
+            transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.35);
         }
-        .banana-chip.active {
+        .top-float-right.active {
             background: linear-gradient(135deg, #FF9F0A, #FF375F);
             color: #fff; border-color: transparent;
             box-shadow: 0 0 16px rgba(255, 55, 95, 0.65);
@@ -60,7 +63,6 @@ HTML_CONTENT = """
         }
         .shutter-flash.flash { opacity: 0.85; }
 
-        /* HALO ONDULANTE DE AGUA AL TACTO */
         .water-ripple-ring {
             position: absolute; border-radius: 50%;
             border: 2px solid rgba(255, 255, 255, 0.85);
@@ -73,7 +75,6 @@ HTML_CONTENT = """
             100% { width: 160px; height: 160px; opacity: 0; transform: translate(-50%, -50%) scale(1.3); }
         }
 
-        /* ANILLO CIRCULAR NATIVO SAMSUNG PRO */
         .focus-circle-ring {
             position: absolute; width: 95px; height: 95px; pointer-events: none;
             border-radius: 50%; border: 1.8px solid rgba(255, 255, 255, 0.85);
@@ -155,6 +156,7 @@ HTML_CONTENT = """
             border-radius: 50%; background: #fff;
         }
 
+        /* BOTON DE CAPTURA ROJO CINE */
         .bottom-shutter-bar {
             position: absolute; bottom: 18px; left: 0; right: 0;
             display: flex; justify-content: space-around; align-items: center; z-index: 50;
@@ -162,19 +164,21 @@ HTML_CONTENT = """
         }
         .shutter-outer {
             width: 76px; height: 76px; border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.75);
+            background: rgba(255, 59, 48, 0.15); backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 59, 48, 0.65);
             display: flex; align-items: center; justify-content: center; cursor: pointer;
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .shutter-outer:active { transform: scale(0.9); }
         .shutter-inner {
-            width: 62px; height: 62px; border-radius: 50%; background: #fff;
+            width: 62px; height: 62px; border-radius: 50%;
+            background: linear-gradient(135deg, #FF453A, #FF3B30);
+            box-shadow: 0 0 16px rgba(255, 59, 48, 0.65);
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .shutter-outer.banana-ready .shutter-inner {
-            background: linear-gradient(135deg, #FFD60A, #FF9F0A);
-            box-shadow: 0 0 22px rgba(255, 214, 10, 0.85);
+            background: linear-gradient(135deg, #FF375F, #FF2D55);
+            box-shadow: 0 0 24px rgba(255, 45, 85, 0.9);
         }
         .side-btn {
             width: 44px; height: 44px; border-radius: 50%;
@@ -208,7 +212,7 @@ HTML_CONTENT = """
 
         .apple-input-group { margin-bottom: 12px; text-align: left; }
         .apple-input-group label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.7); display: block; margin-bottom: 6px; }
-        .apple-input-group select, .apple-input-group input[type="text"] {
+        .apple-input-group select, .apple-input-group input[type="range"] {
             width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
             border-radius: 12px; padding: 10px 12px; color: #fff; font-size: 12px; outline: none;
         }
@@ -230,10 +234,15 @@ HTML_CONTENT = """
         }
         .apple-btn-main:active { background: #0071E3; }
         
-        .apple-btn-export {
-            width: 100%; background: rgba(0, 255, 200, 0.15); border: 1px solid rgba(0, 255, 200, 0.35);
-            color: #00FFC8; padding: 12px; border-radius: 14px; font-size: 12px; font-weight: 700;
-            cursor: pointer; margin-top: 6px;
+        .dual-export-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+        .apple-btn-export-half {
+            background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff; padding: 12px; border-radius: 14px; font-size: 11px; font-weight: 700;
+            cursor: pointer; text-align: center;
+        }
+        .apple-btn-export-half.highlight {
+            background: rgba(255, 45, 85, 0.2); border-color: rgba(255, 45, 85, 0.45);
+            color: #FF2D55;
         }
     </style>
 </head>
@@ -241,21 +250,20 @@ HTML_CONTENT = """
 
     <div class="shutter-flash" id="flashLayer"></div>
 
-    <div class="glass-header">
-        <div class="apple-pill">
-            <div class="glow-dot"></div>
-            <span>Cam Vision V7</span>
-        </div>
-        <div class="banana-chip" id="bananaChip" onclick="resetArmEngine()">
-            <span>🍌</span>
-            <span id="bananaText">Nano-Banana Auto</span>
-        </div>
+    <!-- CHIPS FLOTANTES INDEPENDIENTES -->
+    <div class="top-float-left">
+        <div class="glow-dot"></div>
+        <span>Cam Vision V7</span>
+    </div>
+
+    <div class="top-float-right" id="bananaChip" onclick="resetArmEngine()">
+        <span>🍌</span>
+        <span id="bananaText">Nano-Banana</span>
     </div>
 
     <div class="viewport" id="viewportArea" onclick="handleTapToFocus(event)">
         <video id="webcam" autoplay playsinline></video>
         
-        <!-- ANILLO ENFOQUE SAMSUNG PRO V9 -->
         <div class="focus-circle-ring" id="focusCircle">
             <div class="lock-icon-badge">🔒</div>
             <div class="sun-slider-badge">☀️</div>
@@ -273,6 +281,7 @@ HTML_CONTENT = """
     <div class="dock-tooltip" id="dockTooltip">Módulo</div>
 
     <div class="glass-dock">
+        <div class="dock-icon-btn" onclick="selectEngine('custom', '🎨 Wallpapers & Stickers V9', this)">🎨</div>
         <div class="dock-icon-btn" onclick="selectEngine('print', '🖨️ Imprenta PDF V9', this)">🖨️</div>
         <div class="dock-icon-btn" onclick="selectEngine('cine', '🎬 Cine Scope V9', this)">🎬</div>
         <div class="dock-icon-btn" onclick="selectEngine('raw', '📸 Revelado RAW V9', this)">📸</div>
@@ -282,10 +291,10 @@ HTML_CONTENT = """
         <div class="dock-icon-btn" onclick="selectEngine('chef', '👨‍🍳 Chef Lean V9', this)">👨‍🍳</div>
         <div class="dock-icon-btn" onclick="selectEngine('price', '🏷️ Valuador Híbrido V7', this)">🏷️</div>
         <div class="dock-icon-btn" onclick="selectEngine('ai', '✨ Generar Imagen AI V7', this)">✨</div>
-        <div class="dock-icon-btn" onclick="selectEngine('custom', '🎨 Wallpapers & Stickers', this)">🎨</div>
         <div class="dock-icon-btn" onclick="selectEngine('lonas', '⛺ Lonas 3D Tensión', this)">⛺</div>
     </div>
 
+    <!-- BARRA CON BOTÓN ROJO CINEMÁTICO -->
     <div class="bottom-shutter-bar">
         <div class="side-btn" onclick="toggleLens()">🔄</div>
         <div class="shutter-outer" id="shutterBtn" onclick="triggerNanoBananaCapture()">
@@ -301,40 +310,42 @@ HTML_CONTENT = """
             <div class="sheet-desc" id="sheetDesc">Acción ejecutada mediante la canalización Nano-Banana.</div>
             <div class="preview-canvas-box" id="sheetCanvasBox"></div>
 
-            <!-- PANEL IMPRENTA PDF OFFSET V9 -->
-            <div id="printControlPanel" style="display:none;">
+            <!-- PANEL WALLPAPERS & STICKERS V9 -->
+            <div id="customControlPanel" style="display:none;">
                 <div class="metrics-grid">
                     <div class="metric-cell">
-                        <span>PLANCHA</span>
-                        <strong style="color:#00FFC8;" id="printPlateLabel">Full CMYK</strong>
+                        <span>ESTILO</span>
+                        <strong style="color:#FF2D55;" id="stickerStyleLabel">Die-Cut</strong>
                     </div>
                     <div class="metric-cell">
-                        <span>RESOLUCIÓN</span>
-                        <strong style="color:#FFD60A;">300 DPI</strong>
+                        <span>FONDO</span>
+                        <strong style="color:#00FFC8;">AMOLED Puro</strong>
                     </div>
                     <div class="metric-cell">
-                        <span>SANGRÍA</span>
-                        <strong style="color:#30D158;">3.0 mm</strong>
+                        <span>BORDE</span>
+                        <strong style="color:#FFD60A;" id="stickerBorderLabel">4.0 mm</strong>
                     </div>
                 </div>
                 <div class="apple-input-group">
-                    <label>Título del Pliego Técnico:</label>
-                    <input type="text" id="printJobTitleV9" value="PLIEGO TÉCNICO BIAN OFFSET" oninput="renderOffsetPlatesV9()">
-                </div>
-                <div class="apple-input-group">
-                    <label>Separación de Plancha Offset:</label>
-                    <select id="printPlateSelectV9" onchange="renderOffsetPlatesV9()">
-                        <option value="cmyk">Full Color CMYK (Compuesto)</option>
-                        <option value="cyan">Plancha Cyan (C)</option>
-                        <option value="magenta">Plancha Magenta (M)</option>
-                        <option value="yellow">Plancha Yellow (Y)</option>
-                        <option value="black">Plancha Black Key (K)</option>
+                    <label>Modo de Procesamiento V9:</label>
+                    <select id="stickerModeSelectV9" onchange="renderStickersV9()">
+                        <option value="die_cut">Sticker Troquelado Die-Cut (Reborde Blanco)</option>
+                        <option value="amoled_wp">Wallpaper AMOLED Deep Black (#000000 Puro)</option>
+                        <option value="cyber_pop">Sticker Holográfico Neón Pop</option>
                     </select>
                 </div>
-                <button class="apple-btn-export" onclick="exportOffsetPDFV9()">💾 Exportar Archivo Prensa .PDF V9</button>
+                <div class="apple-input-group">
+                    <label>Grosor del Borde Die-Cut:</label>
+                    <input type="range" id="stickerBorderSliderV9" min="2" max="10" step="1" value="4" oninput="renderStickersV9()">
+                </div>
+                <div class="dual-export-grid">
+                    <button class="apple-btn-export-half highlight" onclick="exportStickerPNGV9()">✂️ Sticker .PNG</button>
+                    <button class="apple-btn-export-half" onclick="exportWallpaperJPGV9()">📱 Wallpaper .JPG</button>
+                </div>
             </div>
 
             <!-- CONTENEDORES AUXILIARES -->
+            <div id="printControlPanel" style="display:none;"></div>
             <div id="cineControlPanel" style="display:none;"></div>
             <div id="rawControlPanel" style="display:none;"></div>
             <div id="svgControlPanel" style="display:none;"></div>
@@ -357,7 +368,7 @@ HTML_CONTENT = """
         let capturedImage = new Image();
         let tooltipTimeout = null;
         let audioCtx = null;
-        let printActiveCanvas = null;
+        let stickerActiveCanvas = null;
         let fadeCircleTimeout = null;
 
         function getAudioContext() {
@@ -379,7 +390,6 @@ HTML_CONTENT = """
                 osc.connect(gain);
                 gain.connect(ctx.destination);
 
-                // Beep confirmación enfoque Samsung Pro
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(1400, now);
                 osc.frequency.setValueAtTime(1800, now + 0.04);
@@ -398,8 +408,15 @@ HTML_CONTENT = """
                 osc.connect(gain);
                 gain.connect(ctx.destination);
 
-                if (key === 'print') {
-                    // Rodillo de presión y arrastre de pliego industrial offset
+                if (key === 'custom') {
+                    // Sonido texturizado de despegue vinil adhesivo (Sticker Peel)
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(520, now);
+                    osc.frequency.exponentialRampToValueAtTime(1600, now + 0.16);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.16);
+                    osc.start(now); osc.stop(now + 0.16);
+                } else if (key === 'print') {
                     osc.type = 'square';
                     osc.frequency.setValueAtTime(180, now);
                     osc.frequency.exponentialRampToValueAtTime(45, now + 0.28);
@@ -420,20 +437,6 @@ HTML_CONTENT = """
                     gain.gain.setValueAtTime(0.3, now);
                     gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
                     osc.start(now); osc.stop(now + 0.08);
-                } else if (key === 'svg') {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(350, now);
-                    osc.frequency.exponentialRampToValueAtTime(1200, now + 0.18);
-                    gain.gain.setValueAtTime(0.14, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.18);
-                    osc.start(now); osc.stop(now + 0.18);
-                } else if (key === 'vid') {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(480, now);
-                    osc.frequency.exponentialRampToValueAtTime(70, now + 0.32);
-                    gain.gain.setValueAtTime(0.18, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.32);
-                    osc.start(now); osc.stop(now + 0.32);
                 } else {
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(440, now);
@@ -480,14 +483,13 @@ HTML_CONTENT = """
         }
 
         function handleTapToFocus(e) {
-            if (e.target.closest('.glass-dock') || e.target.closest('.bottom-shutter-bar') || e.target.closest('.glass-header') || e.target.closest('.lens-pill-bar') || e.target.closest('.dock-tooltip')) return;
+            if (e.target.closest('.glass-dock') || e.target.closest('.bottom-shutter-bar') || e.target.closest('.top-float-left') || e.target.closest('.top-float-right') || e.target.closest('.lens-pill-bar') || e.target.closest('.dock-tooltip')) return;
             
             const viewport = document.getElementById('viewportArea');
             const rect = viewport.getBoundingClientRect();
             const clickX = e.clientX - rect.left;
             const clickY = e.clientY - rect.top;
 
-            // Halo Ondulante de Agua
             const ripple = document.createElement('div');
             ripple.className = 'water-ripple-ring';
             ripple.style.left = clickX + 'px';
@@ -495,7 +497,6 @@ HTML_CONTENT = """
             viewport.appendChild(ripple);
             setTimeout(() => ripple.remove(), 600);
 
-            // Mover el Anillo Samsung Pro, iluminarlo y sonido
             const circle = document.getElementById('focusCircle');
             circle.style.left = clickX + 'px';
             circle.style.top = clickY + 'px';
@@ -535,7 +536,7 @@ HTML_CONTENT = """
             elem.classList.add('selected');
 
             document.getElementById('bananaChip').classList.add('active');
-            document.getElementById('bananaText').innerText = `Armado: ${key.toUpperCase()}`;
+            document.getElementById('bananaText').innerText = key.toUpperCase();
             document.getElementById('shutterBtn').classList.add('banana-ready');
             triggerCircleFade();
         }
@@ -545,7 +546,7 @@ HTML_CONTENT = """
             selectedEngineName = null;
             document.querySelectorAll('.dock-icon-btn').forEach(btn => btn.classList.remove('selected'));
             document.getElementById('bananaChip').classList.remove('active');
-            document.getElementById('bananaText').innerText = 'Nano-Banana Auto';
+            document.getElementById('bananaText').innerText = 'Nano-Banana';
             document.getElementById('shutterBtn').classList.remove('banana-ready');
             triggerCircleFade();
         }
@@ -564,7 +565,7 @@ HTML_CONTENT = """
 
             capturedImage.onload = () => {
                 if (!selectedEngineKey) {
-                    executeModulePipeline('print', '🖨️ Imprenta PDF V9');
+                    executeModulePipeline('custom', '🎨 Wallpapers & Stickers V9');
                 } else {
                     executeModulePipeline(selectedEngineKey, selectedEngineName);
                 }
@@ -574,6 +575,7 @@ HTML_CONTENT = """
 
         function executeModulePipeline(engine, name) {
             document.getElementById('sheetTitle').innerText = name;
+            const customPanel = document.getElementById('customControlPanel');
             const printPanel = document.getElementById('printControlPanel');
             const cinePanel = document.getElementById('cineControlPanel');
             const rawPanel = document.getElementById('rawControlPanel');
@@ -584,8 +586,9 @@ HTML_CONTENT = """
             const pricePanel = document.getElementById('priceControlPanel');
             const aiPanel = document.getElementById('aiControlPanel');
 
-            if (engine === 'print') {
-                printPanel.style.display = 'block';
+            if (engine === 'custom') {
+                customPanel.style.display = 'block';
+                printPanel.style.display = 'none';
                 cinePanel.style.display = 'none';
                 rawPanel.style.display = 'none';
                 svgPanel.style.display = 'none';
@@ -594,9 +597,10 @@ HTML_CONTENT = """
                 chefPanel.style.display = 'none';
                 pricePanel.style.display = 'none';
                 aiPanel.style.display = 'none';
-                document.getElementById('sheetDesc').innerText = "Separación de planchas CMYK, líneas de guillotina y marcas de registro micrométricas.";
-                renderOffsetPlatesV9();
+                document.getElementById('sheetDesc').innerText = "Troquelado Die-Cut procedural con reborde de calcomanía y wallpapers AMOLED Deep Black.";
+                renderStickersV9();
             } else {
+                customPanel.style.display = 'none';
                 printPanel.style.display = 'none';
                 cinePanel.style.display = 'none';
                 rawPanel.style.display = 'none';
@@ -619,86 +623,94 @@ HTML_CONTENT = """
             document.getElementById('sheetModal').classList.add('active');
         }
 
-        function renderOffsetPlatesV9() {
-            const plate = document.getElementById('printPlateSelectV9').value;
-            const title = document.getElementById('printJobTitleV9').value.trim() || "OFFSET PRESS V9";
-            document.getElementById('printPlateLabel').innerText = plate.toUpperCase();
+        function renderStickersV9() {
+            const mode = document.getElementById('stickerModeSelectV9').value;
+            const borderW = parseInt(document.getElementById('stickerBorderSliderV9').value);
+            document.getElementById('stickerBorderLabel').innerText = borderW + ".0 mm";
+            document.getElementById('stickerStyleLabel').innerText = mode === 'die_cut' ? 'Die-Cut' : (mode === 'amoled_wp' ? 'AMOLED' : 'Holo Pop');
 
             const box = document.getElementById('sheetCanvasBox');
             box.innerHTML = "";
 
-            printActiveCanvas = document.createElement('canvas');
-            printActiveCanvas.width = 360;
-            printActiveCanvas.height = 230;
-            const ctx = printActiveCanvas.getContext('2d');
+            stickerActiveCanvas = document.createElement('canvas');
+            stickerActiveCanvas.width = 360;
+            stickerActiveCanvas.height = 230;
+            const ctx = stickerActiveCanvas.getContext('2d');
 
-            // Dibujar fondo blanco técnico
-            ctx.fillStyle = "#FFFFFF";
-            ctx.fillRect(0, 0, 360, 230);
+            if (mode === 'die_cut') {
+                // Fondo cuadriculado transparente
+                ctx.fillStyle = "#161618";
+                ctx.fillRect(0, 0, 360, 230);
 
-            // Dibujar imagen con sangría (área útil central)
-            ctx.drawImage(capturedImage, 18, 18, 324, 194);
+                // Sombra de despegue sticker
+                ctx.save();
+                ctx.shadowColor = "rgba(0,0,0,0.65)";
+                ctx.shadowBlur = 18;
+                ctx.shadowOffsetY = 6;
 
-            // Filtrado de Planchas CMYK simulado
-            if (plate === 'cyan') {
-                ctx.fillStyle = "rgba(0, 255, 255, 0.4)"; ctx.fillRect(18, 18, 324, 194);
-            } else if (plate === 'magenta') {
-                ctx.fillStyle = "rgba(255, 0, 255, 0.4)"; ctx.fillRect(18, 18, 324, 194);
-            } else if (plate === 'yellow') {
-                ctx.fillStyle = "rgba(255, 255, 0, 0.4)"; ctx.fillRect(18, 18, 324, 194);
-            } else if (plate === 'black') {
-                ctx.fillStyle = "rgba(0, 0, 0, 0.55)"; ctx.fillRect(18, 18, 324, 194);
-            }
-
-            // Marcas micrométricas de guillotina / corte (Cruces y Guías)
-            ctx.strokeStyle = "#000000";
-            ctx.lineWidth = 1;
-
-            // Esquinas corte
-            ctx.beginPath();
-            // Superior Izquierda
-            ctx.moveTo(8, 18); ctx.lineTo(18, 18); ctx.moveTo(18, 8); ctx.lineTo(18, 18);
-            // Superior Derecha
-            ctx.moveTo(352, 18); ctx.lineTo(342, 18); ctx.moveTo(342, 8); ctx.lineTo(342, 18);
-            // Inferior Izquierda
-            ctx.moveTo(8, 212); ctx.lineTo(18, 212); ctx.moveTo(18, 222); ctx.lineTo(18, 212);
-            // Inferior Derecha
-            ctx.moveTo(352, 212); ctx.lineTo(342, 212); ctx.moveTo(342, 222); ctx.lineTo(342, 212);
-            ctx.stroke();
-
-            // Cruces de Registro Circular
-            function drawRegMark(x, y) {
+                // Borde blanco Die-Cut
+                ctx.fillStyle = "#FFFFFF";
                 ctx.beginPath();
-                ctx.arc(x, y, 4, 0, Math.PI * 2);
-                ctx.moveTo(x - 6, y); ctx.lineTo(x + 6, y);
-                ctx.moveTo(x, y - 6); ctx.lineTo(x, y + 6);
-                ctx.stroke();
+                ctx.ellipse(180, 115, 128 + borderW * 2, 88 + borderW * 2, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                // Recorte del contenido interno
+                ctx.save();
+                ctx.beginPath();
+                ctx.ellipse(180, 115, 128, 88, 0, 0, Math.PI * 2);
+                ctx.clip();
+                ctx.drawImage(capturedImage, 50, 25, 260, 180);
+                ctx.restore();
+
+            } else if (mode === 'amoled_wp') {
+                // Fondo Negro Absoluto AMOLED 0x000000
+                ctx.fillStyle = "#000000";
+                ctx.fillRect(0, 0, 360, 230);
+
+                // Viñeta y objeto centrado
+                ctx.save();
+                ctx.drawImage(capturedImage, 60, 20, 240, 190);
+                const radGrad = ctx.createRadialGradient(180, 115, 60, 180, 115, 130);
+                radGrad.addColorStop(0, "rgba(0,0,0,0)");
+                radGrad.addColorStop(1, "rgba(0,0,0,0.95)");
+                ctx.fillStyle = radGrad;
+                ctx.fillRect(0, 0, 360, 230);
+                ctx.restore();
+
+            } else {
+                // Modo Neón Pop Holográfico
+                ctx.fillStyle = "#050B14";
+                ctx.fillRect(0, 0, 360, 230);
+
+                // Resplandor neón
+                ctx.save();
+                ctx.shadowColor = "#FF2D55";
+                ctx.shadowBlur = 24;
+                ctx.strokeStyle = "#FF2D55";
+                ctx.lineWidth = borderW;
+                ctx.strokeRect(60, 25, 240, 180);
+                ctx.drawImage(capturedImage, 60, 25, 240, 180);
+                ctx.restore();
             }
-            drawRegMark(180, 9);
-            drawRegMark(180, 221);
 
-            // Escala de Densidad de Color CMYK
-            const cmykColors = ["#00FFFF", "#FF00FF", "#FFFF00", "#000000"];
-            cmykColors.forEach((col, idx) => {
-                ctx.fillStyle = col;
-                ctx.fillRect(20 + (idx * 16), 5, 12, 6);
-            });
-
-            // Leyenda Técnica
-            ctx.fillStyle = "#000000";
-            ctx.font = "bold 8px system-ui";
-            ctx.fillText(`${title.toUpperCase()} | PLANCHA: ${plate.toUpperCase()} | 300 DPI`, 90, 11);
-
-            box.appendChild(printActiveCanvas);
+            box.appendChild(stickerActiveCanvas);
         }
 
-        function exportOffsetPDFV9() {
-            if (!printActiveCanvas) return;
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-            const imgData = printActiveCanvas.toDataURL('image/jpeg', 1.0);
-            pdf.addImage(imgData, 'JPEG', 10, 10, 277, 175);
-            pdf.save(`offset_press_v9_${Date.now()}.pdf`);
+        function exportStickerPNGV9() {
+            if (!stickerActiveCanvas) return;
+            const a = document.createElement('a');
+            a.href = stickerActiveCanvas.toDataURL('image/png');
+            a.download = `sticker_diecut_v9_${Date.now()}.png`;
+            a.click();
+        }
+
+        function exportWallpaperJPGV9() {
+            if (!stickerActiveCanvas) return;
+            const a = document.createElement('a');
+            a.href = stickerActiveCanvas.toDataURL('image/jpeg', 0.98);
+            a.download = `wallpaper_amoled_v9_${Date.now()}.jpg`;
+            a.click();
         }
 
         function closeSheet() {
@@ -718,7 +730,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Imprenta PDF Offset V9 Ultra (Samsung Pro Circle & Audio Beep)",
+        "engine": "Wallpapers & Stickers V9 Ultra (Red Cine Shutter & Dual Export)",
         "status": "online"
     }
 
