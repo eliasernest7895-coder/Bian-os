@@ -12,7 +12,7 @@ router = APIRouter(prefix="/bian", tags=["Bian AI Vision Pro"])
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Wallpapers & Stickers V9 Ultra"
+    prompt_analysis: str = "Lonas 3D V9 Ultra"
 
 HTML_CONTENT = """
 <!DOCTYPE html>
@@ -20,12 +20,11 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bian AI Suite - V9 Liquid Glass (Wallpapers & Stickers V9)</title>
+    <title>Bian AI Suite - V9 Liquid Glass (Lonas 3D V9)</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; user-select: none; }
 
-        /* HEADER DESARTICULADO (SIN BLOQUE CONTENEDOR) */
         .top-float-left {
             position: absolute; top: 16px; left: 18px; z-index: 50;
             background: rgba(22, 22, 26, 0.6);
@@ -54,8 +53,20 @@ HTML_CONTENT = """
             transform: scale(1.04);
         }
 
-        .viewport { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; }
-        video { width: 100%; height: 100%; object-fit: cover; }
+        /* VIEWPORT CON AJUSTE 100% PARA ZOOM */
+        .viewport {
+            flex: 1; position: relative; display: flex; align-items: center; justify-content: center;
+            background: #000; overflow: hidden; width: 100%; height: 100%;
+        }
+        .video-wrapper {
+            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+        video {
+            min-width: 100%; min-height: 100%; width: 100%; height: 100%;
+            object-fit: cover; transform-origin: center center;
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
         
         .shutter-flash {
             position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 60;
@@ -146,17 +157,26 @@ HTML_CONTENT = """
         }
         .dock-icon-btn:active { transform: scale(0.88); }
         .dock-icon-btn.selected {
-            background: linear-gradient(135deg, #0A84FF, #5E5CE6);
-            border-color: rgba(255,255,255,0.4);
             transform: translateY(-4px) scale(1.1);
-            box-shadow: 0 8px 20px rgba(94, 92, 230, 0.5);
         }
         .dock-icon-btn.selected::after {
             content: ''; position: absolute; bottom: -5px; width: 5px; height: 5px;
             border-radius: 50%; background: #fff;
         }
 
-        /* BOTON DE CAPTURA ROJO CINE */
+        /* COLORES INDIVIDUALES DE SELECCIÓN POR MÓDULO */
+        .dock-icon-btn[data-key="lonas"].selected { background: linear-gradient(135deg, #FF9500, #FF5E3A); border-color: rgba(255,149,0,0.6); box-shadow: 0 8px 20px rgba(255,94,58,0.5); }
+        .dock-icon-btn[data-key="custom"].selected { background: linear-gradient(135deg, #FF2D55, #AF52DE); border-color: rgba(255,45,85,0.6); box-shadow: 0 8px 20px rgba(255,45,85,0.5); }
+        .dock-icon-btn[data-key="print"].selected { background: linear-gradient(135deg, #32ADE6, #007AFF); border-color: rgba(50,173,230,0.6); box-shadow: 0 8px 20px rgba(0,122,255,0.5); }
+        .dock-icon-btn[data-key="cine"].selected { background: linear-gradient(135deg, #FF3B30, #FF2D55); border-color: rgba(255,59,48,0.6); box-shadow: 0 8px 20px rgba(255,59,48,0.5); }
+        .dock-icon-btn[data-key="raw"].selected { background: linear-gradient(135deg, #30D158, #34C759); border-color: rgba(48,209,88,0.6); box-shadow: 0 8px 20px rgba(48,209,88,0.5); }
+        .dock-icon-btn[data-key="svg"].selected { background: linear-gradient(135deg, #FFD60A, #FF9F0A); border-color: rgba(255,214,10,0.6); box-shadow: 0 8px 20px rgba(255,214,10,0.5); }
+        .dock-icon-btn[data-key="vid"].selected { background: linear-gradient(135deg, #BF5AF2, #5E5CE6); border-color: rgba(191,90,242,0.6); box-shadow: 0 8px 20px rgba(94,92,230,0.5); }
+        .dock-icon-btn[data-key="depth"].selected { background: linear-gradient(135deg, #FF375F, #BF5AF2); border-color: rgba(255,55,95,0.6); box-shadow: 0 8px 20px rgba(255,55,95,0.5); }
+        .dock-icon-btn[data-key="chef"].selected { background: linear-gradient(135deg, #FF9F0A, #FF6B00); border-color: rgba(255,159,10,0.6); box-shadow: 0 8px 20px rgba(255,107,0,0.5); }
+        .dock-icon-btn[data-key="price"].selected { background: linear-gradient(135deg, #63E6E2, #00C7BE); border-color: rgba(99,230,226,0.6); box-shadow: 0 8px 20px rgba(0,199,190,0.5); }
+        .dock-icon-btn[data-key="ai"].selected { background: linear-gradient(135deg, #0A84FF, #5E5CE6); border-color: rgba(10,132,255,0.6); box-shadow: 0 8px 20px rgba(10,132,255,0.5); }
+
         .bottom-shutter-bar {
             position: absolute; bottom: 18px; left: 0; right: 0;
             display: flex; justify-content: space-around; align-items: center; z-index: 50;
@@ -234,15 +254,10 @@ HTML_CONTENT = """
         }
         .apple-btn-main:active { background: #0071E3; }
         
-        .dual-export-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
-        .apple-btn-export-half {
-            background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #fff; padding: 12px; border-radius: 14px; font-size: 11px; font-weight: 700;
-            cursor: pointer; text-align: center;
-        }
-        .apple-btn-export-half.highlight {
-            background: rgba(255, 45, 85, 0.2); border-color: rgba(255, 45, 85, 0.45);
-            color: #FF2D55;
+        .apple-btn-export {
+            width: 100%; background: rgba(255, 149, 0, 0.15); border: 1px solid rgba(255, 149, 0, 0.4);
+            color: #FF9500; padding: 12px; border-radius: 14px; font-size: 12px; font-weight: 700;
+            cursor: pointer; margin-top: 6px;
         }
     </style>
 </head>
@@ -250,7 +265,6 @@ HTML_CONTENT = """
 
     <div class="shutter-flash" id="flashLayer"></div>
 
-    <!-- CHIPS FLOTANTES INDEPENDIENTES -->
     <div class="top-float-left">
         <div class="glow-dot"></div>
         <span>Cam Vision V7</span>
@@ -262,7 +276,9 @@ HTML_CONTENT = """
     </div>
 
     <div class="viewport" id="viewportArea" onclick="handleTapToFocus(event)">
-        <video id="webcam" autoplay playsinline></video>
+        <div class="video-wrapper">
+            <video id="webcam" autoplay playsinline></video>
+        </div>
         
         <div class="focus-circle-ring" id="focusCircle">
             <div class="lock-icon-badge">🔒</div>
@@ -273,7 +289,7 @@ HTML_CONTENT = """
     </div>
 
     <div class="lens-pill-bar">
-        <button class="lens-btn" onclick="applyDigitalZoom(0.8, this)">0.6x</button>
+        <button class="lens-btn" onclick="applyDigitalZoom(0.6, this)">0.6x</button>
         <button class="lens-btn active" onclick="applyDigitalZoom(1.0, this)">1x</button>
         <button class="lens-btn" onclick="applyDigitalZoom(1.5, this)">2x</button>
     </div>
@@ -281,20 +297,19 @@ HTML_CONTENT = """
     <div class="dock-tooltip" id="dockTooltip">Módulo</div>
 
     <div class="glass-dock">
-        <div class="dock-icon-btn" onclick="selectEngine('custom', '🎨 Wallpapers & Stickers V9', this)">🎨</div>
-        <div class="dock-icon-btn" onclick="selectEngine('print', '🖨️ Imprenta PDF V9', this)">🖨️</div>
-        <div class="dock-icon-btn" onclick="selectEngine('cine', '🎬 Cine Scope V9', this)">🎬</div>
-        <div class="dock-icon-btn" onclick="selectEngine('raw', '📸 Revelado RAW V9', this)">📸</div>
-        <div class="dock-icon-btn" onclick="selectEngine('svg', '📐 SVG Logos V9', this)">📐</div>
-        <div class="dock-icon-btn" onclick="selectEngine('vid', '🎥 Video Motion V8', this)">🎥</div>
-        <div class="dock-icon-btn" onclick="selectEngine('depth', '🧠 Depth-Map NPU V9', this)">🧠</div>
-        <div class="dock-icon-btn" onclick="selectEngine('chef', '👨‍🍳 Chef Lean V9', this)">👨‍🍳</div>
-        <div class="dock-icon-btn" onclick="selectEngine('price', '🏷️ Valuador Híbrido V7', this)">🏷️</div>
-        <div class="dock-icon-btn" onclick="selectEngine('ai', '✨ Generar Imagen AI V7', this)">✨</div>
-        <div class="dock-icon-btn" onclick="selectEngine('lonas', '⛺ Lonas 3D Tensión', this)">⛺</div>
+        <div class="dock-icon-btn" data-key="lonas" onclick="selectEngine('lonas', '⛺ Lonas 3D V9', this)">⛺</div>
+        <div class="dock-icon-btn" data-key="custom" onclick="selectEngine('custom', '🎨 Wallpapers V9', this)">🎨</div>
+        <div class="dock-icon-btn" data-key="print" onclick="selectEngine('print', '🖨️ Imprenta PDF V9', this)">🖨️</div>
+        <div class="dock-icon-btn" data-key="cine" onclick="selectEngine('cine', '🎬 Cine Scope V9', this)">🎬</div>
+        <div class="dock-icon-btn" data-key="raw" onclick="selectEngine('raw', '📸 Revelado RAW V9', this)">📸</div>
+        <div class="dock-icon-btn" data-key="svg" onclick="selectEngine('svg', '📐 SVG Logos V9', this)">📐</div>
+        <div class="dock-icon-btn" data-key="vid" onclick="selectEngine('vid', '🎥 Video Motion V8', this)">🎥</div>
+        <div class="dock-icon-btn" data-key="depth" onclick="selectEngine('depth', '🧠 Depth-Map NPU V9', this)">🧠</div>
+        <div class="dock-icon-btn" data-key="chef" onclick="selectEngine('chef', '👨‍🍳 Chef Lean V9', this)">👨‍🍳</div>
+        <div class="dock-icon-btn" data-key="price" onclick="selectEngine('price', '🏷️ Valuador Híbrido V7', this)">🏷️</div>
+        <div class="dock-icon-btn" data-key="ai" onclick="selectEngine('ai', '✨ Generar Imagen AI V7', this)">✨</div>
     </div>
 
-    <!-- BARRA CON BOTÓN ROJO CINEMÁTICO -->
     <div class="bottom-shutter-bar">
         <div class="side-btn" onclick="toggleLens()">🔄</div>
         <div class="shutter-outer" id="shutterBtn" onclick="triggerNanoBananaCapture()">
@@ -310,41 +325,39 @@ HTML_CONTENT = """
             <div class="sheet-desc" id="sheetDesc">Acción ejecutada mediante la canalización Nano-Banana.</div>
             <div class="preview-canvas-box" id="sheetCanvasBox"></div>
 
-            <!-- PANEL WALLPAPERS & STICKERS V9 -->
-            <div id="customControlPanel" style="display:none;">
+            <!-- PANEL LONAS 3D V9 ULTRA -->
+            <div id="lonasControlPanel" style="display:none;">
                 <div class="metrics-grid">
                     <div class="metric-cell">
-                        <span>ESTILO</span>
-                        <strong style="color:#FF2D55;" id="stickerStyleLabel">Die-Cut</strong>
+                        <span>VIENTO</span>
+                        <strong style="color:#FF9500;" id="lonasWindLabel">45 km/h</strong>
                     </div>
                     <div class="metric-cell">
-                        <span>FONDO</span>
-                        <strong style="color:#00FFC8;">AMOLED Puro</strong>
+                        <span>TENSIÓN</span>
+                        <strong style="color:#30D158;">Estable</strong>
                     </div>
                     <div class="metric-cell">
-                        <span>BORDE</span>
-                        <strong style="color:#FFD60A;" id="stickerBorderLabel">4.0 mm</strong>
+                        <span>OJILLOS</span>
+                        <strong style="color:#00FFC8;" id="lonasOjillosLabel">28 Unidades</strong>
                     </div>
                 </div>
                 <div class="apple-input-group">
-                    <label>Modo de Procesamiento V9:</label>
-                    <select id="stickerModeSelectV9" onchange="renderStickersV9()">
-                        <option value="die_cut">Sticker Troquelado Die-Cut (Reborde Blanco)</option>
-                        <option value="amoled_wp">Wallpaper AMOLED Deep Black (#000000 Puro)</option>
-                        <option value="cyber_pop">Sticker Holográfico Neón Pop</option>
+                    <label>Material Publicitario de la Lona:</label>
+                    <select id="lonaMatSelectV9" onchange="renderLonas3DV9()">
+                        <option value="frontlit">Frontlit 13oz Brillante (Refuerzo Térmico)</option>
+                        <option value="mesh">Mesh Microperforada (Anti-Viento Alta Carga)</option>
+                        <option value="backlight">Backlight Translúcida (Caja Lumínica)</option>
                     </select>
                 </div>
                 <div class="apple-input-group">
-                    <label>Grosor del Borde Die-Cut:</label>
-                    <input type="range" id="stickerBorderSliderV9" min="2" max="10" step="1" value="4" oninput="renderStickersV9()">
+                    <label>Carga Eólica / Velocidad del Viento (km/h):</label>
+                    <input type="range" id="lonaWindSliderV9" min="10" max="110" step="5" value="45" oninput="renderLonas3DV9()">
                 </div>
-                <div class="dual-export-grid">
-                    <button class="apple-btn-export-half highlight" onclick="exportStickerPNGV9()">✂️ Sticker .PNG</button>
-                    <button class="apple-btn-export-half" onclick="exportWallpaperJPGV9()">📱 Wallpaper .JPG</button>
-                </div>
+                <button class="apple-btn-export" onclick="exportLonas3DV9()">💾 Guardar Render Estructural .JPG V9</button>
             </div>
 
             <!-- CONTENEDORES AUXILIARES -->
+            <div id="customControlPanel" style="display:none;"></div>
             <div id="printControlPanel" style="display:none;"></div>
             <div id="cineControlPanel" style="display:none;"></div>
             <div id="rawControlPanel" style="display:none;"></div>
@@ -368,7 +381,7 @@ HTML_CONTENT = """
         let capturedImage = new Image();
         let tooltipTimeout = null;
         let audioCtx = null;
-        let stickerActiveCanvas = null;
+        let lonasActiveCanvas = null;
         let fadeCircleTimeout = null;
 
         function getAudioContext() {
@@ -408,8 +421,16 @@ HTML_CONTENT = """
                 osc.connect(gain);
                 gain.connect(ctx.destination);
 
-                if (key === 'custom') {
-                    // Sonido texturizado de despegue vinil adhesivo (Sticker Peel)
+                if (key === 'lonas') {
+                    // Tensión elástica de cable acerado y lona tensa
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(160, now);
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.12);
+                    osc.frequency.exponentialRampToValueAtTime(110, now + 0.26);
+                    gain.gain.setValueAtTime(0.24, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.26);
+                    osc.start(now); osc.stop(now + 0.26);
+                } else if (key === 'custom') {
                     osc.type = 'triangle';
                     osc.frequency.setValueAtTime(520, now);
                     osc.frequency.exponentialRampToValueAtTime(1600, now + 0.16);
@@ -467,6 +488,7 @@ HTML_CONTENT = """
         }
 
         function applyDigitalZoom(scale, elem) {
+            // Escala geométrica sin alterar proporción ni dejar huecos
             video.style.transform = `scale(${scale})`;
             document.querySelectorAll('.lens-btn').forEach(b => b.classList.remove('active'));
             elem.classList.add('active');
@@ -565,7 +587,7 @@ HTML_CONTENT = """
 
             capturedImage.onload = () => {
                 if (!selectedEngineKey) {
-                    executeModulePipeline('custom', '🎨 Wallpapers & Stickers V9');
+                    executeModulePipeline('lonas', '⛺ Lonas 3D V9');
                 } else {
                     executeModulePipeline(selectedEngineKey, selectedEngineName);
                 }
@@ -575,6 +597,7 @@ HTML_CONTENT = """
 
         function executeModulePipeline(engine, name) {
             document.getElementById('sheetTitle').innerText = name;
+            const lonasPanel = document.getElementById('lonasControlPanel');
             const customPanel = document.getElementById('customControlPanel');
             const printPanel = document.getElementById('printControlPanel');
             const cinePanel = document.getElementById('cineControlPanel');
@@ -586,8 +609,9 @@ HTML_CONTENT = """
             const pricePanel = document.getElementById('priceControlPanel');
             const aiPanel = document.getElementById('aiControlPanel');
 
-            if (engine === 'custom') {
-                customPanel.style.display = 'block';
+            if (engine === 'lonas') {
+                lonasPanel.style.display = 'block';
+                customPanel.style.display = 'none';
                 printPanel.style.display = 'none';
                 cinePanel.style.display = 'none';
                 rawPanel.style.display = 'none';
@@ -597,9 +621,10 @@ HTML_CONTENT = """
                 chefPanel.style.display = 'none';
                 pricePanel.style.display = 'none';
                 aiPanel.style.display = 'none';
-                document.getElementById('sheetDesc').innerText = "Troquelado Die-Cut procedural con reborde de calcomanía y wallpapers AMOLED Deep Black.";
-                renderStickersV9();
+                document.getElementById('sheetDesc').innerText = "Render estructural en perspectiva 3D con simulación de tensión eólica y anclajes.";
+                renderLonas3DV9();
             } else {
+                lonasPanel.style.display = 'none';
                 customPanel.style.display = 'none';
                 printPanel.style.display = 'none';
                 cinePanel.style.display = 'none';
@@ -623,93 +648,95 @@ HTML_CONTENT = """
             document.getElementById('sheetModal').classList.add('active');
         }
 
-        function renderStickersV9() {
-            const mode = document.getElementById('stickerModeSelectV9').value;
-            const borderW = parseInt(document.getElementById('stickerBorderSliderV9').value);
-            document.getElementById('stickerBorderLabel').innerText = borderW + ".0 mm";
-            document.getElementById('stickerStyleLabel').innerText = mode === 'die_cut' ? 'Die-Cut' : (mode === 'amoled_wp' ? 'AMOLED' : 'Holo Pop');
+        function renderLonas3DV9() {
+            const wind = parseInt(document.getElementById('lonaWindSliderV9').value);
+            const mat = document.getElementById('lonaMatSelectV9').value;
+            document.getElementById('lonasWindLabel').innerText = wind + " km/h";
+
+            const ojillosCount = wind > 70 ? 36 : (wind > 40 ? 28 : 20);
+            document.getElementById('lonasOjillosLabel').innerText = ojillosCount + " Unidades";
 
             const box = document.getElementById('sheetCanvasBox');
             box.innerHTML = "";
 
-            stickerActiveCanvas = document.createElement('canvas');
-            stickerActiveCanvas.width = 360;
-            stickerActiveCanvas.height = 230;
-            const ctx = stickerActiveCanvas.getContext('2d');
+            lonasActiveCanvas = document.createElement('canvas');
+            lonasActiveCanvas.width = 360;
+            lonasActiveCanvas.height = 230;
+            const ctx = lonasActiveCanvas.getContext('2d');
 
-            if (mode === 'die_cut') {
-                // Fondo cuadriculado transparente
-                ctx.fillStyle = "#161618";
-                ctx.fillRect(0, 0, 360, 230);
+            // Fondo de taller / exterior
+            ctx.fillStyle = "#0c0d10";
+            ctx.fillRect(0, 0, 360, 230);
 
-                // Sombra de despegue sticker
-                ctx.save();
-                ctx.shadowColor = "rgba(0,0,0,0.65)";
-                ctx.shadowBlur = 18;
-                ctx.shadowOffsetY = 6;
+            // Deformación de curvatura por viento en el centro de la lona
+            const windDeflection = (wind / 110) * 16;
 
-                // Borde blanco Die-Cut
-                ctx.fillStyle = "#FFFFFF";
+            // Marco tubular 3D perimetral
+            ctx.strokeStyle = "#3A3D45";
+            ctx.lineWidth = 5;
+            ctx.strokeRect(26, 20, 308, 185);
+
+            // Cables de anclaje tensores
+            ctx.strokeStyle = "rgba(255, 149, 0, 0.4)";
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(10, 10); ctx.lineTo(34, 28);
+            ctx.moveTo(350, 10); ctx.lineTo(326, 28);
+            ctx.moveTo(10, 220); ctx.lineTo(34, 197);
+            ctx.moveTo(350, 220); ctx.lineTo(326, 197);
+            ctx.stroke();
+
+            // Dibujo de la lona con textura y perspectiva
+            ctx.save();
+            ctx.drawImage(capturedImage, 34, 28, 292, 169);
+
+            // Simulación de deflexión eólica central
+            const gradWind = ctx.createRadialGradient(180, 112, 10, 180, 112, 120);
+            gradWind.addColorStop(0, `rgba(255,255,255,${windDeflection * 0.015})`);
+            gradWind.addColorStop(1, "rgba(0,0,0,0.35)");
+            ctx.fillStyle = gradWind;
+            ctx.fillRect(34, 28, 292, 169);
+
+            if (mat === 'mesh') {
+                // Trama microperforada
+                ctx.fillStyle = "rgba(0,0,0,0.22)";
+                for (let x = 38; x < 322; x += 6) {
+                    ctx.fillRect(x, 28, 2, 169);
+                }
+            }
+            ctx.restore();
+
+            // Anillos / Ojillos de acero perimetrales
+            ctx.fillStyle = "#E5E5EA";
+            ctx.strokeStyle = "#1C1C1E";
+            ctx.lineWidth = 1;
+
+            const drawOjillo = (ox, oy) => {
                 ctx.beginPath();
-                ctx.ellipse(180, 115, 128 + borderW * 2, 88 + borderW * 2, 0, 0, Math.PI * 2);
+                ctx.arc(ox, oy, 3.5, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.restore();
+                ctx.stroke();
+            };
 
-                // Recorte del contenido interno
-                ctx.save();
-                ctx.beginPath();
-                ctx.ellipse(180, 115, 128, 88, 0, 0, Math.PI * 2);
-                ctx.clip();
-                ctx.drawImage(capturedImage, 50, 25, 260, 180);
-                ctx.restore();
-
-            } else if (mode === 'amoled_wp') {
-                // Fondo Negro Absoluto AMOLED 0x000000
-                ctx.fillStyle = "#000000";
-                ctx.fillRect(0, 0, 360, 230);
-
-                // Viñeta y objeto centrado
-                ctx.save();
-                ctx.drawImage(capturedImage, 60, 20, 240, 190);
-                const radGrad = ctx.createRadialGradient(180, 115, 60, 180, 115, 130);
-                radGrad.addColorStop(0, "rgba(0,0,0,0)");
-                radGrad.addColorStop(1, "rgba(0,0,0,0.95)");
-                ctx.fillStyle = radGrad;
-                ctx.fillRect(0, 0, 360, 230);
-                ctx.restore();
-
-            } else {
-                // Modo Neón Pop Holográfico
-                ctx.fillStyle = "#050B14";
-                ctx.fillRect(0, 0, 360, 230);
-
-                // Resplandor neón
-                ctx.save();
-                ctx.shadowColor = "#FF2D55";
-                ctx.shadowBlur = 24;
-                ctx.strokeStyle = "#FF2D55";
-                ctx.lineWidth = borderW;
-                ctx.strokeRect(60, 25, 240, 180);
-                ctx.drawImage(capturedImage, 60, 25, 240, 180);
-                ctx.restore();
+            // Ojillos superiores e inferiores
+            for (let x = 46; x <= 314; x += 30) {
+                drawOjillo(x, 28);
+                drawOjillo(x, 197);
+            }
+            // Ojillos laterales
+            for (let y = 46; y <= 180; y += 26) {
+                drawOjillo(34, y);
+                drawOjillo(326, y);
             }
 
-            box.appendChild(stickerActiveCanvas);
+            box.appendChild(lonasActiveCanvas);
         }
 
-        function exportStickerPNGV9() {
-            if (!stickerActiveCanvas) return;
+        function exportLonas3DV9() {
+            if (!lonasActiveCanvas) return;
             const a = document.createElement('a');
-            a.href = stickerActiveCanvas.toDataURL('image/png');
-            a.download = `sticker_diecut_v9_${Date.now()}.png`;
-            a.click();
-        }
-
-        function exportWallpaperJPGV9() {
-            if (!stickerActiveCanvas) return;
-            const a = document.createElement('a');
-            a.href = stickerActiveCanvas.toDataURL('image/jpeg', 0.98);
-            a.download = `wallpaper_amoled_v9_${Date.now()}.jpg`;
+            a.href = lonasActiveCanvas.toDataURL('image/jpeg', 0.95);
+            a.download = `lona3d_v9_${Date.now()}.jpg`;
             a.click();
         }
 
@@ -730,7 +757,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Wallpapers & Stickers V9 Ultra (Red Cine Shutter & Dual Export)",
+        "engine": "Lonas 3D V9 Ultra (Complete V9 Unified Suite)",
         "status": "online"
     }
 
