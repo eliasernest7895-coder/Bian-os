@@ -12,7 +12,7 @@ router = APIRouter(prefix="/bian", tags=["Bian AI Vision Pro"])
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "SVG Logos V9 Ultra"
+    prompt_analysis: str = "Estudio RAW V9 Ultra"
 
 HTML_CONTENT = """
 <!DOCTYPE html>
@@ -20,7 +20,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bian AI Suite - V9 Liquid Glass (SVG Logos V9)</title>
+    <title>Bian AI Suite - V9 Liquid Glass (Estudio RAW V9)</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; user-select: none; }
@@ -180,11 +180,11 @@ HTML_CONTENT = """
         .sheet-desc { font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.4; margin-bottom: 16px; }
         
         .preview-canvas-box { width: 100%; height: 230px; background: #080808; border-radius: 18px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; position: relative; }
-        .preview-canvas-box svg, .preview-canvas-box canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .preview-canvas-box canvas, .preview-canvas-box svg { max-width: 100%; max-height: 100%; object-fit: contain; }
 
         .apple-input-group { margin-bottom: 12px; text-align: left; }
         .apple-input-group label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.7); display: block; margin-bottom: 6px; }
-        .apple-input-group select, .apple-input-group input {
+        .apple-input-group select, .apple-input-group input[type="range"] {
             width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
             border-radius: 12px; padding: 10px 12px; color: #fff; font-size: 12px; outline: none;
         }
@@ -207,8 +207,8 @@ HTML_CONTENT = """
         .apple-btn-main:active { background: #0071E3; }
         
         .apple-btn-export {
-            width: 100%; background: rgba(0, 255, 200, 0.15); border: 1px solid rgba(0, 255, 200, 0.35);
-            color: #00FFC8; padding: 12px; border-radius: 14px; font-size: 12px; font-weight: 700;
+            width: 100%; background: rgba(255, 214, 10, 0.15); border: 1px solid rgba(255, 214, 10, 0.35);
+            color: #FFD60A; padding: 12px; border-radius: 14px; font-size: 12px; font-weight: 700;
             cursor: pointer; margin-top: 6px;
         }
     </style>
@@ -245,6 +245,7 @@ HTML_CONTENT = """
     <div class="dock-tooltip" id="dockTooltip">Módulo</div>
 
     <div class="glass-dock">
+        <div class="dock-icon-btn" onclick="selectEngine('raw', '📸 Revelado RAW V9', this)">📸</div>
         <div class="dock-icon-btn" onclick="selectEngine('svg', '📐 SVG Logos V9', this)">📐</div>
         <div class="dock-icon-btn" onclick="selectEngine('vid', '🎥 Video Motion V8', this)">🎥</div>
         <div class="dock-icon-btn" onclick="selectEngine('depth', '🧠 Depth-Map NPU V9', this)">🧠</div>
@@ -254,7 +255,6 @@ HTML_CONTENT = """
         <div class="dock-icon-btn" onclick="selectEngine('cine', '🎬 Cine Scope 21:9', this)">🎬</div>
         <div class="dock-icon-btn" onclick="selectEngine('print', '🖨️ Imprenta PDF Offset', this)">🖨️</div>
         <div class="dock-icon-btn" onclick="selectEngine('custom', '🎨 Wallpapers & Stickers', this)">🎨</div>
-        <div class="dock-icon-btn" onclick="selectEngine('raw', '📸 Revelado RAW EV', this)">📸</div>
         <div class="dock-icon-btn" onclick="selectEngine('lonas', '⛺ Lonas 3D Tensión', this)">⛺</div>
     </div>
 
@@ -273,46 +273,39 @@ HTML_CONTENT = """
             <div class="sheet-desc" id="sheetDesc">Acción ejecutada mediante la canalización Nano-Banana.</div>
             <div class="preview-canvas-box" id="sheetCanvasBox"></div>
 
-            <!-- PANEL SVG LOGOS V9 -->
-            <div id="svgControlPanel" style="display:none;">
+            <!-- PANEL ESTUDIO RAW V9 -->
+            <div id="rawControlPanel" style="display:none;">
                 <div class="metrics-grid">
                     <div class="metric-cell">
-                        <span>FORMATO</span>
-                        <strong style="color:#00FFC8;">SVG Vector</strong>
+                        <span>EV EXPOSICIÓN</span>
+                        <strong style="color:#30D158;" id="rawEvLabel">0.0 EV</strong>
                     </div>
                     <div class="metric-cell">
-                        <span>RESOLUCIÓN</span>
-                        <strong style="color:#30D158;">Infinita</strong>
+                        <span>KELVIN</span>
+                        <strong style="color:#FFD60A;" id="rawKelvinLabel">5500K</strong>
                     </div>
                     <div class="metric-cell">
-                        <span>NODOS</span>
-                        <strong style="color:#FFD60A;">64 Vértices</strong>
+                        <span>CLARIDAD NPU</span>
+                        <strong style="color:#0A84FF;">Espectral</strong>
                     </div>
                 </div>
                 <div class="apple-input-group">
-                    <label>Título del Isotipo Vectorial:</label>
-                    <input type="text" id="svgTitleInputV9" value="BIAN CORE" oninput="renderSVGLogoV9()">
+                    <label>Compensación EV (-2.0 a +2.0 stops):</label>
+                    <input type="range" id="rawEvSlider" min="-2.0" max="2.0" step="0.1" value="0.0" oninput="renderStudioRAWV9()">
                 </div>
                 <div class="apple-input-group">
-                    <label>Estructura Geométrica Paramétrica:</label>
-                    <select id="svgGeomSelectV9" onchange="renderSVGLogoV9()">
-                        <option value="isocube">Isocubo 3D Wireframe (Perspectiva NPU)</option>
-                        <option value="hexagon">Hexágono Blindado Monolítico</option>
-                        <option value="ring">Anillo Orbital Sagrado</option>
+                    <label>Temperatura Kelvin / Balance de Blancos:</label>
+                    <select id="rawTempSelect" onchange="renderStudioRAWV9()">
+                        <option value="5500">5500K - Luz de Día Natural</option>
+                        <option value="3200">3200K - Tungsteno Cálido</option>
+                        <option value="7500">7500K - Sombra Cyber Fría</option>
                     </select>
                 </div>
-                <div class="apple-input-group">
-                    <label>Paleta Cromática NPU:</label>
-                    <select id="svgPaletteSelectV9" onchange="renderSVGLogoV9()">
-                        <option value="cyber">Cyberpunk Glow (#00FFC8 / #FF0055)</option>
-                        <option value="gold">Gold Monolith (#FFD700 / Deep Gold)</option>
-                        <option value="white">AMOLED Minimal (#FFFFFF / Pure Dark)</option>
-                    </select>
-                </div>
-                <button class="apple-btn-export" onclick="downloadSVGFromSheetV9()">💾 Descargar Vector .SVG V9</button>
+                <button class="apple-btn-export" onclick="exportDevelopedRAWV9()">💾 Guardar Revelado RAW .JPG V9</button>
             </div>
 
             <!-- CONTENEDORES AUXILIARES -->
+            <div id="svgControlPanel" style="display:none;"></div>
             <div id="vidControlPanel" style="display:none;"></div>
             <div id="depthControlPanel" style="display:none;"></div>
             <div id="chefControlPanel" style="display:none;"></div>
@@ -332,7 +325,7 @@ HTML_CONTENT = """
         let capturedImage = new Image();
         let tooltipTimeout = null;
         let audioCtx = null;
-        let generatedSVGCodeV9 = "";
+        let rawActiveCanvas = null;
 
         function getAudioContext() {
             if (!audioCtx) {
@@ -353,8 +346,15 @@ HTML_CONTENT = """
                 osc.connect(gain);
                 gain.connect(ctx.destination);
 
-                if (key === 'svg') {
-                    // SVG Logos: Tono ascendente de precisión láser vectorial
+                if (key === 'raw') {
+                    // Clic mecánico de obturador réflex analógico
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(240, now);
+                    osc.frequency.exponentialRampToValueAtTime(60, now + 0.08);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+                    osc.start(now); osc.stop(now + 0.08);
+                } else if (key === 'svg') {
                     osc.type = 'sawtooth';
                     osc.frequency.setValueAtTime(350, now);
                     osc.frequency.exponentialRampToValueAtTime(1200, now + 0.18);
@@ -499,7 +499,7 @@ HTML_CONTENT = """
 
             capturedImage.onload = () => {
                 if (!selectedEngineKey) {
-                    executeModulePipeline('svg', '📐 SVG Logos V9');
+                    executeModulePipeline('raw', '📸 Revelado RAW V9');
                 } else {
                     executeModulePipeline(selectedEngineKey, selectedEngineName);
                 }
@@ -509,6 +509,7 @@ HTML_CONTENT = """
 
         function executeModulePipeline(engine, name) {
             document.getElementById('sheetTitle').innerText = name;
+            const rawPanel = document.getElementById('rawControlPanel');
             const svgPanel = document.getElementById('svgControlPanel');
             const vidPanel = document.getElementById('vidControlPanel');
             const depthPanel = document.getElementById('depthControlPanel');
@@ -516,16 +517,18 @@ HTML_CONTENT = """
             const pricePanel = document.getElementById('priceControlPanel');
             const aiPanel = document.getElementById('aiControlPanel');
 
-            if (engine === 'svg') {
-                svgPanel.style.display = 'block';
+            if (engine === 'raw') {
+                rawPanel.style.display = 'block';
+                svgPanel.style.display = 'none';
                 vidPanel.style.display = 'none';
                 depthPanel.style.display = 'none';
                 chefPanel.style.display = 'none';
                 pricePanel.style.display = 'none';
                 aiPanel.style.display = 'none';
-                document.getElementById('sheetDesc').innerText = "Síntesis paramétrica vectorial SVG V9 y cálculo de geometría isocúbica.";
-                renderSVGLogoV9();
+                document.getElementById('sheetDesc').innerText = "Revelado digital por curvas de compensación EV e histograma RGB espectral en tiempo real.";
+                renderStudioRAWV9();
             } else {
+                rawPanel.style.display = 'none';
                 svgPanel.style.display = 'none';
                 vidPanel.style.display = 'none';
                 depthPanel.style.display = 'none';
@@ -545,62 +548,74 @@ HTML_CONTENT = """
             document.getElementById('sheetModal').classList.add('active');
         }
 
-        function renderSVGLogoV9() {
-            const title = document.getElementById('svgTitleInputV9').value.trim() || "BIAN V9";
-            const geom = document.getElementById('svgGeomSelectV9').value;
-            const palette = document.getElementById('svgPaletteSelectV9').value;
+        function renderStudioRAWV9() {
+            const ev = parseFloat(document.getElementById('rawEvSlider').value);
+            const temp = document.getElementById('rawTempSelect').value;
+            document.getElementById('rawEvLabel').innerText = (ev > 0 ? '+' : '') + ev.toFixed(1) + " EV";
+            document.getElementById('rawKelvinLabel').innerText = temp + "K";
+
             const box = document.getElementById('sheetCanvasBox');
+            box.innerHTML = "";
 
-            let c1 = "#00FFC8", c2 = "#FF0055";
-            if (palette === 'gold') { c1 = "#FFD700"; c2 = "#B8860B"; }
-            else if (palette === 'white') { c1 = "#FFFFFF"; c2 = "#777777"; }
+            rawActiveCanvas = document.createElement('canvas');
+            rawActiveCanvas.width = 360;
+            rawActiveCanvas.height = 230;
+            const ctx = rawActiveCanvas.getContext('2d');
 
-            let pathContent = "";
-            if (geom === 'isocube') {
-                pathContent = `
-                    <!-- Isocubo 3D Wireframe -->
-                    <polygon points="150,40 220,80 150,120 80,80" fill="none" stroke="${c1}" stroke-width="2.5" />
-                    <polygon points="80,80 150,120 150,200 80,160" fill="none" stroke="${c2}" stroke-width="2.5" />
-                    <polygon points="150,120 220,80 220,160 150,200" fill="none" stroke="${c1}" stroke-width="2.5" />
-                    <circle cx="150" cy="120" r="6" fill="${c1}" />
-                `;
-            } else if (geom === 'hexagon') {
-                pathContent = `
-                    <!-- Hexagono NPU -->
-                    <polygon points="150,30 225,75 225,165 150,210 75,165 75,75" fill="none" stroke="${c1}" stroke-width="3" />
-                    <polygon points="150,55 205,87 205,153 150,185 95,153 95,87" fill="none" stroke="${c2}" stroke-width="1.5" stroke-dasharray="4,4" />
-                `;
+            // Dibujar imagen base
+            ctx.drawImage(capturedImage, 0, 0, 360, 230);
+
+            // Capa de Compensación EV
+            if (ev > 0) {
+                ctx.fillStyle = `rgba(255, 255, 255, ${ev * 0.16})`;
             } else {
-                pathContent = `
-                    <!-- Anillo Orbital -->
-                    <circle cx="150" cy="120" r="75" fill="none" stroke="${c1}" stroke-width="3" />
-                    <ellipse cx="150" cy="120" rx="90" ry="35" fill="none" stroke="${c2}" stroke-width="2" transform="rotate(-25 150 120)" />
-                `;
+                ctx.fillStyle = `rgba(0, 0, 0, ${Math.abs(ev) * 0.26})`;
+            }
+            ctx.fillRect(0, 0, 360, 230);
+
+            // Capa Kelvin
+            if (temp === '3200') {
+                ctx.fillStyle = "rgba(255, 140, 0, 0.12)";
+                ctx.fillRect(0, 0, 360, 230);
+            } else if (temp === '7500') {
+                ctx.fillStyle = "rgba(0, 140, 255, 0.12)";
+                ctx.fillRect(0, 0, 360, 230);
             }
 
-            generatedSVGCodeV9 = `
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 250" width="100%" height="100%">
-                <defs>
-                    <linearGradient id="v9Grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="${c1}"/>
-                        <stop offset="100%" stop-color="${c2}"/>
-                    </linearGradient>
-                </defs>
-                <rect width="300" height="250" fill="#060608"/>
-                ${pathContent}
-                <text x="150" y="228" fill="#FFFFFF" font-family="-apple-system, sans-serif" font-weight="800" font-size="13" letter-spacing="2.5" text-anchor="middle">${title.toUpperCase()}</text>
-            </svg>`;
+            // Histograma Espectral RGB Dinámico
+            ctx.fillStyle = "rgba(10, 10, 14, 0.75)";
+            ctx.fillRect(12, 12, 110, 52);
+            ctx.strokeStyle = "rgba(255,255,255,0.18)";
+            ctx.strokeRect(12, 12, 110, 52);
 
-            box.innerHTML = generatedSVGCodeV9;
+            // Trazado Canales R, G, B
+            ctx.lineWidth = 1.2;
+            // Rojo
+            ctx.strokeStyle = "#FF453A";
+            ctx.beginPath();
+            ctx.moveTo(14, 60); ctx.lineTo(35, 30); ctx.lineTo(60, 48); ctx.lineTo(85, 22); ctx.lineTo(120, 60);
+            ctx.stroke();
+
+            // Verde
+            ctx.strokeStyle = "#30D158";
+            ctx.beginPath();
+            ctx.moveTo(14, 60); ctx.lineTo(40, 38); ctx.lineTo(70, 26); ctx.lineTo(95, 42); ctx.lineTo(120, 60);
+            ctx.stroke();
+
+            // Azul
+            ctx.strokeStyle = "#0A84FF";
+            ctx.beginPath();
+            ctx.moveTo(14, 60); ctx.lineTo(30, 44); ctx.lineTo(55, 20); ctx.lineTo(90, 34); ctx.lineTo(120, 60);
+            ctx.stroke();
+
+            box.appendChild(rawActiveCanvas);
         }
 
-        function downloadSVGFromSheetV9() {
-            if (!generatedSVGCodeV9) return;
-            const blob = new Blob([generatedSVGCodeV9], { type: 'image/svg+xml' });
-            const url = URL.createObjectURL(blob);
+        function exportDevelopedRAWV9() {
+            if (!rawActiveCanvas) return;
             const a = document.createElement('a');
-            a.href = url;
-            a.download = `vector_v9_${Date.now()}.svg`;
+            a.href = rawActiveCanvas.toDataURL('image/jpeg', 0.95);
+            a.download = `revelado_raw_v9_${Date.now()}.jpg`;
             a.click();
         }
 
@@ -620,7 +635,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "SVG Logos V9 Ultra (Apple Glass UI)",
+        "engine": "Estudio RAW V9 Ultra (Apple Glass UI)",
         "status": "online"
     }
 
