@@ -12,7 +12,7 @@ router = APIRouter(prefix="/bian", tags=["Bian AI Vision Pro"])
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Cine Scope V9 Ultra"
+    prompt_analysis: str = "Imprenta PDF V9 Ultra"
 
 HTML_CONTENT = """
 <!DOCTYPE html>
@@ -20,7 +20,8 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bian AI Suite - V9 Liquid Glass (Cine Scope V9)</title>
+    <title>Bian AI Suite - V9 Liquid Glass (Imprenta PDF V9)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; user-select: none; }
@@ -62,37 +63,41 @@ HTML_CONTENT = """
         /* HALO ONDULANTE DE AGUA AL TACTO */
         .water-ripple-ring {
             position: absolute; border-radius: 50%;
-            border: 2px solid rgba(0, 255, 200, 0.85);
-            box-shadow: 0 0 20px rgba(0, 255, 200, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.85);
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.7);
             pointer-events: none; z-index: 35;
-            animation: waterRipple 0.65s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+            animation: waterRipple 0.55s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
         }
         @keyframes waterRipple {
             0% { width: 10px; height: 10px; opacity: 1; transform: translate(-50%, -50%) scale(1); }
-            100% { width: 180px; height: 180px; opacity: 0; transform: translate(-50%, -50%) scale(1.4); }
+            100% { width: 160px; height: 160px; opacity: 0; transform: translate(-50%, -50%) scale(1.3); }
         }
 
-        /* RETICULA ADAPTATIVA CON DIFUMINADO TEMPORAL */
-        .reticle-container {
-            position: absolute; width: 68%; height: 50%; pointer-events: none;
-            border-radius: 38px; border: 2px solid rgba(255, 255, 255, 0.35);
-            transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1), top 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s, opacity 0.8s ease, box-shadow 0.4s ease;
-            display: flex; flex-direction: column; justify-content: flex-start; align-items: center;
-            padding: 12px 14px; opacity: 1;
+        /* ANILLO CIRCULAR NATIVO SAMSUNG PRO */
+        .focus-circle-ring {
+            position: absolute; width: 95px; height: 95px; pointer-events: none;
+            border-radius: 50%; border: 1.8px solid rgba(255, 255, 255, 0.85);
+            box-shadow: 0 0 16px rgba(255, 255, 255, 0.35);
+            transition: left 0.28s cubic-bezier(0.16, 1, 0.3, 1), top 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease, border-color 0.3s, transform 0.25s;
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            opacity: 1; transform: translate(-50%, -50%);
         }
-        .reticle-container.faded {
-            opacity: 0.12;
-            border-color: rgba(255, 255, 255, 0.15);
+        .focus-circle-ring.faded {
+            opacity: 0.15;
+            border-color: rgba(255, 255, 255, 0.2);
             box-shadow: none;
         }
-        .reticle-container.banana-lock {
+        .focus-circle-ring.glowing {
+            transform: translate(-50%, -50%) scale(1.08);
             border-color: #FFD60A;
-            box-shadow: 0 0 35px rgba(255, 214, 10, 0.4), inset 0 0 25px rgba(255, 214, 10, 0.15);
+            box-shadow: 0 0 25px rgba(255, 214, 10, 0.8);
         }
-        .reticle-telemetry {
-            font-size: 9px; font-weight: 700; color: rgba(255, 255, 255, 0.8);
-            background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(10px);
-            padding: 3px 8px; border-radius: 8px; letter-spacing: 0.5px;
+
+        .lock-icon-badge {
+            font-size: 11px; margin-top: -16px; background: rgba(0,0,0,0.5); border-radius: 50%; padding: 2px 4px;
+        }
+        .sun-slider-badge {
+            font-size: 12px; margin-bottom: -18px; background: rgba(0,0,0,0.5); border-radius: 50%; padding: 2px 4px;
         }
 
         .lens-pill-bar {
@@ -203,7 +208,7 @@ HTML_CONTENT = """
 
         .apple-input-group { margin-bottom: 12px; text-align: left; }
         .apple-input-group label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.7); display: block; margin-bottom: 6px; }
-        .apple-input-group select, .apple-input-group input[type="range"] {
+        .apple-input-group select, .apple-input-group input[type="text"] {
             width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
             border-radius: 12px; padding: 10px 12px; color: #fff; font-size: 12px; outline: none;
         }
@@ -249,9 +254,13 @@ HTML_CONTENT = """
 
     <div class="viewport" id="viewportArea" onclick="handleTapToFocus(event)">
         <video id="webcam" autoplay playsinline></video>
-        <div class="reticle-container" id="focusReticle">
-            <div class="reticle-telemetry" id="reticleTelemetry">CAM V7 | NPU ACTIVE</div>
+        
+        <!-- ANILLO ENFOQUE SAMSUNG PRO V9 -->
+        <div class="focus-circle-ring" id="focusCircle">
+            <div class="lock-icon-badge">🔒</div>
+            <div class="sun-slider-badge">☀️</div>
         </div>
+
         <canvas id="internalCanvas" style="display:none;"></canvas>
     </div>
 
@@ -264,6 +273,7 @@ HTML_CONTENT = """
     <div class="dock-tooltip" id="dockTooltip">Módulo</div>
 
     <div class="glass-dock">
+        <div class="dock-icon-btn" onclick="selectEngine('print', '🖨️ Imprenta PDF V9', this)">🖨️</div>
         <div class="dock-icon-btn" onclick="selectEngine('cine', '🎬 Cine Scope V9', this)">🎬</div>
         <div class="dock-icon-btn" onclick="selectEngine('raw', '📸 Revelado RAW V9', this)">📸</div>
         <div class="dock-icon-btn" onclick="selectEngine('svg', '📐 SVG Logos V9', this)">📐</div>
@@ -272,7 +282,6 @@ HTML_CONTENT = """
         <div class="dock-icon-btn" onclick="selectEngine('chef', '👨‍🍳 Chef Lean V9', this)">👨‍🍳</div>
         <div class="dock-icon-btn" onclick="selectEngine('price', '🏷️ Valuador Híbrido V7', this)">🏷️</div>
         <div class="dock-icon-btn" onclick="selectEngine('ai', '✨ Generar Imagen AI V7', this)">✨</div>
-        <div class="dock-icon-btn" onclick="selectEngine('print', '🖨️ Imprenta PDF Offset', this)">🖨️</div>
         <div class="dock-icon-btn" onclick="selectEngine('custom', '🎨 Wallpapers & Stickers', this)">🎨</div>
         <div class="dock-icon-btn" onclick="selectEngine('lonas', '⛺ Lonas 3D Tensión', this)">⛺</div>
     </div>
@@ -292,39 +301,41 @@ HTML_CONTENT = """
             <div class="sheet-desc" id="sheetDesc">Acción ejecutada mediante la canalización Nano-Banana.</div>
             <div class="preview-canvas-box" id="sheetCanvasBox"></div>
 
-            <!-- PANEL CINE SCOPE V9 ULTRA -->
-            <div id="cineControlPanel" style="display:none;">
+            <!-- PANEL IMPRENTA PDF OFFSET V9 -->
+            <div id="printControlPanel" style="display:none;">
                 <div class="metrics-grid">
                     <div class="metric-cell">
-                        <span>FORMATO</span>
-                        <strong style="color:#00FFC8;">21:9 Scope</strong>
+                        <span>PLANCHA</span>
+                        <strong style="color:#00FFC8;" id="printPlateLabel">Full CMYK</strong>
                     </div>
                     <div class="metric-cell">
-                        <span>ÓPTICA</span>
-                        <strong style="color:#FFD60A;">Anamórfica</strong>
+                        <span>RESOLUCIÓN</span>
+                        <strong style="color:#FFD60A;">300 DPI</strong>
                     </div>
                     <div class="metric-cell">
-                        <span>GRANO</span>
-                        <strong style="color:#30D158;" id="cineGrainLabel">35mm Haluro</strong>
+                        <span>SANGRÍA</span>
+                        <strong style="color:#30D158;">3.0 mm</strong>
                     </div>
                 </div>
                 <div class="apple-input-group">
-                    <label>Perfil 3D LUT Tetraédrico:</label>
-                    <select id="cineLutSelectV9" onchange="renderCineScopeV9()">
-                        <option value="teal_orange">Teal & Orange Anamorphic (Hollywood Blockbuster)</option>
-                        <option value="gold_streak">Gold Flare 70mm (Sci-Fi Warm Streak)</option>
-                        <option value="matrix_green">Cyber Matrix Phosphor (#00FFC8 Injected)</option>
-                        <option value="noir">Noir Kodak Tri-X 35mm (Alto Contraste)</option>
+                    <label>Título del Pliego Técnico:</label>
+                    <input type="text" id="printJobTitleV9" value="PLIEGO TÉCNICO BIAN OFFSET" oninput="renderOffsetPlatesV9()">
+                </div>
+                <div class="apple-input-group">
+                    <label>Separación de Plancha Offset:</label>
+                    <select id="printPlateSelectV9" onchange="renderOffsetPlatesV9()">
+                        <option value="cmyk">Full Color CMYK (Compuesto)</option>
+                        <option value="cyan">Plancha Cyan (C)</option>
+                        <option value="magenta">Plancha Magenta (M)</option>
+                        <option value="yellow">Plancha Yellow (Y)</option>
+                        <option value="black">Plancha Black Key (K)</option>
                     </select>
                 </div>
-                <div class="apple-input-group">
-                    <label>Destello Horizontal Óptico (Blue Streak Flare):</label>
-                    <input type="range" id="cineFlareSliderV9" min="0" max="100" step="5" value="40" oninput="renderCineScopeV9()">
-                </div>
-                <button class="apple-btn-export" onclick="exportCineScopeV9()">💾 Guardar Master 21:9 .JPG V9</button>
+                <button class="apple-btn-export" onclick="exportOffsetPDFV9()">💾 Exportar Archivo Prensa .PDF V9</button>
             </div>
 
             <!-- CONTENEDORES AUXILIARES -->
+            <div id="cineControlPanel" style="display:none;"></div>
             <div id="rawControlPanel" style="display:none;"></div>
             <div id="svgControlPanel" style="display:none;"></div>
             <div id="vidControlPanel" style="display:none;"></div>
@@ -346,8 +357,8 @@ HTML_CONTENT = """
         let capturedImage = new Image();
         let tooltipTimeout = null;
         let audioCtx = null;
-        let cineActiveCanvas = null;
-        let fadeReticleTimeout = null;
+        let printActiveCanvas = null;
+        let fadeCircleTimeout = null;
 
         function getAudioContext() {
             if (!audioCtx) {
@@ -359,6 +370,25 @@ HTML_CONTENT = """
             return audioCtx;
         }
 
+        function playFocusBeep() {
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                // Beep confirmación enfoque Samsung Pro
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1400, now);
+                osc.frequency.setValueAtTime(1800, now + 0.04);
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.09);
+                osc.start(now); osc.stop(now + 0.09);
+            } catch(e) { console.error("Audio error:", e); }
+        }
+
         function playModuleSound(key) {
             try {
                 const ctx = getAudioContext();
@@ -368,8 +398,15 @@ HTML_CONTENT = """
                 osc.connect(gain);
                 gain.connect(ctx.destination);
 
-                if (key === 'cine') {
-                    // Motor de obturación y arrastre de celuloide 35mm
+                if (key === 'print') {
+                    // Rodillo de presión y arrastre de pliego industrial offset
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(180, now);
+                    osc.frequency.exponentialRampToValueAtTime(45, now + 0.28);
+                    gain.gain.setValueAtTime(0.18, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.28);
+                    osc.start(now); osc.stop(now + 0.28);
+                } else if (key === 'cine') {
                     osc.type = 'sawtooth';
                     osc.frequency.setValueAtTime(120, now);
                     osc.frequency.linearRampToValueAtTime(80, now + 0.22);
@@ -397,34 +434,6 @@ HTML_CONTENT = """
                     gain.gain.setValueAtTime(0.18, now);
                     gain.gain.linearRampToValueAtTime(0.01, now + 0.32);
                     osc.start(now); osc.stop(now + 0.32);
-                } else if (key === 'depth') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(840, now);
-                    osc.frequency.exponentialRampToValueAtTime(320, now + 0.4);
-                    gain.gain.setValueAtTime(0.2, now);
-                    gain.gain.exponentialRampToValueAtTime(0.005, now + 0.4);
-                    osc.start(now); osc.stop(now + 0.4);
-                } else if (key === 'chef') {
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(620, now);
-                    osc.frequency.exponentialRampToValueAtTime(110, now + 0.12);
-                    gain.gain.setValueAtTime(0.25, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
-                    osc.start(now); osc.stop(now + 0.12);
-                } else if (key === 'price') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(587.33, now);
-                    osc.frequency.setValueAtTime(880, now + 0.1);
-                    gain.gain.setValueAtTime(0.16, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.28);
-                    osc.start(now); osc.stop(now + 0.28);
-                } else if (key === 'ai') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(1046.5, now);
-                    osc.frequency.exponentialRampToValueAtTime(1318.5, now + 0.18);
-                    gain.gain.setValueAtTime(0.15, now);
-                    gain.gain.exponentialRampToValueAtTime(0.005, now + 0.35);
-                    osc.start(now); osc.stop(now + 0.35);
                 } else {
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(440, now);
@@ -439,7 +448,10 @@ HTML_CONTENT = """
             navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } })
                 .then(stream => { 
                     video.srcObject = stream;
-                    triggerReticleTimer();
+                    const circle = document.getElementById('focusCircle');
+                    circle.style.left = '50%';
+                    circle.style.top = '46%';
+                    triggerCircleFade();
                 })
                 .catch(err => console.error("Error cámara:", err));
         }
@@ -455,16 +467,15 @@ HTML_CONTENT = """
             video.style.transform = `scale(${scale})`;
             document.querySelectorAll('.lens-btn').forEach(b => b.classList.remove('active'));
             elem.classList.add('active');
-            document.getElementById('reticleTelemetry').innerText = `CAM V7 | ZOOM ${scale}x | NPU ACTIVE`;
-            triggerReticleTimer();
+            triggerCircleFade();
         }
 
-        function triggerReticleTimer() {
-            const reticle = document.getElementById('focusReticle');
-            reticle.classList.remove('faded');
-            if (fadeReticleTimeout) clearTimeout(fadeReticleTimeout);
-            fadeReticleTimeout = setTimeout(() => {
-                reticle.classList.add('faded');
+        function triggerCircleFade() {
+            const circle = document.getElementById('focusCircle');
+            circle.classList.remove('faded');
+            if (fadeCircleTimeout) clearTimeout(fadeCircleTimeout);
+            fadeCircleTimeout = setTimeout(() => {
+                circle.classList.add('faded');
             }, 1800);
         }
 
@@ -482,18 +493,17 @@ HTML_CONTENT = """
             ripple.style.left = clickX + 'px';
             ripple.style.top = clickY + 'px';
             viewport.appendChild(ripple);
-            setTimeout(() => ripple.remove(), 700);
+            setTimeout(() => ripple.remove(), 600);
 
-            // Resituar e iluminar retícula
-            const reticle = document.getElementById('focusReticle');
-            const targetLeft = Math.max(10, Math.min(rect.width - reticle.offsetWidth - 10, clickX - (reticle.offsetWidth / 2)));
-            const targetTop = Math.max(70, Math.min(rect.height - reticle.offsetHeight - 120, clickY - (reticle.offsetHeight / 2)));
+            // Mover el Anillo Samsung Pro, iluminarlo y sonido
+            const circle = document.getElementById('focusCircle');
+            circle.style.left = clickX + 'px';
+            circle.style.top = clickY + 'px';
+            circle.classList.add('glowing');
+            setTimeout(() => circle.classList.remove('glowing'), 300);
 
-            reticle.style.left = targetLeft + 'px';
-            reticle.style.top = targetTop + 'px';
-            document.getElementById('reticleTelemetry').innerText = `CAM V7 | ENFOQUE FIJADO`;
-
-            triggerReticleTimer();
+            playFocusBeep();
+            triggerCircleFade();
         }
 
         function showDockTooltipAboveElement(name, elem) {
@@ -526,9 +536,8 @@ HTML_CONTENT = """
 
             document.getElementById('bananaChip').classList.add('active');
             document.getElementById('bananaText').innerText = `Armado: ${key.toUpperCase()}`;
-            document.getElementById('focusReticle').classList.add('banana-lock');
             document.getElementById('shutterBtn').classList.add('banana-ready');
-            triggerReticleTimer();
+            triggerCircleFade();
         }
 
         function resetArmEngine() {
@@ -537,9 +546,8 @@ HTML_CONTENT = """
             document.querySelectorAll('.dock-icon-btn').forEach(btn => btn.classList.remove('selected'));
             document.getElementById('bananaChip').classList.remove('active');
             document.getElementById('bananaText').innerText = 'Nano-Banana Auto';
-            document.getElementById('focusReticle').classList.remove('banana-lock');
             document.getElementById('shutterBtn').classList.remove('banana-ready');
-            triggerReticleTimer();
+            triggerCircleFade();
         }
 
         function triggerNanoBananaCapture() {
@@ -556,7 +564,7 @@ HTML_CONTENT = """
 
             capturedImage.onload = () => {
                 if (!selectedEngineKey) {
-                    executeModulePipeline('cine', '🎬 Cine Scope V9');
+                    executeModulePipeline('print', '🖨️ Imprenta PDF V9');
                 } else {
                     executeModulePipeline(selectedEngineKey, selectedEngineName);
                 }
@@ -566,6 +574,7 @@ HTML_CONTENT = """
 
         function executeModulePipeline(engine, name) {
             document.getElementById('sheetTitle').innerText = name;
+            const printPanel = document.getElementById('printControlPanel');
             const cinePanel = document.getElementById('cineControlPanel');
             const rawPanel = document.getElementById('rawControlPanel');
             const svgPanel = document.getElementById('svgControlPanel');
@@ -575,8 +584,9 @@ HTML_CONTENT = """
             const pricePanel = document.getElementById('priceControlPanel');
             const aiPanel = document.getElementById('aiControlPanel');
 
-            if (engine === 'cine') {
-                cinePanel.style.display = 'block';
+            if (engine === 'print') {
+                printPanel.style.display = 'block';
+                cinePanel.style.display = 'none';
                 rawPanel.style.display = 'none';
                 svgPanel.style.display = 'none';
                 vidPanel.style.display = 'none';
@@ -584,9 +594,10 @@ HTML_CONTENT = """
                 chefPanel.style.display = 'none';
                 pricePanel.style.display = 'none';
                 aiPanel.style.display = 'none';
-                document.getElementById('sheetDesc').innerText = "Colorimetría anamórfica 21:9, destello óptico horizontal y emulsión analógica.";
-                renderCineScopeV9();
+                document.getElementById('sheetDesc').innerText = "Separación de planchas CMYK, líneas de guillotina y marcas de registro micrométricas.";
+                renderOffsetPlatesV9();
             } else {
+                printPanel.style.display = 'none';
                 cinePanel.style.display = 'none';
                 rawPanel.style.display = 'none';
                 svgPanel.style.display = 'none';
@@ -608,66 +619,91 @@ HTML_CONTENT = """
             document.getElementById('sheetModal').classList.add('active');
         }
 
-        function renderCineScopeV9() {
-            const lut = document.getElementById('cineLutSelectV9').value;
-            const flare = parseInt(document.getElementById('cineFlareSliderV9').value);
+        function renderOffsetPlatesV9() {
+            const plate = document.getElementById('printPlateSelectV9').value;
+            const title = document.getElementById('printJobTitleV9').value.trim() || "OFFSET PRESS V9";
+            document.getElementById('printPlateLabel').innerText = plate.toUpperCase();
+
             const box = document.getElementById('sheetCanvasBox');
             box.innerHTML = "";
 
-            cineActiveCanvas = document.createElement('canvas');
-            cineActiveCanvas.width = 360;
-            cineActiveCanvas.height = 210;
-            const ctx = cineActiveCanvas.getContext('2d');
+            printActiveCanvas = document.createElement('canvas');
+            printActiveCanvas.width = 360;
+            printActiveCanvas.height = 230;
+            const ctx = printActiveCanvas.getContext('2d');
 
-            // Dibujo imagen fotograma
-            ctx.drawImage(capturedImage, 0, 0, 360, 210);
+            // Dibujar fondo blanco técnico
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(0, 0, 360, 230);
 
-            // Capa LUT Tetraédrica
-            if (lut === 'teal_orange') {
-                ctx.fillStyle = "rgba(0, 200, 210, 0.18)"; ctx.fillRect(0, 0, 360, 210);
-                ctx.fillStyle = "rgba(255, 120, 0, 0.14)"; ctx.fillRect(0, 0, 360, 210);
-            } else if (lut === 'gold_streak') {
-                ctx.fillStyle = "rgba(255, 215, 0, 0.22)"; ctx.fillRect(0, 0, 360, 210);
-            } else if (lut === 'matrix_green') {
-                ctx.fillStyle = "rgba(0, 255, 160, 0.20)"; ctx.fillRect(0, 0, 360, 210);
-            } else {
-                ctx.fillStyle = "rgba(0, 0, 0, 0.38)"; ctx.fillRect(0, 0, 360, 210);
+            // Dibujar imagen con sangría (área útil central)
+            ctx.drawImage(capturedImage, 18, 18, 324, 194);
+
+            // Filtrado de Planchas CMYK simulado
+            if (plate === 'cyan') {
+                ctx.fillStyle = "rgba(0, 255, 255, 0.4)"; ctx.fillRect(18, 18, 324, 194);
+            } else if (plate === 'magenta') {
+                ctx.fillStyle = "rgba(255, 0, 255, 0.4)"; ctx.fillRect(18, 18, 324, 194);
+            } else if (plate === 'yellow') {
+                ctx.fillStyle = "rgba(255, 255, 0, 0.4)"; ctx.fillRect(18, 18, 324, 194);
+            } else if (plate === 'black') {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.55)"; ctx.fillRect(18, 18, 324, 194);
             }
 
-            // Destello Anamórfico (Blue Streak Flare)
-            if (flare > 0) {
-                const alpha = (flare / 100) * 0.45;
-                const grad = ctx.createLinearGradient(0, 103, 360, 107);
-                grad.addColorStop(0, "rgba(0, 140, 255, 0)");
-                grad.addColorStop(0.5, `rgba(0, 220, 255, ${alpha})`);
-                grad.addColorStop(1, "rgba(0, 140, 255, 0)");
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 102, 360, 6);
+            // Marcas micrométricas de guillotina / corte (Cruces y Guías)
+            ctx.strokeStyle = "#000000";
+            ctx.lineWidth = 1;
+
+            // Esquinas corte
+            ctx.beginPath();
+            // Superior Izquierda
+            ctx.moveTo(8, 18); ctx.lineTo(18, 18); ctx.moveTo(18, 8); ctx.lineTo(18, 18);
+            // Superior Derecha
+            ctx.moveTo(352, 18); ctx.lineTo(342, 18); ctx.moveTo(342, 8); ctx.lineTo(342, 18);
+            // Inferior Izquierda
+            ctx.moveTo(8, 212); ctx.lineTo(18, 212); ctx.moveTo(18, 222); ctx.lineTo(18, 212);
+            // Inferior Derecha
+            ctx.moveTo(352, 212); ctx.lineTo(342, 212); ctx.moveTo(342, 222); ctx.lineTo(342, 212);
+            ctx.stroke();
+
+            // Cruces de Registro Circular
+            function drawRegMark(x, y) {
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, Math.PI * 2);
+                ctx.moveTo(x - 6, y); ctx.lineTo(x + 6, y);
+                ctx.moveTo(x, y - 6); ctx.lineTo(x, y + 6);
+                ctx.stroke();
             }
+            drawRegMark(180, 9);
+            drawRegMark(180, 221);
 
-            // Grano Procedural Analógico 35mm
-            ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.05})`;
-            ctx.fillRect(0, 0, 360, 210);
+            // Escala de Densidad de Color CMYK
+            const cmykColors = ["#00FFFF", "#FF00FF", "#FFFF00", "#000000"];
+            cmykColors.forEach((col, idx) => {
+                ctx.fillStyle = col;
+                ctx.fillRect(20 + (idx * 16), 5, 12, 6);
+            });
 
-            // Barras Negras CineScope 21:9
+            // Leyenda Técnica
             ctx.fillStyle = "#000000";
-            ctx.fillRect(0, 0, 360, 22);
-            ctx.fillRect(0, 188, 360, 22);
+            ctx.font = "bold 8px system-ui";
+            ctx.fillText(`${title.toUpperCase()} | PLANCHA: ${plate.toUpperCase()} | 300 DPI`, 90, 11);
 
-            box.appendChild(cineActiveCanvas);
+            box.appendChild(printActiveCanvas);
         }
 
-        function exportCineScopeV9() {
-            if (!cineActiveCanvas) return;
-            const a = document.createElement('a');
-            a.href = cineActiveCanvas.toDataURL('image/jpeg', 0.95);
-            a.download = `cinescope_v9_${Date.now()}.jpg`;
-            a.click();
+        function exportOffsetPDFV9() {
+            if (!printActiveCanvas) return;
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+            const imgData = printActiveCanvas.toDataURL('image/jpeg', 1.0);
+            pdf.addImage(imgData, 'JPEG', 10, 10, 277, 175);
+            pdf.save(`offset_press_v9_${Date.now()}.pdf`);
         }
 
         function closeSheet() {
             document.getElementById('sheetModal').classList.remove('active');
-            triggerReticleTimer();
+            triggerCircleFade();
         }
     </script>
 </body>
@@ -682,7 +718,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Cine Scope V9 Ultra (Water Ripple Focus & Apple Glass UI)",
+        "engine": "Imprenta PDF Offset V9 Ultra (Samsung Pro Circle & Audio Beep)",
         "status": "online"
     }
 
