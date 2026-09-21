@@ -25,7 +25,6 @@ HTML_CONTENT = """
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; user-select: none; }
 
-        /* CÁPSULA IZQUIERDA: MUESTRA EL MÓDULO OPERATIVO */
         .top-float-left {
             position: absolute; top: 16px; left: 18px; z-index: 50;
             background: rgba(22, 22, 26, 0.6);
@@ -38,7 +37,6 @@ HTML_CONTENT = """
         }
         .glow-dot { width: 7px; height: 7px; border-radius: 50%; background: #30D158; box-shadow: 0 0 8px #30D158; }
 
-        /* CÁPSULA DERECHA: SIEMPRE LA PREGUNTA DE ACCIÓN */
         .top-float-right {
             position: absolute; top: 16px; right: 18px; z-index: 50;
             background: rgba(255, 255, 255, 0.12);
@@ -81,19 +79,35 @@ HTML_CONTENT = """
         .lock-icon-badge { font-size: 11px; margin-top: -16px; background: rgba(0,0,0,0.5); border-radius: 50%; padding: 2px 4px; }
         .sun-slider-badge { font-size: 12px; margin-bottom: -18px; background: rgba(0,0,0,0.5); border-radius: 50%; padding: 2px 4px; }
 
+        /* BARRA DE ZOOM CON APERTURA EN ABANICO Y CIERRE */
         .lens-pill-bar {
             position: absolute; bottom: 175px; z-index: 45;
             display: flex; gap: 4px; background: rgba(0, 0, 0, 0.55);
             backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
             border: 1px solid rgba(255, 255, 255, 0.12);
             padding: 4px 6px; border-radius: 24px;
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         .lens-btn {
             background: transparent; border: none; color: rgba(255,255,255,0.7);
             font-size: 10px; font-weight: 700; padding: 5px 9px; border-radius: 14px;
-            cursor: pointer; transition: all 0.2s;
+            cursor: pointer; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .lens-btn.active { background: rgba(255, 255, 255, 0.25); color: #fff; transform: scale(1.05); }
+
+        /* MODO CERRADO (SOLO EL ZOOM ACTIVO VISIBLE) */
+        .lens-pill-bar.collapsed {
+            padding: 3px 5px;
+        }
+        .lens-pill-bar.collapsed .lens-btn:not(.active) {
+            opacity: 0;
+            width: 0;
+            padding: 0;
+            margin: 0;
+            pointer-events: none;
+            overflow: hidden;
+            transform: scale(0.4);
+        }
 
         .dock-tooltip {
             position: absolute; z-index: 46;
@@ -106,7 +120,6 @@ HTML_CONTENT = """
         }
         .dock-tooltip.visible { opacity: 1; transform: translate(-50%, 0); }
 
-        /* CONTENEDOR DOCK CON TRANSICIÓN DINÁMICA DE POSICIÓN Y ANCHO */
         .glass-dock {
             position: absolute; bottom: 104px; left: 50%; transform: translateX(-50%); z-index: 40;
             width: calc(100% - 32px); max-width: 500px;
@@ -121,9 +134,9 @@ HTML_CONTENT = """
         }
         .glass-dock::-webkit-scrollbar { display: none; }
 
-        /* PILA UBICADA ABAJO DE 10x (Alineada hacia la derecha de la barra de zoom) */
+        /* PILA MOVIDA MÁS A LA DERECHA (76%) */
         .glass-dock.stacked-mode {
-            left: 64%;
+            left: 76%;
             transform: translateX(-50%);
             width: 125px;
             overflow: visible;
@@ -264,13 +277,11 @@ HTML_CONTENT = """
 
     <div class="shutter-flash" id="flashLayer"></div>
 
-    <!-- CÁPSULA IZQUIERDA DINÁMICA -->
     <div class="top-float-left" id="activeModulePill">
         <div class="glow-dot"></div>
         <span id="activeModuleName">Cam Vision V9</span>
     </div>
 
-    <!-- CÁPSULA DERECHA FIJA -->
     <div class="top-float-right" id="actionPromptPill" onclick="resetArmEngine()">
         <span>✨ ¿Qué quieres hacer?</span>
     </div>
@@ -286,12 +297,13 @@ HTML_CONTENT = """
         <canvas id="internalCanvas" style="display:none;"></canvas>
     </div>
 
-    <div class="lens-pill-bar">
-        <button class="lens-btn" onclick="setSamsungZoom(0.6, this)">0.6x</button>
-        <button class="lens-btn active" onclick="setSamsungZoom(1.0, this)">1x</button>
-        <button class="lens-btn" onclick="setSamsungZoom(2.0, this)">2x</button>
-        <button class="lens-btn" onclick="setSamsungZoom(3.0, this)">3x</button>
-        <button class="lens-btn" onclick="setSamsungZoom(10.0, this)">10x</button>
+    <!-- SELECTOR DE LENTES CON ABANICO / CIERRE -->
+    <div class="lens-pill-bar collapsed" id="lensPillBar">
+        <button class="lens-btn" onclick="handleLensClick(0.6, this, event)">0.6x</button>
+        <button class="lens-btn active" onclick="handleLensClick(1.0, this, event)">1x</button>
+        <button class="lens-btn" onclick="handleLensClick(2.0, this, event)">2x</button>
+        <button class="lens-btn" onclick="handleLensClick(3.0, this, event)">3x</button>
+        <button class="lens-btn" onclick="handleLensClick(10.0, this, event)">10x</button>
     </div>
 
     <div class="dock-tooltip" id="dockTooltip">Módulo</div>
@@ -520,10 +532,25 @@ HTML_CONTENT = """
             startCamera();
         }
 
-        function setSamsungZoom(zoomLevel, elem) {
+        /* MANEJO DE APERTURA / CIERRE EN ABANICO DE LENTES */
+        function handleLensClick(zoomLevel, elem, event) {
+            const bar = document.getElementById('lensPillBar');
+            
+            // Si la barra está colapsada y se toca el botón activo, se abre en abanico
+            if (bar.classList.contains('collapsed')) {
+                bar.classList.remove('collapsed');
+                return;
+            }
+
+            // Si está desplegada, se selecciona el aumento y se pliega
             document.querySelectorAll('.lens-btn').forEach(b => b.classList.remove('active'));
             elem.classList.add('active');
+            bar.classList.add('collapsed');
 
+            applyZoom(zoomLevel);
+        }
+
+        function applyZoom(zoomLevel) {
             if (currentStreamTrack && typeof currentStreamTrack.getCapabilities === 'function') {
                 const caps = currentStreamTrack.getCapabilities();
                 if (caps.zoom) {
@@ -554,6 +581,9 @@ HTML_CONTENT = """
         function handleTapToFocus(e) {
             if (e.target.closest('.glass-dock') || e.target.closest('.bottom-shutter-bar') || e.target.closest('.top-float-left') || e.target.closest('.top-float-right') || e.target.closest('.lens-pill-bar') || e.target.closest('.dock-tooltip')) return;
             
+            // Si la barra de zoom estaba abierta, se pliega con un tap fuera
+            document.getElementById('lensPillBar').classList.add('collapsed');
+
             const viewport = document.getElementById('viewportArea');
             const rect = viewport.getBoundingClientRect();
             const clickX = e.clientX - rect.left;
@@ -608,7 +638,6 @@ HTML_CONTENT = """
         }
 
         function handleIconClick(key, name, elem, evt) {
-            // Si ya está en modo pila y se toca el icono seleccionado (sin swipe), vuelve al menú original
             if (selectedEngineKey === key) {
                 resetArmEngine();
                 return;
@@ -628,13 +657,10 @@ HTML_CONTENT = """
             const dock = document.getElementById('glassDockBar');
             dock.classList.remove('evaporated-dock');
 
-            // Posicionar pila a la derecha (debajo de 10x)
             arrangeAlbumStack(key);
 
-            // CÁPSULA IZQUIERDA: Muestra el módulo operativo activo
             document.getElementById('activeModuleName').innerText = key.toUpperCase();
 
-            // Evaporación suave a 1.0s
             evaporateTimeout = setTimeout(() => {
                 const activeBtn = document.querySelector(`.dock-icon-btn[data-key="${key}"]`);
                 if (activeBtn) {
@@ -647,7 +673,7 @@ HTML_CONTENT = """
             triggerCircleFade();
         }
 
-        /* GESTO TÁCTIL BIDIRECCIONAL (ABAJO = SIGUIENTE, ARRIBA = ANTERIOR) */
+        /* GESTO TÁCTIL BIDIRECCIONAL */
         let touchStartY = 0;
         let touchStartX = 0;
         const dockEl = document.getElementById('glassDockBar');
@@ -665,10 +691,8 @@ HTML_CONTENT = """
 
             if (Math.abs(deltaY) > 28 && Math.abs(deltaY) > Math.abs(deltaX) && selectedEngineKey) {
                 if (deltaY > 0) {
-                    // Tirar hacia abajo: Avanza al siguiente módulo
                     cycleEngine(1);
                 } else {
-                    // Tirar hacia arriba: Regresa al módulo anterior
                     cycleEngine(-1);
                 }
             }
@@ -695,7 +719,6 @@ HTML_CONTENT = """
                 btn.className = 'dock-icon-btn';
             });
 
-            // CÁPSULA IZQUIERDA: Regresa a reposo
             document.getElementById('activeModuleName').innerText = 'Cam Vision V9';
             triggerCircleFade();
         }
@@ -747,7 +770,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Samsung Native Camera Core V9 (Bidirectional Stack & 10x Alignment)",
+        "engine": "Samsung Native Camera Core V9 (Right Stack & Accordion Fan Zoom)",
         "status": "online"
     }
 
