@@ -36,21 +36,23 @@ HTML_CONTENT = """
         }
         .glow-dot { width: 7px; height: 7px; border-radius: 50%; background: #30D158; box-shadow: 0 0 8px #30D158; }
 
+        /* CAPSULA DERECHA CON TEXTO RESALTADO */
         .top-float-right {
             position: absolute; top: 16px; right: 18px; z-index: 50;
-            background: rgba(255, 214, 10, 0.16);
+            background: rgba(255, 255, 255, 0.12);
             backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 214, 10, 0.38);
-            color: #FFD60A; font-size: 11px; font-weight: 700; padding: 7px 14px; border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            color: #FFFFFF; font-size: 12px; font-weight: 700; padding: 8px 16px; border-radius: 22px;
             display: flex; align-items: center; gap: 6px; cursor: pointer;
-            transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 6px 24px rgba(0,0,0,0.35);
+            letter-spacing: 0.2px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.5), 0 0 14px rgba(255, 255, 255, 0.18);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .top-float-right.active {
             background: linear-gradient(135deg, #FF9F0A, #FF375F);
             color: #fff; border-color: transparent;
-            box-shadow: 0 0 16px rgba(255, 55, 95, 0.65);
-            transform: scale(1.04);
+            box-shadow: 0 0 20px rgba(255, 55, 95, 0.7);
+            transform: scale(1.05);
         }
 
         .viewport {
@@ -152,7 +154,7 @@ HTML_CONTENT = """
         .dock-icon-btn[data-key="price"].active-glow { background: linear-gradient(135deg, rgba(99,230,226,0.65), rgba(0,199,190,0.45)); border-color: #63E6E2; box-shadow: 0 8px 20px rgba(0,199,190,0.6); }
         .dock-icon-btn[data-key="ai"].active-glow { background: linear-gradient(135deg, rgba(10,132,255,0.65), rgba(94,92,230,0.45)); border-color: #0A84FF; box-shadow: 0 8px 20px rgba(10,132,255,0.6); }
 
-        /* EVAPORACION PROGRESIVA Y SEDOSA A LOS 2 SEGUNDOS */
+        /* EVAPORACION PROGRESIVA Y SEDOSA TRAS 1 SEGUNDO */
         .dock-icon-btn.evaporated {
             background: rgba(255, 255, 255, 0.08) !important;
             border-color: rgba(255, 255, 255, 0.22) !important;
@@ -225,9 +227,9 @@ HTML_CONTENT = """
         <span>Cam Vision V9</span>
     </div>
 
+    <!-- TEXTO RESALTADO "¿QUÉ QUIERES HACER?" EN LUGAR DE NANO -->
     <div class="top-float-right" id="bananaChip" onclick="resetArmEngine()">
-        <span>🍌</span>
-        <span id="bananaText">Nano-Banana</span>
+        <span id="bananaText">✨ ¿Qué quieres hacer?</span>
     </div>
 
     <div class="viewport" id="viewportArea" onclick="handleTapToFocus(event)">
@@ -519,11 +521,11 @@ HTML_CONTENT = """
             elem.classList.add('selected');
             elem.classList.add('active-glow');
 
-            // EXACTOS 2.0s PARA INICIAR LA DISIPACION SUAVE
+            // EXACTO 1.0 SEGUNDO PARA EMPEZAR LA DISIPACION SUAVE
             evaporateTimeout = setTimeout(() => {
                 elem.classList.remove('active-glow');
                 elem.classList.add('evaporated');
-            }, 2000);
+            }, 1000);
 
             document.getElementById('bananaChip').classList.add('active');
             document.getElementById('bananaText').innerText = key.toUpperCase();
@@ -538,7 +540,7 @@ HTML_CONTENT = """
             });
             if (evaporateTimeout) clearTimeout(evaporateTimeout);
             document.getElementById('bananaChip').classList.remove('active');
-            document.getElementById('bananaText').innerText = 'Nano-Banana';
+            document.getElementById('bananaText').innerText = '✨ ¿Qué quieres hacer?';
             triggerCircleFade();
         }
 
@@ -587,7 +589,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Samsung Native Camera Core V9 (Smooth 2.0s Fade Out)",
+        "engine": "Samsung Native Camera Core V9 (1.0s Fade & Action Prompt)",
         "status": "online"
     }
 
