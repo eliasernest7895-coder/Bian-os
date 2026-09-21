@@ -36,7 +36,6 @@ HTML_CONTENT = """
         }
         .glow-dot { width: 7px; height: 7px; border-radius: 50%; background: #30D158; box-shadow: 0 0 8px #30D158; }
 
-        /* CAPSULA DERECHA CON TEXTO RESALTADO */
         .top-float-right {
             position: absolute; top: 16px; right: 18px; z-index: 50;
             background: rgba(255, 255, 255, 0.12);
@@ -118,6 +117,7 @@ HTML_CONTENT = """
             border-radius: 28px; padding: 10px 14px;
             display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none;
             box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            justify-content: flex-start;
         }
         .glass-dock::-webkit-scrollbar { display: none; }
         
@@ -126,11 +126,12 @@ HTML_CONTENT = """
             background: rgba(255, 255, 255, 0.06); font-size: 19px;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer;
-            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease, background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
             position: relative;
         }
         .dock-icon-btn:active { transform: scale(0.92); }
 
+        /* EL ICONO SELECCIONADO SOBRESALE */
         .dock-icon-btn.selected {
             transform: translateY(-8px) scale(1.15);
             border-color: rgba(255, 255, 255, 0.4);
@@ -140,6 +141,19 @@ HTML_CONTENT = """
             content: ''; position: absolute; bottom: -5px; width: 5px; height: 5px;
             border-radius: 50%; background: #fff;
             box-shadow: 0 0 6px #fff;
+        }
+
+        /* OCULTAMIENTO SUAVE DE LOS DEMÁS ICONOS */
+        .dock-icon-btn.hidden-peer {
+            opacity: 0 !important;
+            transform: scale(0.5) !important;
+            pointer-events: none !important;
+            width: 0 !important;
+            flex: 0 0 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
 
         .dock-icon-btn[data-key="lonas"].active-glow { background: linear-gradient(135deg, rgba(255,149,0,0.65), rgba(255,94,58,0.45)); border-color: #FF9500; box-shadow: 0 8px 20px rgba(255,149,0,0.6); }
@@ -154,7 +168,6 @@ HTML_CONTENT = """
         .dock-icon-btn[data-key="price"].active-glow { background: linear-gradient(135deg, rgba(99,230,226,0.65), rgba(0,199,190,0.45)); border-color: #63E6E2; box-shadow: 0 8px 20px rgba(0,199,190,0.6); }
         .dock-icon-btn[data-key="ai"].active-glow { background: linear-gradient(135deg, rgba(10,132,255,0.65), rgba(94,92,230,0.45)); border-color: #0A84FF; box-shadow: 0 8px 20px rgba(10,132,255,0.6); }
 
-        /* EVAPORACION PROGRESIVA Y SEDOSA TRAS 1 SEGUNDO */
         .dock-icon-btn.evaporated {
             background: rgba(255, 255, 255, 0.08) !important;
             border-color: rgba(255, 255, 255, 0.22) !important;
@@ -227,7 +240,6 @@ HTML_CONTENT = """
         <span>Cam Vision V9</span>
     </div>
 
-    <!-- TEXTO RESALTADO "¿QUÉ QUIERES HACER?" EN LUGAR DE NANO -->
     <div class="top-float-right" id="bananaChip" onclick="resetArmEngine()">
         <span id="bananaText">✨ ¿Qué quieres hacer?</span>
     </div>
@@ -253,7 +265,7 @@ HTML_CONTENT = """
 
     <div class="dock-tooltip" id="dockTooltip">Módulo</div>
 
-    <div class="glass-dock">
+    <div class="glass-dock" id="glassDockBar">
         <div class="dock-icon-btn" data-key="lonas" onclick="selectEngine('lonas', '⛺ Lonas 3D V9', this)">⛺</div>
         <div class="dock-icon-btn" data-key="custom" onclick="selectEngine('custom', '🎨 Wallpapers V9', this)">🎨</div>
         <div class="dock-icon-btn" data-key="print" onclick="selectEngine('print', '🖨️ Imprenta PDF V9', this)">🖨️</div>
@@ -302,6 +314,31 @@ HTML_CONTENT = """
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
             return audioCtx;
+        }
+
+        /* SONIDO SUAVE ESTILO ENVIO WHATSAPP (POP / SWOOSH AEREO) */
+        function playWhatsAppSwooshSound() {
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.type = 'sine';
+                // Tono suave de barrido ascendente característico
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.exponentialRampToValueAtTime(840, now + 0.12);
+
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.linearRampToValueAtTime(0.18, now + 0.03);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+                osc.start(now);
+                osc.stop(now + 0.14);
+            } catch(e) {}
         }
 
         function playSignatureProSound(key) {
@@ -505,11 +542,8 @@ HTML_CONTENT = """
             showDockTooltipAboveElement(name, elem);
             playSignatureProSound(key);
 
-            document.querySelectorAll('.dock-icon-btn').forEach(btn => {
-                btn.classList.remove('selected', 'active-glow', 'evaporated');
-            });
             if (evaporateTimeout) clearTimeout(evaporateTimeout);
-            
+
             if (selectedEngineKey === key) {
                 resetArmEngine();
                 return;
@@ -518,13 +552,26 @@ HTML_CONTENT = """
             selectedEngineKey = key;
             selectedEngineName = name;
 
+            // Restablecer estilos en todos antes de aplicar aislamiento
+            const allBtns = document.querySelectorAll('.dock-icon-btn');
+            allBtns.forEach(btn => {
+                btn.classList.remove('selected', 'active-glow', 'evaporated', 'hidden-peer');
+            });
+
+            // 1. Elevar y resaltar el icono escogido
             elem.classList.add('selected');
             elem.classList.add('active-glow');
 
-            // EXACTO 1.0 SEGUNDO PARA EMPEZAR LA DISIPACION SUAVE
+            // 2. Al cumplirse 1 segundo, se evapora el color Y se borran suavemente los otros iconos
             evaporateTimeout = setTimeout(() => {
                 elem.classList.remove('active-glow');
                 elem.classList.add('evaporated');
+
+                allBtns.forEach(btn => {
+                    if (btn !== elem) {
+                        btn.classList.add('hidden-peer');
+                    }
+                });
             }, 1000);
 
             document.getElementById('bananaChip').classList.add('active');
@@ -535,10 +582,13 @@ HTML_CONTENT = """
         function resetArmEngine() {
             selectedEngineKey = null;
             selectedEngineName = null;
-            document.querySelectorAll('.dock-icon-btn').forEach(btn => {
-                btn.classList.remove('selected', 'active-glow', 'evaporated');
-            });
             if (evaporateTimeout) clearTimeout(evaporateTimeout);
+
+            // Reaparecen todos los iconos con transición fluida
+            document.querySelectorAll('.dock-icon-btn').forEach(btn => {
+                btn.classList.remove('selected', 'active-glow', 'evaporated', 'hidden-peer');
+            });
+
             document.getElementById('bananaChip').classList.remove('active');
             document.getElementById('bananaText').innerText = '✨ ¿Qué quieres hacer?';
             triggerCircleFade();
@@ -546,6 +596,9 @@ HTML_CONTENT = """
 
         function triggerNanoBananaCapture() {
             if (video.videoWidth === 0) return;
+
+            // SONIDO SOFT ESTILO SUBIDA WHATSAPP
+            playWhatsAppSwooshSound();
 
             const flash = document.getElementById('flashLayer');
             flash.classList.add('flash');
@@ -589,7 +642,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Samsung Native Camera Core V9 (1.0s Fade & Action Prompt)",
+        "engine": "Samsung Native Camera Core V9 (WhatsApp Swoosh & Module Focus)",
         "status": "online"
     }
 
