@@ -25,6 +25,7 @@ HTML_CONTENT = """
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; user-select: none; }
 
+        /* CÁPSULA IZQUIERDA: MUESTRA EL MÓDULO OPERATIVO */
         .top-float-left {
             position: absolute; top: 16px; left: 18px; z-index: 50;
             background: rgba(22, 22, 26, 0.6);
@@ -33,9 +34,11 @@ HTML_CONTENT = """
             border-radius: 20px; padding: 7px 14px;
             display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 12px;
             box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+            transition: all 0.25s ease;
         }
         .glow-dot { width: 7px; height: 7px; border-radius: 50%; background: #30D158; box-shadow: 0 0 8px #30D158; }
 
+        /* CÁPSULA DERECHA: SIEMPRE LA PREGUNTA DE ACCIÓN */
         .top-float-right {
             position: absolute; top: 16px; right: 18px; z-index: 50;
             background: rgba(255, 255, 255, 0.12);
@@ -46,12 +49,6 @@ HTML_CONTENT = """
             letter-spacing: 0.2px;
             box-shadow: 0 6px 24px rgba(0,0,0,0.5), 0 0 14px rgba(255, 255, 255, 0.18);
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .top-float-right.active {
-            background: linear-gradient(135deg, #FF9F0A, #FF375F);
-            color: #fff; border-color: transparent;
-            box-shadow: 0 0 20px rgba(255, 55, 95, 0.7);
-            transform: scale(1.05);
         }
 
         .viewport {
@@ -109,64 +106,96 @@ HTML_CONTENT = """
         }
         .dock-tooltip.visible { opacity: 1; transform: translate(-50%, 0); }
 
+        /* CONTENEDOR DOCK CON TRANSICIÓN DINÁMICA DE POSICIÓN Y ANCHO */
         .glass-dock {
-            position: absolute; bottom: 98px; left: 14px; right: 14px; z-index: 40;
+            position: absolute; bottom: 104px; left: 50%; transform: translateX(-50%); z-index: 40;
+            width: calc(100% - 32px); max-width: 500px;
             background: rgba(18, 18, 22, 0.55);
             backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
             border: 1px solid rgba(255, 255, 255, 0.14);
-            border-radius: 28px; padding: 10px 14px;
-            display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none;
+            border-radius: 30px; padding: 10px 14px;
+            display: flex; align-items: center; justify-content: flex-start;
+            gap: 10px; overflow-x: auto; scrollbar-width: none;
             box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            justify-content: flex-start;
+            transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1), background 1.8s ease, border-color 1.8s ease, box-shadow 1.8s ease;
         }
         .glass-dock::-webkit-scrollbar { display: none; }
-        
+
+        /* PILA UBICADA ABAJO DE 10x (Alineada hacia la derecha de la barra de zoom) */
+        .glass-dock.stacked-mode {
+            left: 64%;
+            transform: translateX(-50%);
+            width: 125px;
+            overflow: visible;
+            justify-content: flex-start;
+            padding: 6px;
+        }
+        .glass-dock.stacked-mode.evaporated-dock {
+            background: transparent !important;
+            border-color: transparent !important;
+            box-shadow: none !important;
+        }
+
         .dock-icon-btn {
             flex: 0 0 44px; height: 44px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.1);
             background: rgba(255, 255, 255, 0.06); font-size: 19px;
             display: flex; align-items: center; justify-content: center;
-            cursor: pointer;
-            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease, background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-            position: relative;
+            cursor: pointer; position: relative;
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease, background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
         }
         .dock-icon-btn:active { transform: scale(0.92); }
 
-        /* EL ICONO SELECCIONADO SOBRESALE */
         .dock-icon-btn.selected {
-            transform: translateY(-8px) scale(1.15);
-            border-color: rgba(255, 255, 255, 0.4);
-            z-index: 10;
+            transform: translateY(-8px) scale(1.18) !important;
+            border-color: rgba(255, 255, 255, 0.45) !important;
+            z-index: 25 !important;
+            opacity: 1 !important;
         }
         .dock-icon-btn.selected::after {
-            content: ''; position: absolute; bottom: -5px; width: 5px; height: 5px;
+            content: ''; position: absolute; bottom: -6px; width: 5px; height: 5px;
             border-radius: 50%; background: #fff;
             box-shadow: 0 0 6px #fff;
         }
 
-        /* OCULTAMIENTO SUAVE DE LOS DEMÁS ICONOS */
-        .dock-icon-btn.hidden-peer {
-            opacity: 0 !important;
-            transform: scale(0.5) !important;
-            pointer-events: none !important;
-            width: 0 !important;
-            flex: 0 0 0 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            border: none !important;
-            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        .glass-dock.stacked-mode .dock-icon-btn.stack-layer {
+            position: absolute;
+            pointer-events: auto;
+            opacity: 0.85;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .glass-dock.stacked-mode .dock-icon-btn.stack-1 {
+            transform: translateX(18px) translateY(-5px) scale(0.94);
+            z-index: 20;
+        }
+        .glass-dock.stacked-mode .dock-icon-btn.stack-2 {
+            transform: translateX(34px) translateY(-2px) scale(0.88);
+            z-index: 15;
+            opacity: 0.6;
+        }
+        .glass-dock.stacked-mode .dock-icon-btn.stack-3 {
+            transform: translateX(48px) translateY(1px) scale(0.82);
+            z-index: 10;
+            opacity: 0.35;
+        }
+        .glass-dock.stacked-mode .dock-icon-btn.stack-deep {
+            position: absolute;
+            transform: translateX(54px) scale(0.7);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 5;
         }
 
-        .dock-icon-btn[data-key="lonas"].active-glow { background: linear-gradient(135deg, rgba(255,149,0,0.65), rgba(255,94,58,0.45)); border-color: #FF9500; box-shadow: 0 8px 20px rgba(255,149,0,0.6); }
-        .dock-icon-btn[data-key="custom"].active-glow { background: linear-gradient(135deg, rgba(255,45,85,0.65), rgba(175,82,222,0.45)); border-color: #FF2D55; box-shadow: 0 8px 20px rgba(255,45,85,0.6); }
-        .dock-icon-btn[data-key="print"].active-glow { background: linear-gradient(135deg, rgba(50,173,230,0.65), rgba(0,122,255,0.45)); border-color: #32ADE6; box-shadow: 0 8px 20px rgba(0,122,255,0.6); }
-        .dock-icon-btn[data-key="cine"].active-glow { background: linear-gradient(135deg, rgba(255,59,48,0.65), rgba(255,45,85,0.45)); border-color: #FF3B30; box-shadow: 0 8px 20px rgba(255,59,48,0.6); }
-        .dock-icon-btn[data-key="raw"].active-glow { background: linear-gradient(135deg, rgba(48,209,88,0.65), rgba(52,199,89,0.45)); border-color: #30D158; box-shadow: 0 8px 20px rgba(48,209,88,0.6); }
-        .dock-icon-btn[data-key="svg"].active-glow { background: linear-gradient(135deg, rgba(255,214,10,0.65), rgba(255,159,10,0.45)); border-color: #FFD60A; box-shadow: 0 8px 20px rgba(255,214,10,0.6); }
-        .dock-icon-btn[data-key="vid"].active-glow { background: linear-gradient(135deg, rgba(191,90,242,0.65), rgba(94,92,230,0.45)); border-color: #BF5AF2; box-shadow: 0 8px 20px rgba(94,92,230,0.6); }
-        .dock-icon-btn[data-key="depth"].active-glow { background: linear-gradient(135deg, rgba(255,55,95,0.65), rgba(191,90,242,0.45)); border-color: #FF375F; box-shadow: 0 8px 20px rgba(255,55,95,0.6); }
-        .dock-icon-btn[data-key="chef"].active-glow { background: linear-gradient(135deg, rgba(255,159,10,0.65), rgba(255,107,0,0.45)); border-color: #FF9F0A; box-shadow: 0 8px 20px rgba(255,159,10,0.6); }
-        .dock-icon-btn[data-key="price"].active-glow { background: linear-gradient(135deg, rgba(99,230,226,0.65), rgba(0,199,190,0.45)); border-color: #63E6E2; box-shadow: 0 8px 20px rgba(0,199,190,0.6); }
-        .dock-icon-btn[data-key="ai"].active-glow { background: linear-gradient(135deg, rgba(10,132,255,0.65), rgba(94,92,230,0.45)); border-color: #0A84FF; box-shadow: 0 8px 20px rgba(10,132,255,0.6); }
+        .dock-icon-btn[data-key="lonas"].active-glow { background: linear-gradient(135deg, rgba(255,149,0,0.7), rgba(255,94,58,0.5)); border-color: #FF9500; box-shadow: 0 8px 20px rgba(255,149,0,0.6); }
+        .dock-icon-btn[data-key="custom"].active-glow { background: linear-gradient(135deg, rgba(255,45,85,0.7), rgba(175,82,222,0.5)); border-color: #FF2D55; box-shadow: 0 8px 20px rgba(255,45,85,0.6); }
+        .dock-icon-btn[data-key="print"].active-glow { background: linear-gradient(135deg, rgba(50,173,230,0.7), rgba(0,122,255,0.5)); border-color: #32ADE6; box-shadow: 0 8px 20px rgba(0,122,255,0.6); }
+        .dock-icon-btn[data-key="cine"].active-glow { background: linear-gradient(135deg, rgba(255,59,48,0.7), rgba(255,45,85,0.5)); border-color: #FF3B30; box-shadow: 0 8px 20px rgba(255,59,48,0.6); }
+        .dock-icon-btn[data-key="raw"].active-glow { background: linear-gradient(135deg, rgba(48,209,88,0.7), rgba(52,199,89,0.5)); border-color: #30D158; box-shadow: 0 8px 20px rgba(48,209,88,0.6); }
+        .dock-icon-btn[data-key="svg"].active-glow { background: linear-gradient(135deg, rgba(255,214,10,0.7), rgba(255,159,10,0.5)); border-color: #FFD60A; box-shadow: 0 8px 20px rgba(255,214,10,0.6); }
+        .dock-icon-btn[data-key="vid"].active-glow { background: linear-gradient(135deg, rgba(191,90,242,0.7), rgba(94,92,230,0.5)); border-color: #BF5AF2; box-shadow: 0 8px 20px rgba(94,92,230,0.6); }
+        .dock-icon-btn[data-key="depth"].active-glow { background: linear-gradient(135deg, rgba(255,55,95,0.7), rgba(191,90,242,0.5)); border-color: #FF375F; box-shadow: 0 8px 20px rgba(255,55,95,0.6); }
+        .dock-icon-btn[data-key="chef"].active-glow { background: linear-gradient(135deg, rgba(255,159,10,0.7), rgba(255,107,0,0.5)); border-color: #FF9F0A; box-shadow: 0 8px 20px rgba(255,159,10,0.6); }
+        .dock-icon-btn[data-key="price"].active-glow { background: linear-gradient(135deg, rgba(99,230,226,0.7), rgba(0,199,190,0.5)); border-color: #63E6E2; box-shadow: 0 8px 20px rgba(0,199,190,0.6); }
+        .dock-icon-btn[data-key="ai"].active-glow { background: linear-gradient(135deg, rgba(10,132,255,0.7), rgba(94,92,230,0.5)); border-color: #0A84FF; box-shadow: 0 8px 20px rgba(10,132,255,0.6); }
 
         .dock-icon-btn.evaporated {
             background: rgba(255, 255, 255, 0.08) !important;
@@ -235,13 +264,15 @@ HTML_CONTENT = """
 
     <div class="shutter-flash" id="flashLayer"></div>
 
-    <div class="top-float-left">
+    <!-- CÁPSULA IZQUIERDA DINÁMICA -->
+    <div class="top-float-left" id="activeModulePill">
         <div class="glow-dot"></div>
-        <span>Cam Vision V9</span>
+        <span id="activeModuleName">Cam Vision V9</span>
     </div>
 
-    <div class="top-float-right" id="bananaChip" onclick="resetArmEngine()">
-        <span id="bananaText">✨ ¿Qué quieres hacer?</span>
+    <!-- CÁPSULA DERECHA FIJA -->
+    <div class="top-float-right" id="actionPromptPill" onclick="resetArmEngine()">
+        <span>✨ ¿Qué quieres hacer?</span>
     </div>
 
     <div class="viewport" id="viewportArea" onclick="handleTapToFocus(event)">
@@ -266,17 +297,17 @@ HTML_CONTENT = """
     <div class="dock-tooltip" id="dockTooltip">Módulo</div>
 
     <div class="glass-dock" id="glassDockBar">
-        <div class="dock-icon-btn" data-key="lonas" onclick="selectEngine('lonas', '⛺ Lonas 3D V9', this)">⛺</div>
-        <div class="dock-icon-btn" data-key="custom" onclick="selectEngine('custom', '🎨 Wallpapers V9', this)">🎨</div>
-        <div class="dock-icon-btn" data-key="print" onclick="selectEngine('print', '🖨️ Imprenta PDF V9', this)">🖨️</div>
-        <div class="dock-icon-btn" data-key="cine" onclick="selectEngine('cine', '🎬 Cine Scope V9', this)">🎬</div>
-        <div class="dock-icon-btn" data-key="raw" onclick="selectEngine('raw', '📸 Revelado RAW V9', this)">📸</div>
-        <div class="dock-icon-btn" data-key="svg" onclick="selectEngine('svg', '📐 SVG Logos V9', this)">📐</div>
-        <div class="dock-icon-btn" data-key="vid" onclick="selectEngine('vid', '🎥 Video Motion V8', this)">🎥</div>
-        <div class="dock-icon-btn" data-key="depth" onclick="selectEngine('depth', '🧠 Depth-Map NPU V9', this)">🧠</div>
-        <div class="dock-icon-btn" data-key="chef" onclick="selectEngine('chef', '👨‍🍳 Chef Lean V9', this)">👨‍🍳</div>
-        <div class="dock-icon-btn" data-key="price" onclick="selectEngine('price', '🏷️ Valuador Híbrido V7', this)">🏷️</div>
-        <div class="dock-icon-btn" data-key="ai" onclick="selectEngine('ai', '✨ Generar Imagen AI V7', this)">✨</div>
+        <div class="dock-icon-btn" data-key="lonas" onclick="handleIconClick('lonas', '⛺ Lonas 3D V9', this, event)">⛺</div>
+        <div class="dock-icon-btn" data-key="custom" onclick="handleIconClick('custom', '🎨 Wallpapers V9', this, event)">🎨</div>
+        <div class="dock-icon-btn" data-key="print" onclick="handleIconClick('print', '🖨️ Imprenta PDF V9', this, event)">🖨️</div>
+        <div class="dock-icon-btn" data-key="cine" onclick="handleIconClick('cine', '🎬 Cine Scope V9', this, event)">🎬</div>
+        <div class="dock-icon-btn" data-key="raw" onclick="handleIconClick('raw', '📸 Revelado RAW V9', this, event)">📸</div>
+        <div class="dock-icon-btn" data-key="svg" onclick="handleIconClick('svg', '📐 SVG Logos V9', this, event)">📐</div>
+        <div class="dock-icon-btn" data-key="vid" onclick="handleIconClick('vid', '🎥 Video Motion V8', this, event)">🎥</div>
+        <div class="dock-icon-btn" data-key="depth" onclick="handleIconClick('depth', '🧠 Depth-Map NPU V9', this, event)">🧠</div>
+        <div class="dock-icon-btn" data-key="chef" onclick="handleIconClick('chef', '👨‍🍳 Chef Lean V9', this, event)">👨‍🍳</div>
+        <div class="dock-icon-btn" data-key="price" onclick="handleIconClick('price', '🏷️ Valuador Híbrido V7', this, event)">🏷️</div>
+        <div class="dock-icon-btn" data-key="ai" onclick="handleIconClick('ai', '✨ Generar Imagen AI V7', this, event)">✨</div>
     </div>
 
     <div class="bottom-shutter-bar">
@@ -310,13 +341,26 @@ HTML_CONTENT = """
         let currentStreamTrack = null;
         let evaporateTimeout = null;
 
+        const enginesList = [
+            { key: 'lonas', name: '⛺ Lonas 3D V9' },
+            { key: 'custom', name: '🎨 Wallpapers V9' },
+            { key: 'print', name: '🖨️ Imprenta PDF V9' },
+            { key: 'cine', name: '🎬 Cine Scope V9' },
+            { key: 'raw', name: '📸 Revelado RAW V9' },
+            { key: 'svg', name: '📐 SVG Logos V9' },
+            { key: 'vid', name: '🎥 Video Motion V8' },
+            { key: 'depth', name: '🧠 Depth-Map NPU V9' },
+            { key: 'chef', name: '👨‍🍳 Chef Lean V9' },
+            { key: 'price', name: '🏷️ Valuador Híbrido V7' },
+            { key: 'ai', name: '✨ Generar Imagen AI V7' }
+        ];
+
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
             return audioCtx;
         }
 
-        /* SONIDO SUAVE ESTILO ENVIO WHATSAPP (POP / SWOOSH AEREO) */
         function playWhatsAppSwooshSound() {
             try {
                 const ctx = getAudioContext();
@@ -328,7 +372,6 @@ HTML_CONTENT = """
                 gain.connect(ctx.destination);
 
                 osc.type = 'sine';
-                // Tono suave de barrido ascendente característico
                 osc.frequency.setValueAtTime(440, now);
                 osc.frequency.exponentialRampToValueAtTime(840, now + 0.12);
 
@@ -538,45 +581,106 @@ HTML_CONTENT = """
             tooltipTimeout = setTimeout(() => { tooltip.classList.remove('visible'); }, 1800);
         }
 
+        function arrangeAlbumStack(activeKey) {
+            const dock = document.getElementById('glassDockBar');
+            dock.classList.add('stacked-mode');
+
+            const allBtns = Array.from(document.querySelectorAll('.dock-icon-btn'));
+            const activeIndex = enginesList.findIndex(e => e.key === activeKey);
+
+            allBtns.forEach(btn => {
+                btn.className = 'dock-icon-btn';
+                const key = btn.getAttribute('data-key');
+                const idx = enginesList.findIndex(e => e.key === key);
+
+                let offset = (idx - activeIndex + enginesList.length) % enginesList.length;
+
+                if (offset === 0) {
+                    btn.classList.add('selected', 'active-glow');
+                } else {
+                    btn.classList.add('stack-layer');
+                    if (offset === 1) btn.classList.add('stack-1');
+                    else if (offset === 2) btn.classList.add('stack-2');
+                    else if (offset === 3) btn.classList.add('stack-3');
+                    else btn.classList.add('stack-deep');
+                }
+            });
+        }
+
+        function handleIconClick(key, name, elem, evt) {
+            // Si ya está en modo pila y se toca el icono seleccionado (sin swipe), vuelve al menú original
+            if (selectedEngineKey === key) {
+                resetArmEngine();
+                return;
+            }
+            selectEngine(key, name, elem);
+        }
+
         function selectEngine(key, name, elem) {
             showDockTooltipAboveElement(name, elem);
             playSignatureProSound(key);
 
             if (evaporateTimeout) clearTimeout(evaporateTimeout);
 
-            if (selectedEngineKey === key) {
-                resetArmEngine();
-                return;
-            }
-
             selectedEngineKey = key;
             selectedEngineName = name;
 
-            // Restablecer estilos en todos antes de aplicar aislamiento
-            const allBtns = document.querySelectorAll('.dock-icon-btn');
-            allBtns.forEach(btn => {
-                btn.classList.remove('selected', 'active-glow', 'evaporated', 'hidden-peer');
-            });
+            const dock = document.getElementById('glassDockBar');
+            dock.classList.remove('evaporated-dock');
 
-            // 1. Elevar y resaltar el icono escogido
-            elem.classList.add('selected');
-            elem.classList.add('active-glow');
+            // Posicionar pila a la derecha (debajo de 10x)
+            arrangeAlbumStack(key);
 
-            // 2. Al cumplirse 1 segundo, se evapora el color Y se borran suavemente los otros iconos
+            // CÁPSULA IZQUIERDA: Muestra el módulo operativo activo
+            document.getElementById('activeModuleName').innerText = key.toUpperCase();
+
+            // Evaporación suave a 1.0s
             evaporateTimeout = setTimeout(() => {
-                elem.classList.remove('active-glow');
-                elem.classList.add('evaporated');
-
-                allBtns.forEach(btn => {
-                    if (btn !== elem) {
-                        btn.classList.add('hidden-peer');
-                    }
-                });
+                const activeBtn = document.querySelector(`.dock-icon-btn[data-key="${key}"]`);
+                if (activeBtn) {
+                    activeBtn.classList.remove('active-glow');
+                    activeBtn.classList.add('evaporated');
+                }
+                dock.classList.add('evaporated-dock');
             }, 1000);
 
-            document.getElementById('bananaChip').classList.add('active');
-            document.getElementById('bananaText').innerText = key.toUpperCase();
             triggerCircleFade();
+        }
+
+        /* GESTO TÁCTIL BIDIRECCIONAL (ABAJO = SIGUIENTE, ARRIBA = ANTERIOR) */
+        let touchStartY = 0;
+        let touchStartX = 0;
+        const dockEl = document.getElementById('glassDockBar');
+
+        dockEl.addEventListener('touchstart', (e) => {
+            touchStartY = e.touches[0].clientY;
+            touchStartX = e.touches[0].clientX;
+        }, { passive: true });
+
+        dockEl.addEventListener('touchend', (e) => {
+            const touchEndY = e.changedTouches[0].clientY;
+            const touchEndX = e.changedTouches[0].clientX;
+            const deltaY = touchEndY - touchStartY;
+            const deltaX = touchEndX - touchStartX;
+
+            if (Math.abs(deltaY) > 28 && Math.abs(deltaY) > Math.abs(deltaX) && selectedEngineKey) {
+                if (deltaY > 0) {
+                    // Tirar hacia abajo: Avanza al siguiente módulo
+                    cycleEngine(1);
+                } else {
+                    // Tirar hacia arriba: Regresa al módulo anterior
+                    cycleEngine(-1);
+                }
+            }
+        }, { passive: true });
+
+        function cycleEngine(direction) {
+            const currentIdx = enginesList.findIndex(e => e.key === selectedEngineKey);
+            const nextIdx = (currentIdx + direction + enginesList.length) % enginesList.length;
+            const nextEngine = enginesList[nextIdx];
+            const nextBtn = document.querySelector(`.dock-icon-btn[data-key="${nextEngine.key}"]`);
+
+            selectEngine(nextEngine.key, nextEngine.name, nextBtn);
         }
 
         function resetArmEngine() {
@@ -584,20 +688,21 @@ HTML_CONTENT = """
             selectedEngineName = null;
             if (evaporateTimeout) clearTimeout(evaporateTimeout);
 
-            // Reaparecen todos los iconos con transición fluida
+            const dock = document.getElementById('glassDockBar');
+            dock.classList.remove('stacked-mode', 'evaporated-dock');
+
             document.querySelectorAll('.dock-icon-btn').forEach(btn => {
-                btn.classList.remove('selected', 'active-glow', 'evaporated', 'hidden-peer');
+                btn.className = 'dock-icon-btn';
             });
 
-            document.getElementById('bananaChip').classList.remove('active');
-            document.getElementById('bananaText').innerText = '✨ ¿Qué quieres hacer?';
+            // CÁPSULA IZQUIERDA: Regresa a reposo
+            document.getElementById('activeModuleName').innerText = 'Cam Vision V9';
             triggerCircleFade();
         }
 
         function triggerNanoBananaCapture() {
             if (video.videoWidth === 0) return;
 
-            // SONIDO SOFT ESTILO SUBIDA WHATSAPP
             playWhatsAppSwooshSound();
 
             const flash = document.getElementById('flashLayer');
@@ -642,7 +747,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Samsung Native Camera Core V9 (WhatsApp Swoosh & Module Focus)",
+        "engine": "Samsung Native Camera Core V9 (Bidirectional Stack & 10x Alignment)",
         "status": "online"
     }
 
