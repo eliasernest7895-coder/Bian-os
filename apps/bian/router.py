@@ -124,12 +124,11 @@ HTML_CONTENT = """
             background: rgba(255, 255, 255, 0.06); font-size: 19px;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer;
-            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
             position: relative;
         }
         .dock-icon-btn:active { transform: scale(0.92); }
 
-        /* EL ICONO SOBRESALE DEL RESTO HACIA ARRIBA */
         .dock-icon-btn.selected {
             transform: translateY(-8px) scale(1.15);
             border-color: rgba(255, 255, 255, 0.4);
@@ -141,7 +140,6 @@ HTML_CONTENT = """
             box-shadow: 0 0 6px #fff;
         }
 
-        /* COLORES INICIALES CON GLOW */
         .dock-icon-btn[data-key="lonas"].active-glow { background: linear-gradient(135deg, rgba(255,149,0,0.65), rgba(255,94,58,0.45)); border-color: #FF9500; box-shadow: 0 8px 20px rgba(255,149,0,0.6); }
         .dock-icon-btn[data-key="custom"].active-glow { background: linear-gradient(135deg, rgba(255,45,85,0.65), rgba(175,82,222,0.45)); border-color: #FF2D55; box-shadow: 0 8px 20px rgba(255,45,85,0.6); }
         .dock-icon-btn[data-key="print"].active-glow { background: linear-gradient(135deg, rgba(50,173,230,0.65), rgba(0,122,255,0.45)); border-color: #32ADE6; box-shadow: 0 8px 20px rgba(0,122,255,0.6); }
@@ -154,12 +152,12 @@ HTML_CONTENT = """
         .dock-icon-btn[data-key="price"].active-glow { background: linear-gradient(135deg, rgba(99,230,226,0.65), rgba(0,199,190,0.45)); border-color: #63E6E2; box-shadow: 0 8px 20px rgba(0,199,190,0.6); }
         .dock-icon-btn[data-key="ai"].active-glow { background: linear-gradient(135deg, rgba(10,132,255,0.65), rgba(94,92,230,0.45)); border-color: #0A84FF; box-shadow: 0 8px 20px rgba(10,132,255,0.6); }
 
-        /* EVAPORACION SUAVE DEL COLOR TRAS 3 SEGUNDOS */
+        /* EVAPORACION PROGRESIVA Y SEDOSA A LOS 2 SEGUNDOS */
         .dock-icon-btn.evaporated {
-            background: rgba(255, 255, 255, 0.12) !important;
-            border-color: rgba(255, 255, 255, 0.28) !important;
-            box-shadow: none !important;
-            transition: background 3s ease-out, border-color 3s ease-out, box-shadow 3s ease-out !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: rgba(255, 255, 255, 0.22) !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+            transition: background 2.5s cubic-bezier(0.25, 1, 0.5, 1), border-color 2.5s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 2.5s cubic-bezier(0.25, 1, 0.5, 1) !important;
         }
 
         .bottom-shutter-bar {
@@ -304,7 +302,6 @@ HTML_CONTENT = """
             return audioCtx;
         }
 
-        /* SONIDOS EXCLUSIVOS PRO (GRAVES, REDONDOS, CERO CHILLONES) */
         function playSignatureProSound(key) {
             try {
                 const ctx = getAudioContext();
@@ -315,7 +312,6 @@ HTML_CONTENT = """
                 gain.connect(ctx.destination);
 
                 if (key === 'lonas') {
-                    // Low Thud estructural profundo
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(110, now);
                     osc.frequency.exponentialRampToValueAtTime(45, now + 0.16);
@@ -323,7 +319,6 @@ HTML_CONTENT = """
                     gain.gain.linearRampToValueAtTime(0.001, now + 0.16);
                     osc.start(now); osc.stop(now + 0.16);
                 } else if (key === 'custom') {
-                    // Soft Pop analógico
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(260, now);
                     osc.frequency.exponentialRampToValueAtTime(90, now + 0.12);
@@ -331,7 +326,6 @@ HTML_CONTENT = """
                     gain.gain.linearRampToValueAtTime(0.001, now + 0.12);
                     osc.start(now); osc.stop(now + 0.12);
                 } else if (key === 'print') {
-                    // Sub-Bass Click industrial
                     osc.type = 'triangle';
                     osc.frequency.setValueAtTime(140, now);
                     osc.frequency.exponentialRampToValueAtTime(35, now + 0.14);
@@ -339,7 +333,6 @@ HTML_CONTENT = """
                     gain.gain.linearRampToValueAtTime(0.001, now + 0.14);
                     osc.start(now); osc.stop(now + 0.14);
                 } else if (key === 'cine') {
-                    // Cinematic Low Sweep
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(95, now);
                     osc.frequency.linearRampToValueAtTime(50, now + 0.22);
@@ -347,7 +340,6 @@ HTML_CONTENT = """
                     gain.gain.linearRampToValueAtTime(0.001, now + 0.22);
                     osc.start(now); osc.stop(now + 0.22);
                 } else if (key === 'raw') {
-                    // Shutter mecánico de cámara profesional
                     osc.type = 'triangle';
                     osc.frequency.setValueAtTime(180, now);
                     osc.frequency.exponentialRampToValueAtTime(65, now + 0.08);
@@ -355,7 +347,6 @@ HTML_CONTENT = """
                     gain.gain.linearRampToValueAtTime(0.001, now + 0.08);
                     osc.start(now); osc.stop(now + 0.08);
                 } else if (key === 'svg') {
-                    // Campana de resonancia armónica de estudio
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(380, now);
                     osc.frequency.exponentialRampToValueAtTime(190, now + 0.18);
@@ -363,7 +354,6 @@ HTML_CONTENT = """
                     gain.gain.linearRampToValueAtTime(0.001, now + 0.18);
                     osc.start(now); osc.stop(now + 0.18);
                 } else if (key === 'vid') {
-                    // Doppler Sub profundo
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(80, now);
                     osc.frequency.linearRampToValueAtTime(130, now + 0.1);
@@ -372,7 +362,6 @@ HTML_CONTENT = """
                     gain.gain.linearRampToValueAtTime(0.001, now + 0.24);
                     osc.start(now); osc.stop(now + 0.24);
                 } else if (key === 'depth') {
-                    // Pulso espacial NPU dual
                     osc.type = 'triangle';
                     osc.frequency.setValueAtTime(160, now);
                     osc.frequency.setValueAtTime(80, now + 0.06);
@@ -380,7 +369,6 @@ HTML_CONTENT = """
                     gain.gain.linearRampToValueAtTime(0.001, now + 0.18);
                     osc.start(now); osc.stop(now + 0.18);
                 } else if (key === 'chef') {
-                    // Tono seco acústico amortiguado
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(210, now);
                     osc.frequency.exponentialRampToValueAtTime(75, now + 0.09);
@@ -388,7 +376,6 @@ HTML_CONTENT = """
                     gain.gain.linearRampToValueAtTime(0.001, now + 0.09);
                     osc.start(now); osc.stop(now + 0.09);
                 } else if (key === 'price') {
-                    // Burbuja / Gota acústica de dos tonos suaves
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(220, now);
                     osc.frequency.setValueAtTime(330, now + 0.05);
@@ -396,7 +383,6 @@ HTML_CONTENT = """
                     gain.gain.linearRampToValueAtTime(0.001, now + 0.14);
                     osc.start(now); osc.stop(now + 0.14);
                 } else {
-                    // Generar AI: Acorde ambiental redondo
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(180, now);
                     osc.frequency.linearRampToValueAtTime(240, now + 0.15);
@@ -517,7 +503,6 @@ HTML_CONTENT = """
             showDockTooltipAboveElement(name, elem);
             playSignatureProSound(key);
 
-            // Limpieza general de clases en los otros botones
             document.querySelectorAll('.dock-icon-btn').forEach(btn => {
                 btn.classList.remove('selected', 'active-glow', 'evaporated');
             });
@@ -531,16 +516,14 @@ HTML_CONTENT = """
             selectedEngineKey = key;
             selectedEngineName = name;
 
-            // 1. El icono seleccionado sobresale del resto
             elem.classList.add('selected');
-            // 2. Encendido del resplandor y color inicial
             elem.classList.add('active-glow');
 
-            // 3. Evaporación del color después de 3 segundos
+            // EXACTOS 2.0s PARA INICIAR LA DISIPACION SUAVE
             evaporateTimeout = setTimeout(() => {
                 elem.classList.remove('active-glow');
                 elem.classList.add('evaporated');
-            }, 3000);
+            }, 2000);
 
             document.getElementById('bananaChip').classList.add('active');
             document.getElementById('bananaText').innerText = key.toUpperCase();
@@ -604,7 +587,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Samsung Native Camera Core V9 (Pro Sound & Color Evaporation)",
+        "engine": "Samsung Native Camera Core V9 (Smooth 2.0s Fade Out)",
         "status": "online"
     }
 
