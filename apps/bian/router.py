@@ -71,27 +71,68 @@ HTML_CONTENT = """
             transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
         }
         
-        /* FILTROS POR MODO */
         video.portrait-bokeh { filter: drop-shadow(0 0 16px rgba(0,255,200,0.3)); }
         video.night-mode { filter: brightness(1.35) contrast(1.1) saturate(1.2); }
         video.macro-mode { filter: contrast(1.25) saturate(1.15); }
         video.scan-mode { filter: grayscale(1) contrast(1.4) brightness(1.1); }
 
-        /* GUIA DE ESCANEO DE DOCUMENTOS */
+        /* GUIA DE ESCANEO DE DOCUMENTOS CENTRADA Y MEJORADA */
         .doc-scanner-frame {
-            position: absolute; width: 78%; height: 68%;
-            border: 2px dashed #00FFC8; border-radius: 12px;
-            box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.45);
-            pointer-events: none; z-index: 35; display: none;
-            justify-content: space-between; flex-direction: column; padding: 10px;
+            position: absolute;
+            top: 48%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 78%;
+            max-width: 330px;
+            aspect-ratio: 1 / 1.38;
+            border: 1.5px solid rgba(0, 255, 200, 0.45);
+            border-radius: 16px;
+            box-shadow: 0 0 0 3000px rgba(0, 0, 0, 0.48), inset 0 0 25px rgba(0,255,200,0.12);
+            pointer-events: none;
+            z-index: 35;
+            display: none;
+            justify-content: space-between;
+            flex-direction: column;
+            padding: 12px;
+            overflow: hidden;
         }
         .doc-scanner-frame.active { display: flex; }
-        .doc-corner { width: 18px; height: 18px; border-color: #00FFC8; border-style: solid; }
-        .doc-corner.tl { border-width: 3px 0 0 3px; align-self: flex-start; }
-        .doc-corner.tr { border-width: 3px 3px 0 0; align-self: flex-end; }
-        .doc-corner.bl { border-width: 0 0 3px 3px; align-self: flex-start; }
-        .doc-corner.br { border-width: 0 3px 3px 0; align-self: flex-end; }
+
+        .doc-corner {
+            width: 24px; height: 24px; border-color: #00FFC8; border-style: solid;
+            filter: drop-shadow(0 0 8px #00FFC8);
+        }
+        .doc-corner.tl { border-width: 3.5px 0 0 3.5px; border-top-left-radius: 8px; }
+        .doc-corner.tr { border-width: 3.5px 3.5px 0 0; border-top-right-radius: 8px; }
+        .doc-corner.bl { border-width: 0 0 3.5px 3.5px; border-bottom-left-radius: 8px; }
+        .doc-corner.br { border-width: 0 3.5px 3.5px 0; border-bottom-right-radius: 8px; }
         .doc-row { display: flex; justify-content: space-between; width: 100%; }
+
+        /* HAZ LÁSER ANIMADO DE ESCANEO */
+        .scanner-laser-line {
+            position: absolute; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, #00FFC8, #FFF, #00FFC8, transparent);
+            box-shadow: 0 0 12px #00FFC8, 0 0 20px #00FFC8;
+            animation: scanLaserAnim 2.8s ease-in-out infinite alternate;
+        }
+        @keyframes scanLaserAnim {
+            0% { top: 6%; opacity: 0.2; }
+            50% { opacity: 1; }
+            100% { top: 92%; opacity: 0.2; }
+        }
+
+        .doc-label-badge {
+            align-self: center;
+            background: rgba(0,0,0,0.7);
+            border: 1px solid rgba(0,255,200,0.4);
+            color: #00FFC8;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 12px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
 
         .mode-status-chip {
             position: absolute; top: 68px; left: 50%; transform: translateX(-50%); z-index: 45;
@@ -322,13 +363,14 @@ HTML_CONTENT = """
         <span>✨ ¿Qué quieres hacer?</span>
     </div>
 
-    <!-- GUÍA TÁCTICA PARA DOCUMENTOS -->
+    <!-- GUÍA TÁCTICA PARA DOCUMENTOS ÓPTICAMENTE CENTRADA -->
     <div class="doc-scanner-frame" id="docScannerFrame">
+        <div class="scanner-laser-line"></div>
         <div class="doc-row">
             <div class="doc-corner tl"></div>
             <div class="doc-corner tr"></div>
         </div>
-        <div style="text-align: center; color: #00FFC8; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">ALINEA EL DOCUMENTO O TICKET AQUÍ</div>
+        <div class="doc-label-badge">ALINEA EL DOCUMENTO O TICKET AQUÍ</div>
         <div class="doc-row">
             <div class="doc-corner bl"></div>
             <div class="doc-corner br"></div>
@@ -361,7 +403,6 @@ HTML_CONTENT = """
     <div class="dock-tooltip" id="dockTooltip">Módulo</div>
 
     <div class="glass-dock" id="glassDockBar">
-        <!-- ESCÁNER DE DOCUMENTOS PRO EN EL DOCK -->
         <div class="dock-icon-btn" data-key="scan" onclick="handleIconClick('scan', '📄 Scan Doc Pro V9', this, event)">📄</div>
         <div class="dock-icon-btn" data-key="night" onclick="handleIconClick('night', '🌙 Nightography V9', this, event)">🌙</div>
         <div class="dock-icon-btn" data-key="macro" onclick="handleIconClick('macro', '🔍 Macro Pro V9', this, event)">🔍</div>
@@ -410,7 +451,7 @@ HTML_CONTENT = """
 
             <div class="bot-chat-stream" id="botChatStream">
                 <div class="bot-msg ia">
-                    ¡Qué onda! Soy tu <strong>Nano-Bot Táctico</strong>. Tienes activos todos los modos modernos: Escáner Documental con OCR, Nightography, Macro Pro, Retrato y las herramientas industriales.
+                    ¡Qué onda! Soy tu <strong>Nano-Bot Táctico</strong>. Tienes activos todos los modos modernos: Escáner Documental con OCR centrado, Nightography, Macro Pro, Retrato y las herramientas industriales.
                 </div>
             </div>
 
@@ -696,7 +737,6 @@ HTML_CONTENT = """
             triggerCircleFade();
         }
 
-        /* GESTO TÁCTIL BIDIRECCIONAL */
         let touchStartY = 0;
         let touchStartX = 0;
         const dockEl = document.getElementById('glassDockBar');
@@ -747,7 +787,6 @@ HTML_CONTENT = """
             triggerCircleFade();
         }
 
-        /* CAPTURA Y GUARDADO */
         async function triggerNativeCaptureAndSave() {
             if (video.videoWidth === 0) return;
 
@@ -761,7 +800,6 @@ HTML_CONTENT = """
             internalCanvas.height = video.videoHeight;
             const ctx = internalCanvas.getContext('2d');
 
-            // Si está en modo Scan Doc Pro, aplicar procesado de documento de alto contraste
             if (selectedEngineKey === 'scan') {
                 ctx.filter = 'grayscale(100%) contrast(160%) brightness(110%)';
             } else {
@@ -883,7 +921,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Samsung Native Camera Core V9 (CamScanner Pro & OCR Integration)",
+        "engine": "Samsung Native Camera Core V9 (Centered Optical Doc Scanner)",
         "status": "online"
     }
 
@@ -914,7 +952,7 @@ def nanobot_query(payload: NanoBotQuery):
 
     if "scan" in msg or "doc" in msg or "escan" in msg or "ticket" in msg or "factura" in msg:
         return {
-            "reply": "📄 <strong>Scan Doc Pro:</strong> Alinea el documento o ticket dentro del marco verde. Al disparar, el sistema elimina las sombras, aclara el fondo blanco a nivel de imprenta y prepara el texto para OCR instantáneo."
+            "reply": "📄 <strong>Scan Doc Pro:</strong> Alinea el documento en el marco central. La línea láser realiza lectura óptica y al disparar genera un duplicado en alto contraste B/N listo para archivo o lectura OCR."
         }
     elif "noche" in msg or "night" in msg:
         return {
