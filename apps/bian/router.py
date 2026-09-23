@@ -18,7 +18,6 @@ class NanoBotQuery(BaseModel):
     message: str
     current_module: str = "general"
 
-# SOLUCIÓN DIRECTA AL 404: Servir las imágenes guardadas en storage/bian/
 @router.get("/storage/bian/{filename}")
 async def serve_bian_image(filename: str):
     file_path = os.path.join("storage", "bian", filename)
@@ -32,7 +31,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bian AI Suite - Retrato & Galería Activa V9</title>
+    <title>Bian AI Suite - Cámara Pro Completa V9</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; user-select: none; }
@@ -70,18 +69,20 @@ HTML_CONTENT = """
             transform-origin: center center;
             transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
         }
-        video.portrait-bokeh {
-            filter: drop-shadow(0 0 15px rgba(0,255,200,0.3));
-        }
+        
+        /* FILTROS DINÁMICOS POR MODO */
+        video.portrait-bokeh { filter: drop-shadow(0 0 16px rgba(0,255,200,0.3)); }
+        video.night-mode { filter: brightness(1.35) contrast(1.1) saturate(1.2); }
+        video.macro-mode { filter: contrast(1.25) saturate(1.15); }
 
-        .portrait-aperture-chip {
+        .mode-status-chip {
             position: absolute; top: 68px; left: 50%; transform: translateX(-50%); z-index: 45;
-            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(20px);
+            background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 214, 10, 0.5); color: #FFD60A;
-            padding: 5px 12px; border-radius: 16px; font-size: 11px; font-weight: 700;
+            padding: 5px 14px; border-radius: 16px; font-size: 11px; font-weight: 700;
             display: none; align-items: center; gap: 6px;
         }
-        .portrait-aperture-chip.active { display: flex; }
+        .mode-status-chip.active { display: flex; }
         
         .shutter-flash {
             position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 60;
@@ -178,6 +179,8 @@ HTML_CONTENT = """
         .glass-dock.stacked-mode .dock-icon-btn.stack-3 { transform: translateX(48px) translateY(1px) scale(0.82); z-index: 10; opacity: 0.35; }
         .glass-dock.stacked-mode .dock-icon-btn.stack-deep { position: absolute; transform: translateX(54px) scale(0.7); opacity: 0; pointer-events: none; z-index: 5; }
 
+        .dock-icon-btn[data-key="night"].active-glow { background: linear-gradient(135deg, rgba(94,92,230,0.7), rgba(48,209,88,0.5)); border-color: #5E5CE6; box-shadow: 0 8px 20px rgba(94,92,230,0.6); }
+        .dock-icon-btn[data-key="macro"].active-glow { background: linear-gradient(135deg, rgba(48,209,88,0.7), rgba(0,255,200,0.5)); border-color: #30D158; box-shadow: 0 8px 20px rgba(48,209,88,0.6); }
         .dock-icon-btn[data-key="portrait"].active-glow { background: linear-gradient(135deg, rgba(255,214,10,0.7), rgba(255,107,0,0.5)); border-color: #FFD60A; box-shadow: 0 8px 20px rgba(255,214,10,0.6); }
         .dock-icon-btn[data-key="lonas"].active-glow { background: linear-gradient(135deg, rgba(255,149,0,0.7), rgba(255,94,58,0.5)); border-color: #FF9500; box-shadow: 0 8px 20px rgba(255,149,0,0.6); }
         .dock-icon-btn[data-key="custom"].active-glow { background: linear-gradient(135deg, rgba(255,45,85,0.7), rgba(175,82,222,0.5)); border-color: #FF2D55; box-shadow: 0 8px 20px rgba(255,45,85,0.6); }
@@ -273,7 +276,6 @@ HTML_CONTENT = """
             border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; cursor: pointer;
         }
 
-        /* MODAL GALERIA CON IMAGENES REALES */
         .gallery-modal {
             position: fixed; inset: 0; z-index: 105; background: #000;
             display: none; flex-direction: column; padding: 18px 14px;
@@ -298,9 +300,9 @@ HTML_CONTENT = """
         <span>✨ ¿Qué quieres hacer?</span>
     </div>
 
-    <!-- CHIP INDICADOR DE MODO RETRATO (BOKEH) -->
-    <div class="portrait-aperture-chip" id="apertureChip">
-        <span>📸 MODO RETRATO: f/1.4 BOKEH NPU</span>
+    <!-- CHIP INDICADOR DE ESTADO DE CÁMARA (RETRATO / NOCHE / MACRO) -->
+    <div class="mode-status-chip" id="modeStatusChip">
+        <span id="modeStatusText">📸 MODO ACTIVO</span>
     </div>
 
     <div class="viewport" id="viewportArea" onclick="handleTapToFocus(event)">
@@ -325,7 +327,9 @@ HTML_CONTENT = """
     <div class="dock-tooltip" id="dockTooltip">Módulo</div>
 
     <div class="glass-dock" id="glassDockBar">
-        <!-- NUEVO MODO RETRATO INTEGRADO -->
+        <!-- MODOS DE CÁMARA PRO INTEGRADOS -->
+        <div class="dock-icon-btn" data-key="night" onclick="handleIconClick('night', '🌙 Nightography V9', this, event)">🌙</div>
+        <div class="dock-icon-btn" data-key="macro" onclick="handleIconClick('macro', '🔍 Macro Pro V9', this, event)">🔍</div>
         <div class="dock-icon-btn" data-key="portrait" onclick="handleIconClick('portrait', '👤 Modo Retrato Bokeh V9', this, event)">👤</div>
         <div class="dock-icon-btn" data-key="lonas" onclick="handleIconClick('lonas', '⛺ Lonas 3D V9', this, event)">⛺</div>
         <div class="dock-icon-btn" data-key="custom" onclick="handleIconClick('custom', '🎨 Wallpapers V9', this, event)">🎨</div>
@@ -363,15 +367,15 @@ HTML_CONTENT = """
             </div>
             
             <div class="bot-quick-chips">
+                <button class="bot-chip" onclick="askNanoQuick('¿Qué hace Nightography?')">🌙 Modo Noche</button>
+                <button class="bot-chip" onclick="askNanoQuick('¿Para qué sirve el Macro Pro?')">🔍 Macro Pro</button>
                 <button class="bot-chip" onclick="askNanoQuick('¿Qué hace el modo retrato?')">👤 Modo Retrato</button>
                 <button class="bot-chip" onclick="askNanoQuick('¿Cómo saco el costo y merma con Chef Lean?')">🥩 Costear Carne</button>
-                <button class="bot-chip" onclick="askNanoQuick('¿Cómo calcular una lona con viento?')">⛺ Calcular Lona</button>
-                <button class="bot-chip" onclick="askNanoQuick('¿Cómo cotizar un producto o corte?')">🏷️ Cotizar ROI</button>
             </div>
 
             <div class="bot-chat-stream" id="botChatStream">
                 <div class="bot-msg ia">
-                    ¡Qué onda! Soy tu <strong>Nano-Bot Táctico</strong>. Dime qué necesitas resolver y te dirijo directo a la herramienta exacta sin rollos técnicos.
+                    ¡Qué onda! Soy tu <strong>Nano-Bot Táctico</strong>. Tienes activos todos los modos fotográficos modernos: Retrato, Nightography, Macro Pro y las herramientas industriales.
                 </div>
             </div>
 
@@ -382,7 +386,7 @@ HTML_CONTENT = """
         </div>
     </div>
 
-    <!-- MODAL GALERIA CON RUTA CORREGIDA -->
+    <!-- MODAL GALERÍA -->
     <div class="gallery-modal" id="galleryModal">
         <div class="gallery-top">
             <h3 style="font-size:16px; font-weight:700;">Galería Soberana S23 Ultra</h3>
@@ -404,6 +408,8 @@ HTML_CONTENT = """
         let evaporateTimeout = null;
 
         const enginesList = [
+            { key: 'night', name: '🌙 Nightography V9' },
+            { key: 'macro', name: '🔍 Macro Pro V9' },
             { key: 'portrait', name: '👤 Modo Retrato Bokeh V9' },
             { key: 'lonas', name: '⛺ Lonas 3D V9' },
             { key: 'custom', name: '🎨 Wallpapers V9' },
@@ -624,14 +630,25 @@ HTML_CONTENT = """
             document.getElementById('activeModuleName').innerText = key.toUpperCase();
             document.getElementById('botModuleBadge').innerText = key.toUpperCase();
 
-            // ACTIVACIÓN O DESACTIVACIÓN DE MODO RETRATO
-            const apertureChip = document.getElementById('apertureChip');
+            // CONTROL DE FILTROS Y CHIPS
+            const statusChip = document.getElementById('modeStatusChip');
+            const statusText = document.getElementById('modeStatusText');
+            video.className = "";
+
             if (key === 'portrait') {
                 video.classList.add('portrait-bokeh');
-                apertureChip.classList.add('active');
+                statusText.innerText = "📸 MODO RETRATO: f/1.4 BOKEH NPU";
+                statusChip.classList.add('active');
+            } else if (key === 'night') {
+                video.classList.add('night-mode');
+                statusText.innerText = "🌙 NIGHTOGRAPHY: ISO BOOST + RAW DENOISE";
+                statusChip.classList.add('active');
+            } else if (key === 'macro') {
+                video.classList.add('macro-mode');
+                statusText.innerText = "🔍 MACRO PRO: REALCE TEXTURAL 8K";
+                statusChip.classList.add('active');
             } else {
-                video.classList.remove('portrait-bokeh');
-                apertureChip.classList.remove('active');
+                statusChip.classList.remove('active');
             }
 
             evaporateTimeout = setTimeout(() => {
@@ -688,8 +705,8 @@ HTML_CONTENT = """
                 btn.className = 'dock-icon-btn';
             });
 
-            video.classList.remove('portrait-bokeh');
-            document.getElementById('apertureChip').classList.remove('active');
+            video.className = "";
+            document.getElementById('modeStatusChip').classList.remove('active');
 
             document.getElementById('activeModuleName').innerText = 'Cam Vision V9';
             document.getElementById('botModuleBadge').innerText = 'GENERAL';
@@ -825,7 +842,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Samsung Native Camera Core V9 (Static Storage & Portrait Mode)",
+        "engine": "Samsung Native Camera Core V9 (Nightography, Macro & Portrait)",
         "status": "online"
     }
 
@@ -854,23 +871,27 @@ def nanobot_query(payload: NanoBotQuery):
     msg = payload.message.lower()
     mod = payload.current_module
 
-    if "retrato" in msg or "portrait" in msg or "bokeh" in msg:
+    if "noche" in msg or "night" in msg:
         return {
-            "reply": "👤 <strong>Modo Retrato Bokeh:</strong> Aisla el sujeto en primer plano y desenfoca suavemente el fondo simulando apertura f/1.4 con el sensor del S23 Ultra."
+            "reply": "🌙 <strong>Nightography:</strong> Activa el sensor para condiciones de baja luz, simulando mayor tiempo de exposición y reducción de ruido en sombras profundas."
+        }
+    elif "macro" in msg:
+        return {
+            "reply": "🔍 <strong>Macro Pro:</strong> Optimizado para capturar detalles a milímetros de distancia con realce de texturas finas (carnes, papel, telas o componentes)."
+        }
+    elif "retrato" in msg or "portrait" in msg or "bokeh" in msg:
+        return {
+            "reply": "👤 <strong>Modo Retrato Bokeh:</strong> Aisla el sujeto en primer plano y desenfoca suavemente el fondo con apertura f/1.4."
         }
     elif "carne" in msg or "chef" in msg or "merma" in msg or "porci" in msg:
         return {
-            "reply": "🥩 <strong>Chef Lean:</strong> Toma la foto de la pieza. El sistema descuenta la merma (13-14%) para porciones exactas (ej. 220g) y recalcula el costo real de menú."
+            "reply": "🥩 <strong>Chef Lean:</strong> Toma la foto del corte. Descuenta mermas (13-14%) y entrega el porcionado exacto y costeo directo."
         }
     elif "lona" in msg or "viento" in msg:
         return {
-            "reply": "⛺ <strong>Lonas 3D:</strong> Captura la fachada para simular ráfagas de viento (40 a 90 km/h) y calcular el tipo de lona y distancia de ojillos."
-        }
-    elif "precio" in msg or "valua" in msg or "cotiz" in msg or "roi" in msg:
-        return {
-            "reply": "🏷️ <strong>Valuador Híbrido:</strong> Enfoca el insumo o producto para estimar el precio justo, margen y punto de equilibrio (Break-Even)."
+            "reply": "⛺ <strong>Lonas 3D:</strong> Captura la estructura para calcular resistencia eólica (40 a 90 km/h) y distribución perimetral de ojillos."
         }
     else:
         return {
-            "reply": f"🎯 Puedes usar los módulos tácticos de la barra: <strong>👤 Retrato</strong> para bokeh, <strong>🥩 Chef Lean</strong> para carnes o <strong>⛺ Lonas</strong> para estructuras."
+            "reply": f"🎯 Tienes a la mano <strong>🌙 Noche</strong>, <strong>🔍 Macro</strong>, <strong>👤 Retrato</strong> y las herramientas de taller y negocio. Dispara y se guarda en tu galería."
         }
