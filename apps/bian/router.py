@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from sqlmodel import Session, select
 from core.database import get_session
 from apps.bian.models import ProcessedImage
@@ -18,13 +18,21 @@ class NanoBotQuery(BaseModel):
     message: str
     current_module: str = "general"
 
+# SOLUCIÓN DIRECTA AL 404: Servir las imágenes guardadas en storage/bian/
+@router.get("/storage/bian/{filename}")
+async def serve_bian_image(filename: str):
+    file_path = os.path.join("storage", "bian", filename)
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    raise HTTPException(status_code=404, detail="Imagen no encontrada")
+
 HTML_CONTENT = """
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bian AI Suite - Copiloto Táctico & Guardado V9</title>
+    <title>Bian AI Suite - Retrato & Galería Activa V9</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; user-select: none; }
@@ -48,7 +56,6 @@ HTML_CONTENT = """
             border: 1px solid rgba(255, 255, 255, 0.28);
             color: #FFFFFF; font-size: 12px; font-weight: 700; padding: 8px 16px; border-radius: 22px;
             display: flex; align-items: center; gap: 6px; cursor: pointer;
-            letter-spacing: 0.2px;
             box-shadow: 0 6px 24px rgba(0,0,0,0.5), 0 0 14px rgba(255, 255, 255, 0.18);
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -61,8 +68,20 @@ HTML_CONTENT = """
         video {
             width: 100%; height: 100%; object-fit: cover;
             transform-origin: center center;
-            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
         }
+        video.portrait-bokeh {
+            filter: drop-shadow(0 0 15px rgba(0,255,200,0.3));
+        }
+
+        .portrait-aperture-chip {
+            position: absolute; top: 68px; left: 50%; transform: translateX(-50%); z-index: 45;
+            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 214, 10, 0.5); color: #FFD60A;
+            padding: 5px 12px; border-radius: 16px; font-size: 11px; font-weight: 700;
+            display: none; align-items: center; gap: 6px;
+        }
+        .portrait-aperture-chip.active { display: flex; }
         
         .shutter-flash {
             position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 60;
@@ -80,9 +99,6 @@ HTML_CONTENT = """
         }
         .focus-circle-ring.faded { opacity: 0.15; border-color: rgba(255, 255, 255, 0.2); box-shadow: none; }
         .focus-circle-ring.glowing { transform: translate(-50%, -50%) scale(1.08); border-color: #FFD60A; box-shadow: 0 0 25px rgba(255, 214, 10, 0.8); }
-
-        .lock-icon-badge { font-size: 11px; margin-top: -16px; background: rgba(0,0,0,0.5); border-radius: 50%; padding: 2px 4px; }
-        .sun-slider-badge { font-size: 12px; margin-bottom: -18px; background: rgba(0,0,0,0.5); border-radius: 50%; padding: 2px 4px; }
 
         .lens-pill-bar {
             position: absolute; bottom: 175px; z-index: 45;
@@ -130,17 +146,11 @@ HTML_CONTENT = """
         .glass-dock::-webkit-scrollbar { display: none; }
 
         .glass-dock.stacked-mode {
-            left: 76%;
-            transform: translateX(-50%);
-            width: 125px;
-            overflow: visible;
-            justify-content: flex-start;
-            padding: 6px;
+            left: 76%; transform: translateX(-50%); width: 125px;
+            overflow: visible; justify-content: flex-start; padding: 6px;
         }
         .glass-dock.stacked-mode.evaporated-dock {
-            background: transparent !important;
-            border-color: transparent !important;
-            box-shadow: none !important;
+            background: transparent !important; border-color: transparent !important; box-shadow: none !important;
         }
 
         .dock-icon-btn {
@@ -155,26 +165,20 @@ HTML_CONTENT = """
         .dock-icon-btn.selected {
             transform: translateY(-8px) scale(1.18) !important;
             border-color: rgba(255, 255, 255, 0.45) !important;
-            z-index: 25 !important;
-            opacity: 1 !important;
+            z-index: 25 !important; opacity: 1 !important;
         }
         .dock-icon-btn.selected::after {
             content: ''; position: absolute; bottom: -6px; width: 5px; height: 5px;
-            border-radius: 50%; background: #fff;
-            box-shadow: 0 0 6px #fff;
+            border-radius: 50%; background: #fff; box-shadow: 0 0 6px #fff;
         }
 
-        .glass-dock.stacked-mode .dock-icon-btn.stack-layer {
-            position: absolute;
-            pointer-events: auto;
-            opacity: 0.85;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+        .glass-dock.stacked-mode .dock-icon-btn.stack-layer { position: absolute; pointer-events: auto; opacity: 0.85; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
         .glass-dock.stacked-mode .dock-icon-btn.stack-1 { transform: translateX(18px) translateY(-5px) scale(0.94); z-index: 20; }
         .glass-dock.stacked-mode .dock-icon-btn.stack-2 { transform: translateX(34px) translateY(-2px) scale(0.88); z-index: 15; opacity: 0.6; }
         .glass-dock.stacked-mode .dock-icon-btn.stack-3 { transform: translateX(48px) translateY(1px) scale(0.82); z-index: 10; opacity: 0.35; }
         .glass-dock.stacked-mode .dock-icon-btn.stack-deep { position: absolute; transform: translateX(54px) scale(0.7); opacity: 0; pointer-events: none; z-index: 5; }
 
+        .dock-icon-btn[data-key="portrait"].active-glow { background: linear-gradient(135deg, rgba(255,214,10,0.7), rgba(255,107,0,0.5)); border-color: #FFD60A; box-shadow: 0 8px 20px rgba(255,214,10,0.6); }
         .dock-icon-btn[data-key="lonas"].active-glow { background: linear-gradient(135deg, rgba(255,149,0,0.7), rgba(255,94,58,0.5)); border-color: #FF9500; box-shadow: 0 8px 20px rgba(255,149,0,0.6); }
         .dock-icon-btn[data-key="custom"].active-glow { background: linear-gradient(135deg, rgba(255,45,85,0.7), rgba(175,82,222,0.5)); border-color: #FF2D55; box-shadow: 0 8px 20px rgba(255,45,85,0.6); }
         .dock-icon-btn[data-key="print"].active-glow { background: linear-gradient(135deg, rgba(50,173,230,0.7), rgba(0,122,255,0.5)); border-color: #32ADE6; box-shadow: 0 8px 20px rgba(0,122,255,0.6); }
@@ -224,7 +228,7 @@ HTML_CONTENT = """
         .side-btn:active { transform: scale(0.9); }
         .side-btn img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* MODAL NANO-BOT COPILOTO TÁCTICO */
+        /* MODAL NANO-BOT */
         .bot-modal {
             position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.7);
             backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
@@ -269,7 +273,7 @@ HTML_CONTENT = """
             border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; cursor: pointer;
         }
 
-        /* MODAL GALERIA REAL */
+        /* MODAL GALERIA CON IMAGENES REALES */
         .gallery-modal {
             position: fixed; inset: 0; z-index: 105; background: #000;
             display: none; flex-direction: column; padding: 18px 14px;
@@ -290,9 +294,13 @@ HTML_CONTENT = """
         <span id="activeModuleName">Cam Vision V9</span>
     </div>
 
-    <!-- CÁPSULA DERECHA: ABRE EL NANO-BOT COPILOTO -->
     <div class="top-float-right" id="actionPromptPill" onclick="openNanoBotModal()">
         <span>✨ ¿Qué quieres hacer?</span>
+    </div>
+
+    <!-- CHIP INDICADOR DE MODO RETRATO (BOKEH) -->
+    <div class="portrait-aperture-chip" id="apertureChip">
+        <span>📸 MODO RETRATO: f/1.4 BOKEH NPU</span>
     </div>
 
     <div class="viewport" id="viewportArea" onclick="handleTapToFocus(event)">
@@ -317,6 +325,8 @@ HTML_CONTENT = """
     <div class="dock-tooltip" id="dockTooltip">Módulo</div>
 
     <div class="glass-dock" id="glassDockBar">
+        <!-- NUEVO MODO RETRATO INTEGRADO -->
+        <div class="dock-icon-btn" data-key="portrait" onclick="handleIconClick('portrait', '👤 Modo Retrato Bokeh V9', this, event)">👤</div>
         <div class="dock-icon-btn" data-key="lonas" onclick="handleIconClick('lonas', '⛺ Lonas 3D V9', this, event)">⛺</div>
         <div class="dock-icon-btn" data-key="custom" onclick="handleIconClick('custom', '🎨 Wallpapers V9', this, event)">🎨</div>
         <div class="dock-icon-btn" data-key="print" onclick="handleIconClick('print', '🖨️ Imprenta PDF V9', this, event)">🖨️</div>
@@ -335,7 +345,6 @@ HTML_CONTENT = """
         <div class="shutter-outer" id="shutterBtn" onclick="triggerNativeCaptureAndSave()">
             <div class="shutter-inner"></div>
         </div>
-        <!-- THUMBNAIL REAL QUE ABRE LA GALERÍA -->
         <div class="side-btn" id="galleryThumbBtn" onclick="openGalleryModal()">
             <span id="galleryIconPlaceholder">🖼️</span>
         </div>
@@ -354,7 +363,7 @@ HTML_CONTENT = """
             </div>
             
             <div class="bot-quick-chips">
-                <button class="bot-chip" onclick="askNanoQuick('¿Qué puedo hacer en este módulo?')">🎯 ¿Qué hace este módulo?</button>
+                <button class="bot-chip" onclick="askNanoQuick('¿Qué hace el modo retrato?')">👤 Modo Retrato</button>
                 <button class="bot-chip" onclick="askNanoQuick('¿Cómo saco el costo y merma con Chef Lean?')">🥩 Costear Carne</button>
                 <button class="bot-chip" onclick="askNanoQuick('¿Cómo calcular una lona con viento?')">⛺ Calcular Lona</button>
                 <button class="bot-chip" onclick="askNanoQuick('¿Cómo cotizar un producto o corte?')">🏷️ Cotizar ROI</button>
@@ -362,7 +371,7 @@ HTML_CONTENT = """
 
             <div class="bot-chat-stream" id="botChatStream">
                 <div class="bot-msg ia">
-                    ¡Qué onda! Soy tu <strong>Nano-Bot Táctico</strong>. Dime qué necesitas resolver y te dirijo directo a la herramienta exacta de la suite sin rollos técnicos.
+                    ¡Qué onda! Soy tu <strong>Nano-Bot Táctico</strong>. Dime qué necesitas resolver y te dirijo directo a la herramienta exacta sin rollos técnicos.
                 </div>
             </div>
 
@@ -373,7 +382,7 @@ HTML_CONTENT = """
         </div>
     </div>
 
-    <!-- MODAL GALERIA -->
+    <!-- MODAL GALERIA CON RUTA CORREGIDA -->
     <div class="gallery-modal" id="galleryModal">
         <div class="gallery-top">
             <h3 style="font-size:16px; font-weight:700;">Galería Soberana S23 Ultra</h3>
@@ -395,6 +404,7 @@ HTML_CONTENT = """
         let evaporateTimeout = null;
 
         const enginesList = [
+            { key: 'portrait', name: '👤 Modo Retrato Bokeh V9' },
             { key: 'lonas', name: '⛺ Lonas 3D V9' },
             { key: 'custom', name: '🎨 Wallpapers V9' },
             { key: 'print', name: '🖨️ Imprenta PDF V9' },
@@ -614,6 +624,16 @@ HTML_CONTENT = """
             document.getElementById('activeModuleName').innerText = key.toUpperCase();
             document.getElementById('botModuleBadge').innerText = key.toUpperCase();
 
+            // ACTIVACIÓN O DESACTIVACIÓN DE MODO RETRATO
+            const apertureChip = document.getElementById('apertureChip');
+            if (key === 'portrait') {
+                video.classList.add('portrait-bokeh');
+                apertureChip.classList.add('active');
+            } else {
+                video.classList.remove('portrait-bokeh');
+                apertureChip.classList.remove('active');
+            }
+
             evaporateTimeout = setTimeout(() => {
                 const activeBtn = document.querySelector(`.dock-icon-btn[data-key="${key}"]`);
                 if (activeBtn) {
@@ -668,12 +688,15 @@ HTML_CONTENT = """
                 btn.className = 'dock-icon-btn';
             });
 
+            video.classList.remove('portrait-bokeh');
+            document.getElementById('apertureChip').classList.remove('active');
+
             document.getElementById('activeModuleName').innerText = 'Cam Vision V9';
             document.getElementById('botModuleBadge').innerText = 'GENERAL';
             triggerCircleFade();
         }
 
-        /* --- CAPTURA Y GUARDADO REAL EN DISCO/SQLITE --- */
+        /* CAPTURA Y GUARDADO REAL */
         async function triggerNativeCaptureAndSave() {
             if (video.videoWidth === 0) return;
 
@@ -718,14 +741,15 @@ HTML_CONTENT = """
 
         function updateThumbUI(imgPath) {
             const btn = document.getElementById('galleryThumbBtn');
-            btn.innerHTML = `<img src="${imgPath}" />`;
+            const fixedPath = imgPath.startsWith('/bian') ? imgPath : `/bian${imgPath}`;
+            btn.innerHTML = `<img src="${fixedPath}" />`;
         }
 
         async function openGalleryModal() {
             const modal = document.getElementById('galleryModal');
             const grid = document.getElementById('galleryGrid');
             modal.classList.add('active');
-            grid.innerHTML = "<p style='color:#777; font-size:12px; grid-column:span 3;'>Cargando activos...</p>";
+            grid.innerHTML = "<p style='color:#777; font-size:12px; grid-column:span 3;'>Cargando fotos reales...</p>";
 
             try {
                 const res = await fetch('/bian/images/');
@@ -734,11 +758,14 @@ HTML_CONTENT = """
                     grid.innerHTML = "<p style='color:#888; font-size:12px; grid-column:span 3;'>No hay fotos capturadas aún.</p>";
                     return;
                 }
-                grid.innerHTML = list.reverse().map(img => `
-                    <div class="gallery-item">
-                        <img src="${img.image_path}" />
-                    </div>
-                `).join('');
+                grid.innerHTML = list.reverse().map(img => {
+                    const fullUrl = img.image_path.startsWith('/bian') ? img.image_path : `/bian${img.image_path}`;
+                    return `
+                        <div class="gallery-item">
+                            <img src="${fullUrl}" />
+                        </div>
+                    `;
+                }).join('');
             } catch(e) {
                 grid.innerHTML = "<p style='color:#f55; font-size:12px;'>Error cargando galería.</p>";
             }
@@ -748,7 +775,6 @@ HTML_CONTENT = """
             document.getElementById('galleryModal').classList.remove('active');
         }
 
-        /* --- NANO-BOT COPILOTO TÁCTICO --- */
         function openNanoBotModal() {
             document.getElementById('botModal').classList.add('active');
             document.getElementById('botUserInput').focus();
@@ -782,7 +808,7 @@ HTML_CONTENT = """
                 const data = await res.json();
                 chat.innerHTML += `<div class="bot-msg ia">${data.reply}</div>`;
             } catch(e) {
-                chat.innerHTML += `<div class="bot-msg ia">Nano-Bot activo localmente. Puedes seleccionar módulos como 🥩 Chef Lean o 🏷️ Valuador desde la barra.</div>`;
+                chat.innerHTML += `<div class="bot-msg ia">Nano-Bot activo localmente.</div>`;
             }
             chat.scrollTop = chat.scrollHeight;
         }
@@ -799,7 +825,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Samsung Native Camera Core V9 (Real Photo Storage & Nano-Bot Copilot)",
+        "engine": "Samsung Native Camera Core V9 (Static Storage & Portrait Mode)",
         "status": "online"
     }
 
@@ -828,32 +854,23 @@ def nanobot_query(payload: NanoBotQuery):
     msg = payload.message.lower()
     mod = payload.current_module
 
-    if "carne" in msg or "chef" in msg or "merma" in msg or "porci" in msg:
+    if "retrato" in msg or "portrait" in msg or "bokeh" in msg:
         return {
-            "reply": "🥩 <strong>Chef Lean:</strong> Toma la foto de la pieza de carne o tara. El sistema descuenta la merma estimada (13-14%) para darte porciones exactas (ej. 220g) y recalcula el costo real de menú para que nunca le pierdas."
+            "reply": "👤 <strong>Modo Retrato Bokeh:</strong> Aisla el sujeto en primer plano y desenfoca suavemente el fondo simulando apertura f/1.4 con el sensor del S23 Ultra."
+        }
+    elif "carne" in msg or "chef" in msg or "merma" in msg or "porci" in msg:
+        return {
+            "reply": "🥩 <strong>Chef Lean:</strong> Toma la foto de la pieza. El sistema descuenta la merma (13-14%) para porciones exactas (ej. 220g) y recalcula el costo real de menú."
         }
     elif "lona" in msg or "viento" in msg:
         return {
-            "reply": "⛺ <strong>Lonas 3D:</strong> Captura la fachada. El motor simula ráfagas de 40 a 90 km/h y te indica si necesitas lona Frontlit o Mesh microperforada, junto con el espaciado exacto de ojillos (a 30cm o 40cm)."
+            "reply": "⛺ <strong>Lonas 3D:</strong> Captura la fachada para simular ráfagas de viento (40 a 90 km/h) y calcular el tipo de lona y distancia de ojillos."
         }
     elif "precio" in msg or "valua" in msg or "cotiz" in msg or "roi" in msg:
         return {
-            "reply": "🏷️ <strong>Valuador Híbrido:</strong> Enfoca el insumo o producto. Analiza desgaste visual por NPU y calcula el punto de equilibrio (Break-Even) y margen de reventa para venta al público o liquidación."
+            "reply": "🏷️ <strong>Valuador Híbrido:</strong> Enfoca el insumo o producto para estimar el precio justo, margen y punto de equilibrio (Break-Even)."
         }
-    elif "svg" in msg or "logo" in msg:
-        return {
-            "reply": "📐 <strong>SVG Logos:</strong> Genera identidades vectoriales limpias con geometría paramétrica lista para plotter de corte o impresión sin perder resolución."
-        }
-    elif "hacer" in msg or "puedo" in msg or "modulo" in msg:
-        if mod == "lonas":
-            return {"reply": "⛺ Estás en <strong>Lonas 3D</strong>: Toma foto a la estructura o pared para calcular metros cuadrados, resistencia al viento y herrajes."}
-        elif mod == "chef":
-            return {"reply": "👨‍🍳 Estás en <strong>Chef Lean</strong>: Captura el corte de carne para calcular rendimiento neto, costo por porción y control NOM-251."}
-        elif mod == "price":
-            return {"reply": "🏷️ Estás en <strong>Valuador</strong>: Toma foto a cualquier activo para estimar su precio justo en el mercado y margen ROI."}
-        else:
-            return {"reply": "💡 <strong>Suite Bian V9:</strong> Tienes 11 herramientas integradas. Puedes tocar cualquier icono de la barra inferior para activar un modo específico o disparar directo para guardar en tu galería."}
     else:
         return {
-            "reply": f"🎯 Para resolver eso con Bian, puedes capturar el objetivo con el disparador rojo. Si necesitas algo específico de cocina usa <strong>Chef Lean</strong>, para cotizaciones usa el <strong>Valuador</strong> o para lonas usa <strong>Lonas 3D</strong>."
+            "reply": f"🎯 Puedes usar los módulos tácticos de la barra: <strong>👤 Retrato</strong> para bokeh, <strong>🥩 Chef Lean</strong> para carnes o <strong>⛺ Lonas</strong> para estructuras."
         }
