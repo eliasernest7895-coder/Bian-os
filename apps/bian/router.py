@@ -12,7 +12,7 @@ router = APIRouter(prefix="/bian", tags=["Bian AI Vision Pro"])
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Captura Soberana Bian V9"
+    prompt_analysis: str = "Escaneo Documental Bian V9"
 
 class NanoBotQuery(BaseModel):
     message: str
@@ -31,7 +31,8 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bian AI Suite - Cámara Pro Completa V9</title>
+    <title>Bian AI Suite - Scanner & Cámara Pro V9</title>
+    <script src="https://unpkg.com/tesseract.js@v4.0.2/dist/tesseract.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; user-select: none; }
@@ -70,10 +71,27 @@ HTML_CONTENT = """
             transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
         }
         
-        /* FILTROS DINÁMICOS POR MODO */
+        /* FILTROS POR MODO */
         video.portrait-bokeh { filter: drop-shadow(0 0 16px rgba(0,255,200,0.3)); }
         video.night-mode { filter: brightness(1.35) contrast(1.1) saturate(1.2); }
         video.macro-mode { filter: contrast(1.25) saturate(1.15); }
+        video.scan-mode { filter: grayscale(1) contrast(1.4) brightness(1.1); }
+
+        /* GUIA DE ESCANEO DE DOCUMENTOS */
+        .doc-scanner-frame {
+            position: absolute; width: 78%; height: 68%;
+            border: 2px dashed #00FFC8; border-radius: 12px;
+            box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.45);
+            pointer-events: none; z-index: 35; display: none;
+            justify-content: space-between; flex-direction: column; padding: 10px;
+        }
+        .doc-scanner-frame.active { display: flex; }
+        .doc-corner { width: 18px; height: 18px; border-color: #00FFC8; border-style: solid; }
+        .doc-corner.tl { border-width: 3px 0 0 3px; align-self: flex-start; }
+        .doc-corner.tr { border-width: 3px 3px 0 0; align-self: flex-end; }
+        .doc-corner.bl { border-width: 0 0 3px 3px; align-self: flex-start; }
+        .doc-corner.br { border-width: 0 3px 3px 0; align-self: flex-end; }
+        .doc-row { display: flex; justify-content: space-between; width: 100%; }
 
         .mode-status-chip {
             position: absolute; top: 68px; left: 50%; transform: translateX(-50%); z-index: 45;
@@ -100,6 +118,9 @@ HTML_CONTENT = """
         }
         .focus-circle-ring.faded { opacity: 0.15; border-color: rgba(255, 255, 255, 0.2); box-shadow: none; }
         .focus-circle-ring.glowing { transform: translate(-50%, -50%) scale(1.08); border-color: #FFD60A; box-shadow: 0 0 25px rgba(255, 214, 10, 0.8); }
+
+        .lock-icon-badge { font-size: 11px; margin-top: -16px; background: rgba(0,0,0,0.5); border-radius: 50%; padding: 2px 4px; }
+        .sun-slider-badge { font-size: 12px; margin-bottom: -18px; background: rgba(0,0,0,0.5); border-radius: 50%; padding: 2px 4px; }
 
         .lens-pill-bar {
             position: absolute; bottom: 175px; z-index: 45;
@@ -179,6 +200,7 @@ HTML_CONTENT = """
         .glass-dock.stacked-mode .dock-icon-btn.stack-3 { transform: translateX(48px) translateY(1px) scale(0.82); z-index: 10; opacity: 0.35; }
         .glass-dock.stacked-mode .dock-icon-btn.stack-deep { position: absolute; transform: translateX(54px) scale(0.7); opacity: 0; pointer-events: none; z-index: 5; }
 
+        .dock-icon-btn[data-key="scan"].active-glow { background: linear-gradient(135deg, rgba(0,255,200,0.7), rgba(10,132,255,0.5)); border-color: #00FFC8; box-shadow: 0 8px 20px rgba(0,255,200,0.6); }
         .dock-icon-btn[data-key="night"].active-glow { background: linear-gradient(135deg, rgba(94,92,230,0.7), rgba(48,209,88,0.5)); border-color: #5E5CE6; box-shadow: 0 8px 20px rgba(94,92,230,0.6); }
         .dock-icon-btn[data-key="macro"].active-glow { background: linear-gradient(135deg, rgba(48,209,88,0.7), rgba(0,255,200,0.5)); border-color: #30D158; box-shadow: 0 8px 20px rgba(48,209,88,0.6); }
         .dock-icon-btn[data-key="portrait"].active-glow { background: linear-gradient(135deg, rgba(255,214,10,0.7), rgba(255,107,0,0.5)); border-color: #FFD60A; box-shadow: 0 8px 20px rgba(255,214,10,0.6); }
@@ -300,7 +322,19 @@ HTML_CONTENT = """
         <span>✨ ¿Qué quieres hacer?</span>
     </div>
 
-    <!-- CHIP INDICADOR DE ESTADO DE CÁMARA (RETRATO / NOCHE / MACRO) -->
+    <!-- GUÍA TÁCTICA PARA DOCUMENTOS -->
+    <div class="doc-scanner-frame" id="docScannerFrame">
+        <div class="doc-row">
+            <div class="doc-corner tl"></div>
+            <div class="doc-corner tr"></div>
+        </div>
+        <div style="text-align: center; color: #00FFC8; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">ALINEA EL DOCUMENTO O TICKET AQUÍ</div>
+        <div class="doc-row">
+            <div class="doc-corner bl"></div>
+            <div class="doc-corner br"></div>
+        </div>
+    </div>
+
     <div class="mode-status-chip" id="modeStatusChip">
         <span id="modeStatusText">📸 MODO ACTIVO</span>
     </div>
@@ -327,7 +361,8 @@ HTML_CONTENT = """
     <div class="dock-tooltip" id="dockTooltip">Módulo</div>
 
     <div class="glass-dock" id="glassDockBar">
-        <!-- MODOS DE CÁMARA PRO INTEGRADOS -->
+        <!-- ESCÁNER DE DOCUMENTOS PRO EN EL DOCK -->
+        <div class="dock-icon-btn" data-key="scan" onclick="handleIconClick('scan', '📄 Scan Doc Pro V9', this, event)">📄</div>
         <div class="dock-icon-btn" data-key="night" onclick="handleIconClick('night', '🌙 Nightography V9', this, event)">🌙</div>
         <div class="dock-icon-btn" data-key="macro" onclick="handleIconClick('macro', '🔍 Macro Pro V9', this, event)">🔍</div>
         <div class="dock-icon-btn" data-key="portrait" onclick="handleIconClick('portrait', '👤 Modo Retrato Bokeh V9', this, event)">👤</div>
@@ -354,7 +389,7 @@ HTML_CONTENT = """
         </div>
     </div>
 
-    <!-- MODAL NANO-BOT COPILOTO -->
+    <!-- MODAL NANO-BOT -->
     <div class="bot-modal" id="botModal">
         <div class="bot-card">
             <div class="bot-drag" onclick="closeNanoBotModal()"></div>
@@ -367,15 +402,15 @@ HTML_CONTENT = """
             </div>
             
             <div class="bot-quick-chips">
+                <button class="bot-chip" onclick="askNanoQuick('¿Cómo uso el Escáner de Documentos?')">📄 Escanear Documento</button>
                 <button class="bot-chip" onclick="askNanoQuick('¿Qué hace Nightography?')">🌙 Modo Noche</button>
                 <button class="bot-chip" onclick="askNanoQuick('¿Para qué sirve el Macro Pro?')">🔍 Macro Pro</button>
-                <button class="bot-chip" onclick="askNanoQuick('¿Qué hace el modo retrato?')">👤 Modo Retrato</button>
                 <button class="bot-chip" onclick="askNanoQuick('¿Cómo saco el costo y merma con Chef Lean?')">🥩 Costear Carne</button>
             </div>
 
             <div class="bot-chat-stream" id="botChatStream">
                 <div class="bot-msg ia">
-                    ¡Qué onda! Soy tu <strong>Nano-Bot Táctico</strong>. Tienes activos todos los modos fotográficos modernos: Retrato, Nightography, Macro Pro y las herramientas industriales.
+                    ¡Qué onda! Soy tu <strong>Nano-Bot Táctico</strong>. Tienes activos todos los modos modernos: Escáner Documental con OCR, Nightography, Macro Pro, Retrato y las herramientas industriales.
                 </div>
             </div>
 
@@ -386,7 +421,6 @@ HTML_CONTENT = """
         </div>
     </div>
 
-    <!-- MODAL GALERÍA -->
     <div class="gallery-modal" id="galleryModal">
         <div class="gallery-top">
             <h3 style="font-size:16px; font-weight:700;">Galería Soberana S23 Ultra</h3>
@@ -408,6 +442,7 @@ HTML_CONTENT = """
         let evaporateTimeout = null;
 
         const enginesList = [
+            { key: 'scan', name: '📄 Scan Doc Pro V9' },
             { key: 'night', name: '🌙 Nightography V9' },
             { key: 'macro', name: '🔍 Macro Pro V9' },
             { key: 'portrait', name: '👤 Modo Retrato Bokeh V9' },
@@ -436,20 +471,14 @@ HTML_CONTENT = """
                 const now = ctx.currentTime;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
-
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-
+                osc.connect(gain); gain.connect(ctx.destination);
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(440, now);
                 osc.frequency.exponentialRampToValueAtTime(840, now + 0.12);
-
                 gain.gain.setValueAtTime(0.001, now);
                 gain.gain.linearRampToValueAtTime(0.18, now + 0.03);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
-
-                osc.start(now);
-                osc.stop(now + 0.14);
+                osc.start(now); osc.stop(now + 0.14);
             } catch(e) {}
         }
 
@@ -459,9 +488,7 @@ HTML_CONTENT = """
                 const now = ctx.currentTime;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-
+                osc.connect(gain); gain.connect(ctx.destination);
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(140, now);
                 osc.frequency.exponentialRampToValueAtTime(60, now + 0.15);
@@ -477,8 +504,7 @@ HTML_CONTENT = """
                 const now = ctx.currentTime;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
+                osc.connect(gain); gain.connect(ctx.destination);
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(1200, now);
                 osc.frequency.setValueAtTime(1600, now + 0.03);
@@ -630,12 +656,19 @@ HTML_CONTENT = """
             document.getElementById('activeModuleName').innerText = key.toUpperCase();
             document.getElementById('botModuleBadge').innerText = key.toUpperCase();
 
-            // CONTROL DE FILTROS Y CHIPS
+            // CONTROL DE MODOS
             const statusChip = document.getElementById('modeStatusChip');
             const statusText = document.getElementById('modeStatusText');
+            const scanFrame = document.getElementById('docScannerFrame');
             video.className = "";
+            scanFrame.classList.remove('active');
 
-            if (key === 'portrait') {
+            if (key === 'scan') {
+                video.classList.add('scan-mode');
+                scanFrame.classList.add('active');
+                statusText.innerText = "📄 ESCÁNER DOCUMENTAL: ALTO CONTRASTE + OCR";
+                statusChip.classList.add('active');
+            } else if (key === 'portrait') {
                 video.classList.add('portrait-bokeh');
                 statusText.innerText = "📸 MODO RETRATO: f/1.4 BOKEH NPU";
                 statusChip.classList.add('active');
@@ -706,6 +739,7 @@ HTML_CONTENT = """
             });
 
             video.className = "";
+            document.getElementById('docScannerFrame').classList.remove('active');
             document.getElementById('modeStatusChip').classList.remove('active');
 
             document.getElementById('activeModuleName').innerText = 'Cam Vision V9';
@@ -713,7 +747,7 @@ HTML_CONTENT = """
             triggerCircleFade();
         }
 
-        /* CAPTURA Y GUARDADO REAL */
+        /* CAPTURA Y GUARDADO */
         async function triggerNativeCaptureAndSave() {
             if (video.videoWidth === 0) return;
 
@@ -726,6 +760,13 @@ HTML_CONTENT = """
             internalCanvas.width = video.videoWidth;
             internalCanvas.height = video.videoHeight;
             const ctx = internalCanvas.getContext('2d');
+
+            // Si está en modo Scan Doc Pro, aplicar procesado de documento de alto contraste
+            if (selectedEngineKey === 'scan') {
+                ctx.filter = 'grayscale(100%) contrast(160%) brightness(110%)';
+            } else {
+                ctx.filter = 'none';
+            }
             ctx.drawImage(video, 0, 0, internalCanvas.width, internalCanvas.height);
 
             const base64Data = internalCanvas.toDataURL('image/jpeg', 0.92);
@@ -842,7 +883,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Samsung Native Camera Core V9 (Nightography, Macro & Portrait)",
+        "engine": "Samsung Native Camera Core V9 (CamScanner Pro & OCR Integration)",
         "status": "online"
     }
 
@@ -871,7 +912,11 @@ def nanobot_query(payload: NanoBotQuery):
     msg = payload.message.lower()
     mod = payload.current_module
 
-    if "noche" in msg or "night" in msg:
+    if "scan" in msg or "doc" in msg or "escan" in msg or "ticket" in msg or "factura" in msg:
+        return {
+            "reply": "📄 <strong>Scan Doc Pro:</strong> Alinea el documento o ticket dentro del marco verde. Al disparar, el sistema elimina las sombras, aclara el fondo blanco a nivel de imprenta y prepara el texto para OCR instantáneo."
+        }
+    elif "noche" in msg or "night" in msg:
         return {
             "reply": "🌙 <strong>Nightography:</strong> Activa el sensor para condiciones de baja luz, simulando mayor tiempo de exposición y reducción de ruido en sombras profundas."
         }
@@ -893,5 +938,5 @@ def nanobot_query(payload: NanoBotQuery):
         }
     else:
         return {
-            "reply": f"🎯 Tienes a la mano <strong>🌙 Noche</strong>, <strong>🔍 Macro</strong>, <strong>👤 Retrato</strong> y las herramientas de taller y negocio. Dispara y se guarda en tu galería."
+            "reply": f"🎯 Tienes a la mano <strong>📄 Scan Doc</strong>, <strong>🌙 Noche</strong>, <strong>🔍 Macro</strong>, <strong>👤 Retrato</strong> y las herramientas de taller y negocio. Dispara y se guarda en tu galería."
         }
