@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse
 from sqlmodel import Session, select, Field, SQLModel
-from core.database import get_session
+from core.database import get_session, engine
 from apps.bian.models import ProcessedImage
 from pydantic import BaseModel
 import os
@@ -20,6 +20,9 @@ class CommercialOrder(SQLModel, table=True):
     notes: str = ""
     channel: str = "whatsapp"
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Inicializar tablas SQL si no existen
+SQLModel.metadata.create_all(engine)
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
@@ -102,6 +105,7 @@ HTML_CONTENT = """
             width: 100%; height: 100%; object-fit: cover;
             transform-origin: center center;
             transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
+            background: #000;
         }
         video.portrait-bokeh { filter: drop-shadow(0 0 16px rgba(0,255,200,0.3)); }
         video.night-mode { filter: brightness(1.35) contrast(1.1) saturate(1.2); }
@@ -487,7 +491,8 @@ HTML_CONTENT = """
     </div>
 
     <div class="viewport" id="viewportArea" onclick="handleTapToFocus(event)">
-        <video id="webcam" autoplay playsinline></video>
+        <!-- Video con atributos esenciales para Android WebRTC -->
+        <video id="webcam" autoplay playsinline muted></video>
         
         <div class="focus-circle-ring" id="focusCircle">
             <div class="lock-icon-badge">🔒</div>
@@ -689,32 +694,48 @@ HTML_CONTENT = """
             } catch(e) {}
         }
 
-        function startCamera() {
+        // Constraints compatibles y estables para Android
+        async function startCamera() {
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(t => t.stop());
+            }
+
             const constraints = {
+                audio: false,
                 video: {
-                    facingMode: { ideal: facingMode },
-                    width: { ideal: 3840 },
-                    height: { ideal: 2160 }
+                    facingMode: facingMode,
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
                 }
             };
 
-            navigator.mediaDevices.getUserMedia(constraints)
-                .then(stream => { 
-                    video.srcObject = stream;
-                    currentStreamTrack = stream.getVideoTracks()[0];
-                    const circle = document.getElementById('focusCircle');
-                    circle.style.left = '50%';
-                    circle.style.top = '46%';
-                    triggerCircleFade();
-                    refreshThumb();
-                })
-                .catch(err => console.error("Error cámara:", err));
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = stream;
+                currentStreamTrack = stream.getVideoTracks()[0];
+                await video.play();
+
+                const circle = document.getElementById('focusCircle');
+                circle.style.left = '50%';
+                circle.style.top = '46%';
+                triggerCircleFade();
+                refreshThumb();
+            } catch(err) {
+                console.warn("Fallo con resolución ideal, intentando fallback estándar:", err);
+                try {
+                    const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                    video.srcObject = fallbackStream;
+                    currentStreamTrack = fallbackStream.getVideoTracks()[0];
+                    await video.play();
+                } catch(fatalErr) {
+                    console.error("Error fatal accediendo a cámara:", fatalErr);
+                }
+            }
         }
         startCamera();
 
         function toggleLens() {
             facingMode = (facingMode === 'environment') ? 'user' : 'environment';
-            if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
             startCamera();
         }
 
@@ -945,7 +966,7 @@ HTML_CONTENT = """
         }
 
         async function triggerNativeCaptureAndSave() {
-            if (video.videoWidth === 0) return;
+            if (!video.videoWidth) return;
 
             if (selectedEngineKey === 'timelapse') {
                 if (!isRecordingTimelapse) startTimeLapseRecording();
@@ -1093,7 +1114,7 @@ HTML_CONTENT = """
 
         async function saveOrderToDatabase(client, concept, amount, notes, channel) {
             try {
-                await fetch('/bian/orders/', {
+                const res = await fetch('/bian/orders/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1104,8 +1125,10 @@ HTML_CONTENT = """
                         channel: channel
                     })
                 });
+                return res.ok;
             } catch(e) {
                 console.error("Error guardando orden en BD:", e);
+                return false;
             }
         }
 
@@ -1117,16 +1140,20 @@ HTML_CONTENT = """
 
             await saveOrderToDatabase(client, concept, amount, notes, "whatsapp");
 
-            // Formato con asterisco inicial corregido para negrita limpia
-            const msg = `*BIAN MASTER SUITE V9 - NOTA COMERCIAL*\\n\\n` +
-                        `👤 *Cliente:* ${client}\\n` +
-                        `📦 *Concepto:* ${concept}\\n` +
-                        `💵 *Total:* $${amount} MXN\\n` +
-                        `📝 *Notas:* ${notes}\\n` +
-                        `🕒 *Fecha:* ${new Date().toLocaleDateString('es-MX')} - ${new Date().toLocaleTimeString('es-MX')}\\n\\n` +
-                        `_Generado desde Debian/Termux Galaxy S23 Ultra_`;
+            const lines = [
+                "*BIAN MASTER SUITE V9 - NOTA COMERCIAL*",
+                "",
+                `👤 *Cliente:* ${client}`,
+                `📦 *Concepto:* ${concept}`,
+                `💵 *Total:* $${amount} MXN`,
+                `📝 *Notas:* ${notes}`,
+                `🕒 *Fecha:* ${new Date().toLocaleDateString('es-MX')} - ${new Date().toLocaleTimeString('es-MX')}`,
+                "",
+                "_Generado desde Debian/Termux Galaxy S23 Ultra_"
+            ];
 
-            const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+            const textPayload = lines.join("\\n");
+            const url = `https://wa.me/?text=${encodeURIComponent(textPayload)}`;
             window.open(url, '_blank');
         }
 
@@ -1330,8 +1357,15 @@ def storage_analytics(session: Session = Depends(get_session)):
                 else:
                     file_count += 1
                     
-    total_orders = len(session.exec(select(CommercialOrder)).all())
-    total_photos = len(session.exec(select(ProcessedImage)).all())
+    try:
+        total_orders = len(session.exec(select(CommercialOrder)).all())
+    except Exception:
+        total_orders = 0
+        
+    try:
+        total_photos = len(session.exec(select(ProcessedImage)).all())
+    except Exception:
+        total_photos = 0
 
     return {
         "total_mb": round(total_bytes / (1024 * 1024), 2),
@@ -1345,7 +1379,6 @@ def storage_analytics(session: Session = Depends(get_session)):
 def nanobot_query(payload: NanoBotQuery, session: Session = Depends(get_session)):
     msg = payload.message.lower()
 
-    # Detección flexible para consultas de almacenamiento
     if any(k in msg for k in ["almacenamiento", "memoria", "espacio", "disco", "estado", "storage"]):
         analytics = storage_analytics(session)
         return {
