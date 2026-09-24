@@ -1,14 +1,26 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse
-from sqlmodel import Session, select
+from sqlmodel import Session, select, Field, SQLModel
 from core.database import get_session
 from apps.bian.models import ProcessedImage
 from pydantic import BaseModel
 import os
 import base64
 from datetime import datetime
+from PIL import Image
+import io
 
 router = APIRouter(prefix="/bian", tags=["Bian AI Vision Pro"])
+
+# Modelo de Base de Datos para Órdenes y Cotizaciones
+class CommercialOrder(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    client_name: str
+    concept: str
+    amount: float
+    notes: str = ""
+    channel: str = "whatsapp"
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
@@ -18,11 +30,11 @@ class NanoBotQuery(BaseModel):
     message: str
     current_module: str = "general"
 
-class ExportPayload(BaseModel):
-    client_name: str = "Cliente Mostrador"
+class OrderCreateRequest(BaseModel):
+    client_name: str
     concept: str
     amount: float
-    notes: str = "Sin observaciones"
+    notes: str = ""
     channel: str = "whatsapp"
 
 @router.get("/storage/bian/{filename}")
@@ -31,6 +43,17 @@ async def serve_bian_image(filename: str):
     if os.path.exists(file_path):
         return FileResponse(file_path)
     raise HTTPException(status_code=404, detail="Imagen no encontrada")
+
+@router.get("/storage/bian/thumbs/{filename}")
+async def serve_bian_thumb(filename: str):
+    file_path = os.path.join("storage", "bian", "thumbs", filename)
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    # Fallback a la imagen original si aún no tiene thumb
+    orig_path = os.path.join("storage", "bian", filename)
+    if os.path.exists(orig_path):
+        return FileResponse(orig_path)
+    raise HTTPException(status_code=404, detail="Miniatura no encontrada")
 
 HTML_CONTENT = """
 <!DOCTYPE html>
@@ -327,7 +350,6 @@ HTML_CONTENT = """
         .side-btn:active { transform: scale(0.9); }
         .side-btn img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* MODAL EXPORTACIÓN & COTIZACIÓN */
         .export-modal {
             position: fixed; inset: 0; z-index: 110; background: rgba(0,0,0,0.78);
             backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
@@ -357,7 +379,6 @@ HTML_CONTENT = """
             display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
         }
 
-        /* MODAL NANO-BOT */
         .bot-modal {
             position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.7);
             backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
@@ -557,14 +578,14 @@ HTML_CONTENT = """
             </div>
             
             <div class="bot-quick-chips">
+                <button class="bot-chip" onclick="askNanoQuick('¿Cómo está el almacenamiento?')">💾 Estado del Almacenamiento</button>
                 <button class="bot-chip" onclick="askNanoQuick('¿Cómo exporto una cotización a WhatsApp?')">📤 Exportar WhatsApp</button>
-                <button class="bot-chip" onclick="askNanoQuick('¿Cómo tomo una Panorámica?')">🌐 Panorámica 360°</button>
                 <button class="bot-chip" onclick="askNanoQuick('¿Cómo uso el Escáner de Documentos?')">📄 Escanear Documento</button>
             </div>
 
             <div class="bot-chat-stream" id="botChatStream">
                 <div class="bot-msg ia">
-                    ¡Qué onda! Soy tu <strong>Nano-Bot Táctico</strong>. Tienes armada la suite completa con exportación directa por WhatsApp y generación de PDF membretado.
+                    ¡Qué onda! Soy tu <strong>Nano-Bot Táctico</strong>. Tienes activada la optimización de caché con miniaturas instantáneas y persistencia de órdenes comerciales en base de datos.
                 </div>
             </div>
 
@@ -577,7 +598,7 @@ HTML_CONTENT = """
 
     <div class="gallery-modal" id="galleryModal">
         <div class="gallery-top">
-            <h3 style="font-size:16px; font-weight:700;">Galería Soberana S23 Ultra</h3>
+            <h3 style="font-size:16px; font-weight:700;">Galería Soberana (Miniaturas Rápidas)</h3>
             <button onclick="closeGalleryModal()" style="background:#1c1c22; border:1px solid #333; color:#fff; padding:6px 14px; border-radius:14px; font-size:12px;">Cerrar</button>
         </div>
         <div class="gallery-grid" id="galleryGrid"></div>
@@ -595,7 +616,6 @@ HTML_CONTENT = """
         let currentStreamTrack = null;
         let evaporateTimeout = null;
 
-        /* TIME-LAPSE */
         let isRecordingTimelapse = false;
         let timelapseInterval = null;
         let timelapseSeconds = 0;
@@ -962,7 +982,7 @@ HTML_CONTENT = """
             }
             ctx.drawImage(video, 0, 0, internalCanvas.width, internalCanvas.height);
 
-            const base64Data = internalCanvas.toDataURL('image/jpeg', 0.92);
+            const base64Data = internalCanvas.toDataURL('image/jpeg', 0.90);
             const tag = selectedEngineName ? `Módulo ${selectedEngineName}` : "Captura Directa Cam Vision";
 
             try {
@@ -1008,7 +1028,7 @@ HTML_CONTENT = """
             internalCanvas.height = video.videoHeight;
             const ctx = internalCanvas.getContext('2d');
             ctx.drawImage(video, 0, 0, internalCanvas.width, internalCanvas.height);
-            const base64Data = internalCanvas.toDataURL('image/jpeg', 0.90);
+            const base64Data = internalCanvas.toDataURL('image/jpeg', 0.88);
 
             try {
                 const res = await fetch('/bian/process/', {
@@ -1037,7 +1057,7 @@ HTML_CONTENT = """
             ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
             ctx.drawImage(video, video.videoWidth, 0, video.videoWidth, video.videoHeight);
 
-            const base64Data = internalCanvas.toDataURL('image/jpeg', 0.92);
+            const base64Data = internalCanvas.toDataURL('image/jpeg', 0.88);
             try {
                 const res = await fetch('/bian/process/', {
                     method: 'POST',
@@ -1064,11 +1084,10 @@ HTML_CONTENT = """
 
         function updateThumbUI(imgPath) {
             const btn = document.getElementById('galleryThumbBtn');
-            const fixedPath = imgPath.startsWith('/bian') ? imgPath : `/bian${imgPath}`;
-            btn.innerHTML = `<img src="${fixedPath}" />`;
+            const filename = imgPath.split('/').pop();
+            btn.innerHTML = `<img src="/bian/storage/bian/thumbs/${filename}" />`;
         }
 
-        /* MODAL EXPORTACIÓN */
         function openExportModal() {
             document.getElementById('exportModal').classList.add('active');
             const activeName = selectedEngineName || "General";
@@ -1079,11 +1098,31 @@ HTML_CONTENT = """
             document.getElementById('exportModal').classList.remove('active');
         }
 
-        function sendToWhatsApp() {
+        async function saveOrderToDatabase(client, concept, amount, notes, channel) {
+            try {
+                await fetch('/bian/orders/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        client_name: client,
+                        concept: concept,
+                        amount: parseFloat(amount) || 0.0,
+                        notes: notes,
+                        channel: channel
+                    })
+                });
+            } catch(e) {
+                console.error("Error guardando orden en BD:", e);
+            }
+        }
+
+        async function sendToWhatsApp() {
             const client = document.getElementById('expClient').value || "Cliente";
             const concept = document.getElementById('expConcept').value || "Servicio Técnico";
             const amount = document.getElementById('expAmount').value || "0";
             const notes = document.getElementById('expNotes').value || "Sin notas";
+
+            await saveOrderToDatabase(client, concept, amount, notes, "whatsapp");
 
             const msg = `*BIAN MASTER SUITE V9 - NOTA COMERCIAL*\\n\\n` +
                         `👤 *Cliente:* ${client}\\n` +
@@ -1097,7 +1136,7 @@ HTML_CONTENT = """
             window.open(url, '_blank');
         }
 
-        function generateTechnicalPDF() {
+        async function generateTechnicalPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
@@ -1105,6 +1144,8 @@ HTML_CONTENT = """
             const concept = document.getElementById('expConcept').value || "Servicio Técnico";
             const amount = document.getElementById('expAmount').value || "0";
             const notes = document.getElementById('expNotes').value || "Sin notas adicionales";
+
+            await saveOrderToDatabase(client, concept, amount, notes, "pdf");
 
             doc.setFillColor(15, 15, 20);
             doc.rect(0, 0, 210, 30, 'F');
@@ -1138,14 +1179,14 @@ HTML_CONTENT = """
             doc.text("__________________________________________", 18, 145);
 
             doc.save(`orden_bian_${Date.now()}.pdf`);
-            alert("✔ PDF membretado generado y descargado.");
+            alert("✔ PDF membretado guardado en BD y descargado.");
         }
 
         async function openGalleryModal() {
             const modal = document.getElementById('galleryModal');
             const grid = document.getElementById('galleryGrid');
             modal.classList.add('active');
-            grid.innerHTML = "<p style='color:#777; font-size:12px; grid-column:span 3;'>Cargando fotos reales...</p>";
+            grid.innerHTML = "<p style='color:#777; font-size:12px; grid-column:span 3;'>Cargando miniaturas optimizadas...</p>";
 
             try {
                 const res = await fetch('/bian/images/');
@@ -1155,10 +1196,12 @@ HTML_CONTENT = """
                     return;
                 }
                 grid.innerHTML = list.reverse().map(img => {
+                    const filename = img.image_path.split('/').pop();
+                    const thumbUrl = `/bian/storage/bian/thumbs/${filename}`;
                     const fullUrl = img.image_path.startsWith('/bian') ? img.image_path : `/bian${img.image_path}`;
                     return `
-                        <div class="gallery-item">
-                            <img src="${fullUrl}" />
+                        <div class="gallery-item" onclick="window.open('${fullUrl}', '_blank')">
+                            <img src="${thumbUrl}" loading="lazy" />
                         </div>
                     `;
                 }).join('');
@@ -1221,21 +1264,37 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Samsung Native Camera Core V9 (Direct Export Hub: PDF & WhatsApp)",
+        "engine": "Samsung Native Camera Core V9 (Optimized Storage Engine: Thumbs + Orders SQL)",
         "status": "online"
     }
 
 @router.post("/process/", response_model=ProcessedImage)
 def process_image(payload: ImageCaptureRequest, session: Session = Depends(get_session)):
     os.makedirs("storage/bian", exist_ok=True)
-    filename = f"storage/bian/photo_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
+    os.makedirs("storage/bian/thumbs", exist_ok=True)
+    
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    filename_rel = f"storage/bian/photo_{timestamp}.jpg"
+    thumb_rel = f"storage/bian/thumbs/photo_{timestamp}.jpg"
     
     header, encoded = payload.image_base64.split(",", 1) if "," in payload.image_base64 else ("", payload.image_base64)
     data = base64.b64decode(encoded)
-    with open(filename, "wb") as f:
+    
+    # 1. Guardar archivo original
+    with open(filename_rel, "wb") as f:
         f.write(data)
         
-    db_image = ProcessedImage(image_path=f"/{filename}", prompt_analysis=payload.prompt_analysis)
+    # 2. Generar miniatura rápida optimizada (160x160)
+    try:
+        img = Image.open(io.BytesIO(data))
+        img.thumbnail((160, 160))
+        img.save(thumb_rel, format="JPEG", quality=75, optimize=True)
+    except Exception:
+        # En caso de fallo en Pillow, copiar directamente
+        with open(thumb_rel, "wb") as f:
+            f.write(data)
+
+    db_image = ProcessedImage(image_path=f"/{filename_rel}", prompt_analysis=payload.prompt_analysis)
     session.add(db_image)
     session.commit()
     session.refresh(db_image)
@@ -1245,28 +1304,70 @@ def process_image(payload: ImageCaptureRequest, session: Session = Depends(get_s
 def list_images(session: Session = Depends(get_session)):
     return session.exec(select(ProcessedImage)).all()
 
-@router.post("/nanobot/query")
-def nanobot_query(payload: NanoBotQuery):
-    msg = payload.message.lower()
-    mod = payload.current_module
+@router.post("/orders/", response_model=CommercialOrder)
+def create_order(order_data: OrderCreateRequest, session: Session = Depends(get_session)):
+    order = CommercialOrder(
+        client_name=order_data.client_name,
+        concept=order_data.concept,
+        amount=order_data.amount,
+        notes=order_data.notes,
+        channel=order_data.channel
+    )
+    session.add(order)
+    session.commit()
+    session.refresh(order)
+    return order
 
-    if "export" in msg or "whatsapp" in msg or "pdf" in msg or "cotiz" in msg:
+@router.get("/orders/", response_model=list[CommercialOrder])
+def list_orders(session: Session = Depends(get_session)):
+    return session.exec(select(CommercialOrder)).all()
+
+@router.get("/analytics/storage")
+def storage_analytics(session: Session = Depends(get_session)):
+    total_bytes = 0
+    file_count = 0
+    thumb_count = 0
+    
+    storage_dir = "storage/bian"
+    if os.path.exists(storage_dir):
+        for root, _, files in os.walk(storage_dir):
+            for f in files:
+                fp = os.path.join(root, f)
+                total_bytes += os.path.getsize(fp)
+                if "thumbs" in root:
+                    thumb_count += 1
+                else:
+                    file_count += 1
+                    
+    total_orders = len(session.exec(select(CommercialOrder)).all())
+    total_photos = len(session.exec(select(ProcessedImage)).all())
+
+    return {
+        "total_mb": round(total_bytes / (1024 * 1024), 2),
+        "full_photos": file_count,
+        "cached_thumbs": thumb_count,
+        "db_photos_registered": total_photos,
+        "db_orders_registered": total_orders
+    }
+
+@router.post("/nanobot/query")
+def nanobot_query(payload: NanoBotQuery, session: Session = Depends(get_session)):
+    msg = payload.message.lower()
+
+    if "almacenamiento" in msg or "memoria" in msg or "espacio" in msg or "disco" in msg:
+        analytics = storage_analytics(session)
         return {
-            "reply": "📤 <strong>Exportación Directa:</strong> Toca el botón verde <strong>Exportar</strong> arriba a la derecha. Puedes redactar cliente, concepto y monto para enviarlo con formato limpio a WhatsApp o descargar el PDF membretado con recuadro de firma."
+            "reply": f"💾 <strong>Telemetría de Almacenamiento:</strong><br>"
+                     f"• Espacio Total en Disco: <strong>{analytics['total_mb']} MB</strong><br>"
+                     f"• Fotos Originales: <strong>{analytics['full_photos']}</strong> | Miniaturas Caché: <strong>{analytics['cached_thumbs']}</strong><br>"
+                     f"• Órdenes Guardadas en BD: <strong>{analytics['db_orders_registered']}</strong>.<br>"
+                     f"<em>El pipeline de compresión y caché de miniaturas mantiene la app al 100%.</em>"
         }
-    elif "pano" in msg or "panoramica" in msg:
+    elif "export" in msg or "whatsapp" in msg or "pdf" in msg:
         return {
-            "reply": "🌐 <strong>Panorámica 360°:</strong> Sigue la línea de horizonte y la flecha guía manteniendo el teléfono nivelado."
-        }
-    elif "timelapse" in msg or "rapida" in msg:
-        return {
-            "reply": "⏱️ <strong>Time-Lapse Hyperlapse:</strong> Selecciona velocidad (4x-32x) y presiona el disparador para registrar procesos continuos."
-        }
-    elif "scan" in msg or "doc" in msg:
-        return {
-            "reply": "📄 <strong>Scan Doc Pro:</strong> Encuadre central A4 con haz láser y filtro de contraste documental B/N."
+            "reply": "📤 <strong>Exportación Comercial:</strong> Al enviar por WhatsApp o generar un PDF, los datos se respaldan automáticamente en la tabla <code>commercialorder</code> de SQLite para trazabilidad contable."
         }
     else:
         return {
-            "reply": f"🎯 Tienes a la mano <strong>📤 Exportar</strong> (PDF/WhatsApp), <strong>🌐 Panorámica</strong>, <strong>⏱️ Time-Lapse</strong>, <strong>📄 Scan Doc</strong> y la suite completa de taller y carnicería."
+            "reply": "⚡ <strong>Motor Optimizado:</strong> Almacenamiento escalonado (Original + Thumbnail), persistencia comercial y bajo consumo de RAM."
         }
