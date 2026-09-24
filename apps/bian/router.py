@@ -1,784 +1,396 @@
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import HTMLResponse, FileResponse
-from sqlmodel import Session, select, Field, SQLModel
-from core.database import get_session, engine
+from fastapi import APIRouter, Depends
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from sqlmodel import Session, select
+from core.database import get_session
 from apps.bian.models import ProcessedImage
 from pydantic import BaseModel
 import os
 import base64
 from datetime import datetime
-from PIL import Image
-import io
 
-router = APIRouter(prefix="/bian", tags=["Bian AI Vision Pro"])
+router = APIRouter(prefix="/bian", tags=["Bian Master Suite V10"])
 
-class CommercialOrder(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    client_name: str
-    concept: str
-    amount: float
-    notes: str = ""
-    channel: str = "whatsapp"
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-
-SQLModel.metadata.create_all(engine)
+# Montar carpeta de almacenamiento para servir imágenes en la galería
+os.makedirs("storage/bian", exist_ok=True)
+router.mount("/storage", StaticFiles(directory="storage"), name="storage")
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Captura Bian V10"
+    prompt_analysis: str = "Captura Master V10"
 
-class NanoBotQuery(BaseModel):
-    message: str
-    current_module: str = "general"
-
-class OrderCreateRequest(BaseModel):
-    client_name: str
-    concept: str
-    amount: float
-    notes: str = ""
-    channel: str = "whatsapp"
-
-@router.get("/storage/bian/{filename}")
-async def serve_bian_image(filename: str):
-    file_path = os.path.join("storage", "bian", filename)
-    if os.path.exists(file_path):
-        return FileResponse(file_path)
-    raise HTTPException(status_code=404, detail="Imagen no encontrada")
-
-@router.get("/storage/bian/thumbs/{filename}")
-async def serve_bian_thumb(filename: str):
-    file_path = os.path.join("storage", "bian", "thumbs", filename)
-    if os.path.exists(file_path):
-        return FileResponse(file_path)
-    orig_path = os.path.join("storage", "bian", filename)
-    if os.path.exists(orig_path):
-        return FileResponse(orig_path)
-    raise HTTPException(status_code=404, detail="Miniatura no encontrada")
-
-HTML_CONTENT = """
-<!DOCTYPE html>
+HTML_CONTENT = """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BIAN V10 - Tu app de fotos y video</title>
-    <script src="https://unpkg.com/tesseract.js@v4.0.2/dist/tesseract.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>BIAN MASTER SUITE V10 PRO</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; user-select: none; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: #000; color: #fff; height: 100vh; width: 100vw; overflow: hidden; position: fixed; }
 
-        /* PANTALLA INTRO / LOCKSCREEN REGALO */
-        .lockscreen-overlay {
-            position: fixed; inset: 0; z-index: 999;
-            background: radial-gradient(circle at 50% 30%, #151520 0%, #030305 75%, #000000 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-            padding: 50px 24px 40px; text-align: center;
-            transition: transform 0.85s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.8s ease;
+        /* BORDE PERIMETRAL QUE SE APAGA TOTALMENTE (1.5 SEG) */
+        .edge-screen-border {
+            position: fixed; inset: 0; pointer-events: none; z-index: 150;
+            border: 3px solid transparent;
+            box-shadow: inset 0 0 0px transparent;
+            transition: border-color 1.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 1.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .lockscreen-overlay.unlocked {
-            transform: translateY(-100%);
+
+        /* LUZ AMBIENTAL DESTELLO */
+        .ambient-fade-light {
+            position: fixed; inset: 0; pointer-events: none; z-index: 140;
+            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.25) 0%, transparent 70%);
             opacity: 0;
-            pointer-events: none;
+            transition: opacity 1.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
+        .ambient-fade-light.flash { opacity: 1; transition: opacity 0.05s ease-in; }
 
-        .intro-top-badge {
-            display: inline-flex; align-items: center; gap: 6px;
+        /* LOCKSCREEN BRANDING BLANCO */
+        #lockscreen {
+            position: fixed; inset: 0; background: #050608; z-index: 200;
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            padding: 45px 20px 35px 20px;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease;
+        }
+        #lockscreen.unlocked { transform: translateY(-100%); opacity: 0; pointer-events: none; }
+
+        .pill-badge {
             background: rgba(0, 255, 200, 0.08); border: 1px solid rgba(0, 255, 200, 0.3);
-            color: #00FFC8; font-size: 11px; font-weight: 800; letter-spacing: 2px;
+            color: #00FFC8; font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
             padding: 6px 14px; border-radius: 20px; text-transform: uppercase;
         }
-        .intro-top-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: #00FFC8; box-shadow: 0 0 8px #00FFC8; }
-
-        .brand-hero-block {
-            display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: -20px;
+        .brand-center { text-align: center; margin-top: auto; margin-bottom: auto; }
+        .brand-title {
+            font-size: 64px; font-weight: 900; letter-spacing: 8px; color: #FFFFFF;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.45), 0 0 50px rgba(255, 255, 255, 0.2);
+            line-height: 1; margin-bottom: 12px;
         }
-        .brand-logo-title {
-            font-size: 56px; font-weight: 900; letter-spacing: 6px;
-            color: #FFFFFF;
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.4), 0 0 45px rgba(255, 255, 255, 0.2);
-        }
-        .brand-slogan {
-            font-size: 19px; font-weight: 600; color: #E5E5EA;
-            letter-spacing: 1px; max-width: 280px; line-height: 1.3;
-        }
-        .brand-description {
-            font-size: 12px; color: #8E8E93; max-width: 310px; line-height: 1.5; margin-top: 10px;
-            background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px; padding: 12px 16px; backdrop-filter: blur(15px);
+        .brand-subtitle { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 20px; }
+        .brand-card {
+            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px; padding: 16px 20px; max-width: 320px; margin: 0 auto;
+            font-size: 11px; color: #888; line-height: 1.5; backdrop-filter: blur(10px);
         }
 
-        /* MOÑO DE REGALO INTERACTIVO */
-        .gift-unlock-container {
-            display: flex; flex-direction: column; align-items: center; gap: 14px;
-            cursor: pointer; position: relative; width: 100%; max-width: 260px;
-        }
-        .ribbon-box {
-            position: relative; width: 85px; height: 85px;
-            display: flex; align-items: center; justify-content: center;
-            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .ribbon-box:active { transform: scale(0.92); }
-        
-        .bow-knot {
-            width: 26px; height: 26px; border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #FFD60A, #FF9500);
-            box-shadow: 0 0 20px rgba(255, 214, 10, 0.75);
-            z-index: 5; position: relative;
-        }
-        .bow-loop {
-            position: absolute; width: 44px; height: 32px;
-            border: 3.5px solid #FFD60A; border-radius: 50% 50% 10% 50%;
-            background: linear-gradient(135deg, rgba(255, 214, 10, 0.4), rgba(255, 149, 0, 0.6));
-            box-shadow: 0 0 16px rgba(255, 149, 0, 0.5);
-            transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .bow-loop.left { left: 4px; top: 18px; transform: rotate(-35deg); }
-        .bow-loop.right { right: 4px; top: 18px; transform: scaleX(-1) rotate(-35deg); }
-        
-        .bow-tail {
-            position: absolute; width: 14px; height: 45px;
-            background: linear-gradient(to bottom, #FFD60A, #FF3B30);
-            bottom: -8px; border-radius: 4px;
-            box-shadow: 0 4px 12px rgba(255, 59, 48, 0.4);
-            transition: all 0.75s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .bow-tail.left { left: 24px; transform: rotate(22deg); }
-        .bow-tail.right { right: 24px; transform: rotate(-22deg); }
+        .gift-container { display: flex; flex-direction: column; align-items: center; cursor: pointer; touch-action: none; padding: 15px; user-select: none; }
+        .gift-bow-svg { width: 76px; height: 76px; filter: drop-shadow(0 0 16px rgba(255, 170, 0, 0.65)); transition: transform 0.25s ease; }
+        .gift-container:active .gift-bow-svg { transform: scale(1.12); }
+        .gift-hint { font-size: 11px; font-weight: 800; color: #FFD200; margin-top: 10px; letter-spacing: 1.5px; text-transform: uppercase; }
 
-        /* Efecto de desatado volador */
-        .gift-unlock-container.fly .bow-loop.left {
-            transform: translate(-120px, -240px) rotate(-180deg) scale(0.1);
+        /* VIEWPORT Y VISOR */
+        .suite-view { width: 100vw; height: 100vh; position: relative; background: #000; overflow: hidden; display: flex; flex-direction: column; }
+        #videoContainer { width: 100%; height: 100%; position: relative; overflow: hidden; }
+        video { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        /* TOP HUD */
+        .top-dock {
+            position: absolute; top: 16px; left: 16px; right: 16px; z-index: 100;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .hud-status-badge {
+            background: rgba(18, 18, 22, 0.72); border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #fff; font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 20px;
+            backdrop-filter: blur(10px); display: flex; align-items: center; gap: 6px;
+        }
+        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #5E5CE6; display: inline-block; transition: background 0.3s; }
+        .top-action-btn {
+            background: rgba(18, 18, 22, 0.72); border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 20px;
+            backdrop-filter: blur(10px); cursor: pointer; display: flex; align-items: center; gap: 4px;
+        }
+
+        /* BOTÓN ALTERNANTE NANO-BOT (CADA 5 SEG) */
+        #botToggleBtn {
+            border-color: rgba(0,255,200,0.4); color: #00FFC8;
+            transition: all 0.4s ease; min-width: 145px; justify-content: center;
+        }
+
+        /* BANNER CONTEXTUAL CENTRAL */
+        .center-hud-overlay {
+            position: absolute; top: 68px; left: 0; right: 0; z-index: 95;
+            display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none;
+        }
+        .context-pill {
+            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(94, 92, 230, 0.4);
+            color: #5E5CE6; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
+            padding: 4px 14px; border-radius: 20px; backdrop-filter: blur(10px); text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        /* ANILLO DE ENFOQUE TÁCTICO */
+        .focus-ring {
+            position: absolute; width: 84px; height: 84px; border-radius: 50%;
+            border: 1.5px solid rgba(255, 255, 255, 0.85);
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+            pointer-events: none; z-index: 90; display: flex; flex-direction: column;
+            align-items: center; justify-content: space-between; padding: 4px 0;
+            transform: translate(-50%, -50%) scale(0.9);
+            transition: opacity 0.3s, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             opacity: 0;
         }
-        .gift-unlock-container.fly .bow-loop.right {
-            transform: translate(120px, -240px) rotate(180deg) scale(0.1);
-            opacity: 0;
-        }
-        .gift-unlock-container.fly .bow-tail.left {
-            transform: translate(-90px, 140px) rotate(-90deg) scale(0);
-            opacity: 0;
-        }
-        .gift-unlock-container.fly .bow-tail.right {
-            transform: translate(90px, 140px) rotate(90deg) scale(0);
-            opacity: 0;
-        }
-        .gift-unlock-container.fly .bow-knot {
-            transform: scale(2.8);
-            opacity: 0;
-            box-shadow: 0 0 50px #FFF, 0 0 100px #00FFC8;
-            transition: all 0.6s ease-out;
+        .focus-ring.active { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        .focus-lock-icon { font-size: 11px; color: #FFD200; filter: drop-shadow(0 0 4px rgba(255,210,0,0.8)); }
+        .focus-sun-icon { font-size: 13px; color: #FFAA00; filter: drop-shadow(0 0 4px rgba(255,170,0,0.8)); }
+
+        /* SELECTOR DE ZOOM INTERACTIVO (0.6x / 1x / 2x) */
+        .hud-zoom-tag {
+            position: absolute; bottom: 155px; left: 24px; z-index: 100;
+            background: rgba(20, 20, 24, 0.82); border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 18px; padding: 5px 12px; font-size: 12px; font-weight: 800; color: #00FFC8;
+            cursor: pointer; backdrop-filter: blur(12px); box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+            display: flex; align-items: center; gap: 4px; user-select: none;
         }
 
-        .unlock-hint-text {
-            font-size: 13px; font-weight: 700; color: #FFD60A;
-            letter-spacing: 1px; display: flex; align-items: center; gap: 6px;
-            animation: pulseHint 1.8s infinite alternate;
+        /* PILA DE CARTAS CENTRADA Y ERGONÓMICA */
+        .deck-stack-wrapper {
+            position: absolute; bottom: 98px; left: calc(50% + 55px); z-index: 105;
+            width: 58px; height: 58px; perspective: 600px; touch-action: none;
         }
-        @keyframes pulseHint {
-            0% { opacity: 0.6; transform: translateY(0); }
-            100% { opacity: 1; transform: translateY(-3px); }
+        .deck-card-item {
+            position: absolute; inset: 0; border-radius: 18px;
+            background: rgba(24, 25, 30, 0.92); border: 2px solid rgba(255, 255, 255, 0.25);
+            display: flex; align-items: center; justify-content: center; font-size: 25px;
+            cursor: pointer; backdrop-filter: blur(16px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.7);
+            transition: all 1.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            user-select: none;
         }
+        .deck-card-item.pos-0 { transform: translate3d(0, 0, 0); z-index: 6; opacity: 1; }
+        .deck-card-item.pos-1 { transform: translate3d(6px, -5px, -15px) rotate(4deg); z-index: 5; opacity: 0.85; }
+        .deck-card-item.pos-2 { transform: translate3d(12px, -10px, -30px) rotate(8deg); z-index: 4; opacity: 0.65; }
+        .deck-card-item.pos-3 { transform: translate3d(18px, -15px, -45px) rotate(12deg); z-index: 3; opacity: 0.45; }
+        .deck-card-item.pos-4 { transform: translate3d(24px, -20px, -60px) rotate(16deg); z-index: 2; opacity: 0.25; }
 
-        /* ELEMENTOS DEL VISOR MASTER V10 */
-        .top-float-left {
-            position: absolute; top: 16px; left: 18px; z-index: 50;
-            background: rgba(22, 22, 26, 0.65);
-            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            border-radius: 20px; padding: 7px 14px;
-            display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 12px;
-            box-shadow: 0 6px 24px rgba(0,0,0,0.4);
-            transition: all 0.25s ease;
-        }
-        .glow-dot { width: 7px; height: 7px; border-radius: 50%; background: #30D158; box-shadow: 0 0 8px #30D158; }
+        .deck-card-item.slide-up { transform: translate3d(0, -70px, 40px) scale(1.08); opacity: 0; }
+        .deck-card-item.slide-down { transform: translate3d(0, 70px, 40px) scale(1.08); opacity: 0; }
 
-        .top-float-right {
-            position: absolute; top: 16px; right: 18px; z-index: 50;
-            display: flex; gap: 8px;
+        /* BARRA INFERIOR DE DISPARO */
+        .bottom-bar {
+            position: absolute; bottom: 20px; left: 0; right: 0; z-index: 100;
+            display: flex; justify-content: space-around; align-items: center; padding: 0 25px;
         }
-        .action-pill {
-            background: rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.28);
-            color: #FFFFFF; font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 22px;
-            display: flex; align-items: center; gap: 6px; cursor: pointer;
-            box-shadow: 0 6px 24px rgba(0,0,0,0.5);
-            transition: all 0.2s ease;
+        .lens-switch-btn {
+            width: 46px; height: 46px; border-radius: 50%; background: rgba(30, 30, 35, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center;
+            justify-content: center; cursor: pointer; font-size: 19px;
         }
-        .action-pill:active { transform: scale(0.94); background: rgba(255,255,255,0.22); }
-        .export-pill { border-color: rgba(0, 255, 200, 0.5); color: #00FFC8; }
+        .shutter-btn {
+            width: 76px; height: 76px; border-radius: 50%; background: #FF3B30;
+            border: 4px solid #fff; box-shadow: 0 0 22px rgba(255, 59, 48, 0.55); cursor: pointer;
+        }
+        .gallery-thumb {
+            width: 46px; height: 46px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.3);
+            background: #111; overflow: hidden; cursor: pointer;
+        }
+        .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
-        .viewport {
-            position: absolute; inset: 0; width: 100%; height: 100%;
-            background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center;
+        /* MODAL DE EDICIÓN POST-CAPTURA */
+        #postEditModal {
+            display: none; position: fixed; inset: 0; z-index: 300; background: rgba(6, 7, 10, 0.96);
+            backdrop-filter: blur(20px); flex-direction: column; padding: 20px 18px 25px 18px;
         }
-        video {
-            width: 100%; height: 100%; object-fit: cover;
-            transform-origin: center center;
-            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
-            background: #000;
-        }
-        video.portrait-bokeh { filter: drop-shadow(0 0 16px rgba(0,255,200,0.3)); }
-        video.night-mode { filter: brightness(1.35) contrast(1.1) saturate(1.2); }
-        video.macro-mode { filter: contrast(1.25) saturate(1.15); }
-        video.scan-mode { filter: grayscale(1) contrast(1.4) brightness(1.1); }
-
-        .doc-scanner-frame {
-            position: absolute; top: 48%; left: 50%; transform: translate(-50%, -50%);
-            width: 78%; max-width: 330px; aspect-ratio: 1 / 1.38;
-            border: 1.5px solid rgba(0, 255, 200, 0.45); border-radius: 16px;
-            box-shadow: 0 0 0 3000px rgba(0, 0, 0, 0.48), inset 0 0 25px rgba(0,255,200,0.12);
-            pointer-events: none; z-index: 35; display: none;
-            justify-content: space-between; flex-direction: column; padding: 12px; overflow: hidden;
-        }
-        .doc-scanner-frame.active { display: flex; }
-        .doc-corner { width: 24px; height: 24px; border-color: #00FFC8; border-style: solid; filter: drop-shadow(0 0 8px #00FFC8); }
-        .doc-corner.tl { border-width: 3.5px 0 0 3.5px; border-top-left-radius: 8px; }
-        .doc-corner.tr { border-width: 3.5px 3.5px 0 0; border-top-right-radius: 8px; }
-        .doc-corner.bl { border-width: 0 0 3.5px 3.5px; border-bottom-left-radius: 8px; }
-        .doc-corner.br { border-width: 0 3.5px 3.5px 0; border-bottom-right-radius: 8px; }
-        .doc-row { display: flex; justify-content: space-between; width: 100%; }
-
-        .scanner-laser-line {
-            position: absolute; left: 0; right: 0; height: 2px;
-            background: linear-gradient(90deg, transparent, #00FFC8, #FFF, #00FFC8, transparent);
-            box-shadow: 0 0 12px #00FFC8, 0 0 20px #00FFC8;
-            animation: scanLaserAnim 2.8s ease-in-out infinite alternate;
-        }
-        @keyframes scanLaserAnim { 0% { top: 6%; opacity: 0.2; } 50% { opacity: 1; } 100% { top: 92%; opacity: 0.2; } }
-        .doc-label-badge {
-            align-self: center; background: rgba(0,0,0,0.7);
-            border: 1px solid rgba(0,255,200,0.4); color: #00FFC8;
-            font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 12px;
-            letter-spacing: 0.5px; text-transform: uppercase;
-        }
-
-        .timelapse-hud {
-            position: absolute; top: 110px; left: 50%; transform: translateX(-50%);
-            display: none; flex-direction: column; align-items: center; gap: 8px; z-index: 45;
-        }
-        .timelapse-hud.active { display: flex; }
-        .timelapse-pill {
-            background: rgba(255, 59, 48, 0.25); border: 1px solid #FF3B30;
-            color: #FF453A; padding: 5px 14px; border-radius: 20px; font-size: 11px;
-            font-weight: 700; display: flex; align-items: center; gap: 8px;
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-        }
-        .record-blink { width: 8px; height: 8px; border-radius: 50%; background: #FF3B30; animation: blinkPulse 1s infinite alternate; }
-        @keyframes blinkPulse { 0% { opacity: 0.2; } 100% { opacity: 1; } }
-
-        .timelapse-speed-selector {
-            display: flex; gap: 6px; background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            padding: 3px 6px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.15);
-        }
-        .speed-btn {
-            background: none; border: none; color: #aaa; font-size: 10px;
-            font-weight: 700; padding: 4px 8px; border-radius: 10px; cursor: pointer;
-        }
-        .speed-btn.active { background: #FF3B30; color: #fff; }
-
-        .pano-hud {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 86%; max-width: 360px; height: 70px;
-            border: 1.5px dashed rgba(255, 255, 255, 0.4); border-radius: 12px;
-            background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(10px);
-            display: none; align-items: center; justify-content: space-between; padding: 0 16px;
-            z-index: 36;
-        }
-        .pano-hud.active { display: flex; }
-        .pano-arrow { font-size: 22px; color: #00FFC8; animation: panoSwipe 1.5s infinite; }
-        @keyframes panoSwipe {
-            0% { transform: translateX(0); opacity: 0.3; }
-            50% { transform: translateX(14px); opacity: 1; }
-            100% { transform: translateX(28px); opacity: 0.1; }
-        }
-        .pano-guide-line { position: absolute; left: 10%; right: 10%; height: 2px; background: rgba(255, 255, 255, 0.25); z-index: 1; }
-        .pano-level-ball { width: 14px; height: 14px; border-radius: 50%; background: #00FFC8; box-shadow: 0 0 10px #00FFC8; z-index: 2; }
-
-        .mode-status-chip {
-            position: absolute; top: 68px; left: 50%; transform: translateX(-50%); z-index: 45;
-            background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 214, 10, 0.5); color: #FFD60A;
-            padding: 5px 14px; border-radius: 16px; font-size: 11px; font-weight: 700;
-            display: none; align-items: center; gap: 6px;
-        }
-        .mode-status-chip.active { display: flex; }
+        .edit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .edit-title { font-size: 14px; font-weight: 800; color: #00FFC8; letter-spacing: 0.5px; }
+        .edit-close-btn { background: #222; border: 1px solid #444; color: #fff; padding: 5px 12px; border-radius: 14px; font-size: 11px; cursor: pointer; }
         
-        .shutter-flash {
-            position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 60;
-            transition: opacity 0.12s ease-out;
+        .edit-preview-box {
+            flex: 1; border-radius: 16px; overflow: hidden; background: #000; border: 1px solid #222;
+            display: flex; align-items: center; justify-content: center; position: relative;
         }
-        .shutter-flash.flash { opacity: 0.85; }
+        .edit-preview-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
-        .focus-circle-ring {
-            position: absolute; width: 95px; height: 95px; pointer-events: none;
-            border-radius: 50%; border: 1.8px solid rgba(255, 255, 255, 0.85);
-            box-shadow: 0 0 16px rgba(255, 255, 255, 0.35);
-            transition: left 0.28s cubic-bezier(0.16, 1, 0.3, 1), top 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease, border-color 0.3s, transform 0.25s;
-            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-            opacity: 1; transform: translate(-50%, -50%); z-index: 30;
+        .edit-tools-panel { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+        .tool-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+        .tool-chip {
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
+            padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap;
+            color: #ddd; cursor: pointer;
         }
-        .focus-circle-ring.faded { opacity: 0.15; border-color: rgba(255, 255, 255, 0.2); box-shadow: none; }
-        .focus-circle-ring.glowing { transform: translate(-50%, -50%) scale(1.08); border-color: #FFD60A; box-shadow: 0 0 25px rgba(255, 214, 10, 0.8); }
+        .tool-chip.active { border-color: #00FFC8; color: #00FFC8; background: rgba(0,255,200,0.12); }
 
-        .lock-icon-badge { font-size: 11px; margin-top: -16px; background: rgba(0,0,0,0.5); border-radius: 50%; padding: 2px 4px; }
-        .sun-slider-badge { font-size: 12px; margin-bottom: -18px; background: rgba(0,0,0,0.5); border-radius: 50%; padding: 2px 4px; }
-
-        .lens-pill-bar {
-            position: absolute; bottom: 175px; z-index: 45;
-            display: flex; gap: 4px; background: rgba(0, 0, 0, 0.55);
-            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            padding: 4px 6px; border-radius: 24px;
-            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .lens-btn {
-            background: transparent; border: none; color: rgba(255,255,255,0.7);
-            font-size: 10px; font-weight: 700; padding: 5px 9px; border-radius: 14px;
-            cursor: pointer; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .lens-btn.active { background: rgba(255, 255, 255, 0.25); color: #fff; transform: scale(1.05); }
-
-        .lens-pill-bar.collapsed { padding: 3px 5px; }
-        .lens-pill-bar.collapsed .lens-btn:not(.active) {
-            opacity: 0; width: 0; padding: 0; margin: 0; pointer-events: none; overflow: hidden; transform: scale(0.4);
+        .btn-export-master {
+            background: linear-gradient(90deg, #00FFC8, #00B3FF); color: #000; font-size: 13px;
+            font-weight: 900; letter-spacing: 0.5px; padding: 13px; border-radius: 14px; border: none;
+            cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center;
+            gap: 8px; box-shadow: 0 4px 18px rgba(0, 255, 200, 0.4); margin-top: 4px;
         }
 
-        .dock-tooltip {
-            position: absolute; z-index: 46;
-            background: rgba(28, 28, 35, 0.92); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.22);
-            color: #fff; font-size: 10px; font-weight: 600; padding: 4px 12px;
-            border-radius: 14px; pointer-events: none; opacity: 0; transform: translate(-50%, 6px);
-            transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 4px 16px rgba(0,0,0,0.6); white-space: nowrap;
+        /* MODAL GALERÍA SOBERANA (CON GRID COMPACTO DE FOTOS) */
+        #galleryModal {
+            display: none; position: fixed; inset: 0; z-index: 320; background: rgba(5, 6, 8, 0.98);
+            backdrop-filter: blur(25px); flex-direction: column; padding: 20px;
         }
-        .dock-tooltip.visible { opacity: 1; transform: translate(-50%, 0); }
+        .gallery-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; overflow-y: auto; flex: 1; margin-top: 14px;
+        }
+        .gallery-card {
+            background: #111216; border: 1px solid #222; border-radius: 12px; overflow: hidden; cursor: pointer;
+            display: flex; flex-direction: column; min-height: 140px;
+        }
+        .gallery-card img { width: 100%; height: 110px; object-fit: cover; background: #000; }
+        .gallery-card-info { padding: 6px 8px; font-size: 10px; color: #888; background: #16171d; }
 
-        .glass-dock {
-            position: absolute; bottom: 104px; left: 50%; transform: translateX(-50%); z-index: 40;
-            width: calc(100% - 32px); max-width: 500px;
-            background: rgba(18, 18, 22, 0.55);
-            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            border-radius: 30px; padding: 10px 14px;
-            display: flex; align-items: center; justify-content: flex-start;
-            gap: 10px; overflow-x: auto; scrollbar-width: none;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1), background 1.8s ease, border-color 1.8s ease, box-shadow 1.8s ease;
+        /* MODAL NANO-BOT ASISTENTE */
+        #nanobotModal {
+            display: none; position: fixed; inset: 0; z-index: 330; background: rgba(5, 6, 8, 0.95);
+            backdrop-filter: blur(25px); flex-direction: column; padding: 20px; justify-content: space-between;
         }
-        .glass-dock::-webkit-scrollbar { display: none; }
-
-        .glass-dock.stacked-mode {
-            left: 76%; transform: translateX(-50%); width: 125px;
-            overflow: visible; justify-content: flex-start; padding: 6px;
+        .bot-bubble {
+            background: #121318; border: 1px solid rgba(0,255,200,0.3); border-radius: 16px; padding: 16px;
+            font-size: 13px; line-height: 1.5; color: #eee; margin-top: 15px;
         }
-        .glass-dock.stacked-mode.evaporated-dock {
-            background: transparent !important; border-color: transparent !important; box-shadow: none !important;
+        .bot-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+        .bot-btn {
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff;
+            padding: 12px; border-radius: 12px; font-size: 12px; font-weight: 700; text-align: left; cursor: pointer;
         }
-
-        .dock-icon-btn {
-            flex: 0 0 44px; height: 44px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255, 255, 255, 0.06); font-size: 19px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; position: relative;
-            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease, background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-        }
-        .dock-icon-btn:active { transform: scale(0.92); }
-
-        .dock-icon-btn.selected {
-            transform: translateY(-8px) scale(1.18) !important;
-            border-color: rgba(255, 255, 255, 0.45) !important;
-            z-index: 25 !important; opacity: 1 !important;
-        }
-        .dock-icon-btn.selected::after {
-            content: ''; position: absolute; bottom: -6px; width: 5px; height: 5px;
-            border-radius: 50%; background: #fff; box-shadow: 0 0 6px #fff;
-        }
-
-        .glass-dock.stacked-mode .dock-icon-btn.stack-layer { position: absolute; pointer-events: auto; opacity: 0.85; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-        .glass-dock.stacked-mode .dock-icon-btn.stack-1 { transform: translateX(18px) translateY(-5px) scale(0.94); z-index: 20; }
-        .glass-dock.stacked-mode .dock-icon-btn.stack-2 { transform: translateX(34px) translateY(-2px) scale(0.88); z-index: 15; opacity: 0.6; }
-        .glass-dock.stacked-mode .dock-icon-btn.stack-3 { transform: translateX(48px) translateY(1px) scale(0.82); z-index: 10; opacity: 0.35; }
-        .glass-dock.stacked-mode .dock-icon-btn.stack-deep { position: absolute; transform: translateX(54px) scale(0.7); opacity: 0; pointer-events: none; z-index: 5; }
-
-        .dock-icon-btn[data-key="pano"].active-glow { background: linear-gradient(135deg, rgba(0,255,200,0.8), rgba(90,200,250,0.6)); border-color: #00FFC8; box-shadow: 0 8px 20px rgba(0,255,200,0.7); }
-        .dock-icon-btn[data-key="timelapse"].active-glow { background: linear-gradient(135deg, rgba(255,69,58,0.8), rgba(255,159,10,0.6)); border-color: #FF453A; box-shadow: 0 8px 20px rgba(255,69,58,0.7); }
-        .dock-icon-btn[data-key="scan"].active-glow { background: linear-gradient(135deg, rgba(0,255,200,0.7), rgba(10,132,255,0.5)); border-color: #00FFC8; box-shadow: 0 8px 20px rgba(0,255,200,0.6); }
-        .dock-icon-btn[data-key="night"].active-glow { background: linear-gradient(135deg, rgba(94,92,230,0.7), rgba(48,209,88,0.5)); border-color: #5E5CE6; box-shadow: 0 8px 20px rgba(94,92,230,0.6); }
-        .dock-icon-btn[data-key="macro"].active-glow { background: linear-gradient(135deg, rgba(48,209,88,0.7), rgba(0,255,200,0.5)); border-color: #30D158; box-shadow: 0 8px 20px rgba(48,209,88,0.6); }
-        .dock-icon-btn[data-key="portrait"].active-glow { background: linear-gradient(135deg, rgba(255,214,10,0.7), rgba(255,107,0,0.5)); border-color: #FFD60A; box-shadow: 0 8px 20px rgba(255,214,10,0.6); }
-        .dock-icon-btn[data-key="lonas"].active-glow { background: linear-gradient(135deg, rgba(255,149,0,0.7), rgba(255,94,58,0.5)); border-color: #FF9500; box-shadow: 0 8px 20px rgba(255,149,0,0.6); }
-        .dock-icon-btn[data-key="custom"].active-glow { background: linear-gradient(135deg, rgba(255,45,85,0.7), rgba(175,82,222,0.5)); border-color: #FF2D55; box-shadow: 0 8px 20px rgba(255,45,85,0.6); }
-        .dock-icon-btn[data-key="print"].active-glow { background: linear-gradient(135deg, rgba(50,173,230,0.7), rgba(0,122,255,0.5)); border-color: #32ADE6; box-shadow: 0 8px 20px rgba(0,122,255,0.6); }
-        .dock-icon-btn[data-key="cine"].active-glow { background: linear-gradient(135deg, rgba(255,59,48,0.7), rgba(255,45,85,0.5)); border-color: #FF3B30; box-shadow: 0 8px 20px rgba(255,59,48,0.6); }
-        .dock-icon-btn[data-key="raw"].active-glow { background: linear-gradient(135deg, rgba(48,209,88,0.7), rgba(52,199,89,0.5)); border-color: #30D158; box-shadow: 0 8px 20px rgba(48,209,88,0.6); }
-        .dock-icon-btn[data-key="svg"].active-glow { background: linear-gradient(135deg, rgba(255,214,10,0.7), rgba(255,159,10,0.5)); border-color: #FFD60A; box-shadow: 0 8px 20px rgba(255,214,10,0.6); }
-        .dock-icon-btn[data-key="vid"].active-glow { background: linear-gradient(135deg, rgba(191,90,242,0.7), rgba(94,92,230,0.5)); border-color: #BF5AF2; box-shadow: 0 8px 20px rgba(94,92,230,0.6); }
-        .dock-icon-btn[data-key="depth"].active-glow { background: linear-gradient(135deg, rgba(255,55,95,0.7), rgba(191,90,242,0.5)); border-color: #FF375F; box-shadow: 0 8px 20px rgba(255,55,95,0.6); }
-        .dock-icon-btn[data-key="chef"].active-glow { background: linear-gradient(135deg, rgba(255,159,10,0.7), rgba(255,107,0,0.5)); border-color: #FF9F0A; box-shadow: 0 8px 20px rgba(255,159,10,0.6); }
-        .dock-icon-btn[data-key="price"].active-glow { background: linear-gradient(135deg, rgba(99,230,226,0.7), rgba(0,199,190,0.5)); border-color: #63E6E2; box-shadow: 0 8px 20px rgba(0,199,190,0.6); }
-        .dock-icon-btn[data-key="ai"].active-glow { background: linear-gradient(135deg, rgba(10,132,255,0.7), rgba(94,92,230,0.5)); border-color: #0A84FF; box-shadow: 0 8px 20px rgba(10,132,255,0.6); }
-
-        .dock-icon-btn.evaporated {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-color: rgba(255, 255, 255, 0.22) !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
-            transition: background 2.5s cubic-bezier(0.25, 1, 0.5, 1), border-color 2.5s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 2.5s cubic-bezier(0.25, 1, 0.5, 1) !important;
-        }
-
-        .bottom-shutter-bar {
-            position: absolute; bottom: 18px; left: 0; right: 0;
-            display: flex; justify-content: space-around; align-items: center; z-index: 50;
-            padding: 0 30px;
-        }
-        .shutter-outer {
-            width: 76px; height: 76px; border-radius: 50%;
-            background: rgba(255, 59, 48, 0.15); backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 59, 48, 0.65);
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .shutter-outer:active { transform: scale(0.9); }
-        .shutter-inner {
-            width: 62px; height: 62px; border-radius: 50%;
-            background: linear-gradient(135deg, #FF453A, #FF3B30);
-            box-shadow: 0 0 16px rgba(255, 59, 48, 0.65);
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .shutter-inner.recording {
-            border-radius: 14px; width: 34px; height: 34px;
-            animation: recordShutterPulse 1s infinite alternate;
-        }
-        @keyframes recordShutterPulse { 0% { transform: scale(0.95); } 100% { transform: scale(1.05); } }
-        
-        .side-btn {
-            width: 44px; height: 44px; border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.15); font-size: 16px;
-            color: #fff; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: transform 0.15s; overflow: hidden;
-        }
-        .side-btn:active { transform: scale(0.9); }
-        .side-btn img { width: 100%; height: 100%; object-fit: cover; }
-
-        .export-modal {
-            position: fixed; inset: 0; z-index: 110; background: rgba(0,0,0,0.78);
-            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-            display: none; flex-direction: column; justify-content: flex-end;
-            opacity: 0; transition: opacity 0.3s ease;
-        }
-        .export-modal.active { display: flex; opacity: 1; }
-        .export-card {
-            background: #15151B; border-top: 1px solid rgba(0,255,200,0.3);
-            border-radius: 32px 32px 0 0; padding: 22px 20px;
-            max-height: 85vh; display: flex; flex-direction: column; gap: 12px;
-            box-shadow: 0 -12px 40px rgba(0,0,0,0.85);
-            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .export-input {
-            width: 100%; background: #1C1C24; border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 14px; padding: 10px 14px; color: #fff; font-size: 13px; outline: none;
-        }
-        .export-btn-whatsapp {
-            background: linear-gradient(135deg, #25D366, #128C7E); color: #fff;
-            border: none; border-radius: 16px; padding: 13px; font-weight: 700; font-size: 13px;
-            display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
-        }
-        .export-btn-pdf {
-            background: rgba(0, 255, 200, 0.15); border: 1px solid #00FFC8; color: #00FFC8;
-            border-radius: 16px; padding: 12px; font-weight: 700; font-size: 13px;
-            display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
-        }
-
-        .bot-modal {
-            position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-            display: none; flex-direction: column; justify-content: flex-end;
-            opacity: 0; transition: opacity 0.3s ease;
-        }
-        .bot-modal.active { display: flex; opacity: 1; }
-        .bot-card {
-            background: #141418; border-top: 1px solid rgba(255,255,255,0.16);
-            border-radius: 32px 32px 0 0; padding: 20px;
-            max-height: 82vh; display: flex; flex-direction: column;
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
-            animation: slideUp 0.32s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        
-        .bot-drag { width: 40px; height: 5px; background: rgba(255,255,255,0.3); border-radius: 4px; margin: 0 auto 12px; cursor: pointer; }
-        .bot-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .bot-title { font-size: 16px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 6px; }
-        .bot-badge { font-size: 9px; padding: 2px 7px; border-radius: 10px; background: rgba(0,255,200,0.15); color: #00FFC8; border: 1px solid #00FFC8; }
-
-        .bot-chat-stream { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; padding-right: 4px; max-height: 280px; }
-        .bot-msg { max-width: 85%; padding: 10px 14px; border-radius: 16px; font-size: 12px; line-height: 1.45; }
-        .bot-msg.ia { background: rgba(255,255,255,0.08); color: #E5E5EA; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid rgba(255,255,255,0.08); }
-        .bot-msg.user { background: #0A84FF; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
-
-        .bot-quick-chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; scrollbar-width: none; }
-        .bot-quick-chips::-webkit-scrollbar { display: none; }
-        .bot-chip {
-            white-space: nowrap; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
-            color: #ccc; font-size: 10px; padding: 6px 12px; border-radius: 16px; cursor: pointer;
-        }
-        .bot-chip:active { background: rgba(0,255,200,0.2); border-color: #00FFC8; color: #fff; }
-
-        .bot-input-box { display: flex; gap: 8px; align-items: center; }
-        .bot-input {
-            flex: 1; background: #1C1C22; border: 1px solid rgba(255,255,255,0.14);
-            border-radius: 18px; padding: 11px 16px; color: #fff; font-size: 13px; outline: none;
-        }
-        .bot-btn-send {
-            background: #00FFC8; border: none; color: #000; font-weight: 700;
-            border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; cursor: pointer;
-        }
-
-        .gallery-modal {
-            position: fixed; inset: 0; z-index: 105; background: #000;
-            display: none; flex-direction: column; padding: 18px 14px;
-        }
-        .gallery-modal.active { display: flex; }
-        .gallery-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-        .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; overflow-y: auto; flex: 1; }
-        .gallery-item { aspect-ratio: 1; background: #111; border-radius: 8px; overflow: hidden; position: relative; border: 1px solid #222; }
-        .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+        .bot-btn:hover { border-color: #00FFC8; color: #00FFC8; }
     </style>
 </head>
 <body>
+    <div class="edge-screen-border" id="screenEdgeBorder"></div>
+    <div class="ambient-fade-light" id="ambientLightLayer"></div>
 
-    <!-- LOCKSCREEN INTRO CON MOÑO DE REGALO VOLADOR -->
-    <div class="lockscreen-overlay" id="lockscreen">
-        <div class="intro-top-badge">
-            <span class="dot"></span>
-            <span>BIAN MASTER SUITE V10</span>
-        </div>
+    <!-- LOCKSCREEN CON BRANDING BLANCO Y GESTO DE MOÑO -->
+    <div id="lockscreen">
+        <div class="pill-badge">• BIAN MASTER SUITE V10</div>
 
-        <div class="brand-hero-block">
-            <h1 class="brand-logo-title">BIAN</h1>
-            <h2 class="brand-slogan">Tu app de fotos y video</h2>
-            <p class="brand-description">
+        <div class="brand-center">
+            <div class="brand-title">BIAN</div>
+            <div class="brand-subtitle">Tu app de fotos y video</div>
+            <div class="brand-card">
                 Potencia visual, sensor pro calibrado, flujo documental, costeo y 21 módulos soberanos ejecutados 100% de manera local.
-            </p>
-        </div>
-
-        <div class="gift-unlock-container" id="giftUnlockBtn" onclick="triggerGiftUnlock()">
-            <div class="ribbon-box">
-                <div class="bow-loop left"></div>
-                <div class="bow-loop right"></div>
-                <div class="bow-knot"></div>
-                <div class="bow-tail left"></div>
-                <div class="bow-tail right"></div>
-            </div>
-            <div class="unlock-hint-text">
-                <span>🎁 DESLIZA HACIA ARRIBA PARA ABRIR</span>
             </div>
         </div>
-    </div>
 
-    <!-- UI PRINCIPAL -->
-    <div class="shutter-flash" id="flashLayer"></div>
-
-    <div class="top-float-left" id="activeModulePill">
-        <div class="glow-dot"></div>
-        <span id="activeModuleName">Cam Vision V10</span>
-    </div>
-
-    <div class="top-float-right">
-        <div class="action-pill export-pill" onclick="openExportModal()">
-            <span>📤 Exportar</span>
-        </div>
-        <div class="action-pill" onclick="openNanoBotModal()">
-            <span>✨ Nano-Bot</span>
-        </div>
-    </div>
-
-    <div class="doc-scanner-frame" id="docScannerFrame">
-        <div class="scanner-laser-line"></div>
-        <div class="doc-row">
-            <div class="doc-corner tl"></div>
-            <div class="doc-corner tr"></div>
-        </div>
-        <div class="doc-label-badge">ALINEA EL DOCUMENTO O TICKET AQUÍ</div>
-        <div class="doc-row">
-            <div class="doc-corner bl"></div>
-            <div class="doc-corner br"></div>
+        <div class="gift-container" id="giftUnlockBtn">
+            <svg class="gift-bow-svg" viewBox="0 0 100 100">
+                <defs>
+                    <linearGradient id="bowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#FFF275"/>
+                        <stop offset="50%" stop-color="#FFAA00"/>
+                        <stop offset="100%" stop-color="#FF3300"/>
+                    </linearGradient>
+                </defs>
+                <path d="M50 50 C30 20 5 35 25 55 C40 65 50 52 50 50 Z" fill="url(#bowGrad)"/>
+                <path d="M50 50 C70 20 95 35 75 55 C60 65 50 52 50 50 Z" fill="url(#bowGrad)"/>
+                <circle cx="50" cy="50" r="10" fill="#FFE600"/>
+                <path d="M46 55 Q35 75 25 90 Q38 82 48 60 Z" fill="url(#bowGrad)"/>
+                <path d="M54 55 Q65 75 75 90 Q62 82 52 60 Z" fill="url(#bowGrad)"/>
+            </svg>
+            <div class="gift-hint">🎁 TOCA O DESLIZA PARA ENTRAR</div>
         </div>
     </div>
 
-    <div class="timelapse-hud" id="timelapseHud">
-        <div class="timelapse-pill">
-            <div class="record-blink" id="recordDot" style="display:none;"></div>
-            <span id="timelapseTimerText">REC: 00:00 (VID: 00:00)</span>
-        </div>
-        <div class="timelapse-speed-selector">
-            <button class="speed-btn active" onclick="setTimeLapseSpeed(4, this)">4x</button>
-            <button class="speed-btn" onclick="setTimeLapseSpeed(8, this)">8x</button>
-            <button class="speed-btn" onclick="setTimeLapseSpeed(16, this)">16x</button>
-            <button class="speed-btn" onclick="setTimeLapseSpeed(32, this)">32x</button>
-        </div>
-    </div>
-
-    <div class="pano-hud" id="panoHud">
-        <div class="pano-guide-line"></div>
-        <div class="pano-level-ball" id="panoBall"></div>
-        <div class="pano-arrow">➔</div>
-    </div>
-
-    <div class="mode-status-chip" id="modeStatusChip">
-        <span id="modeStatusText">📸 MODO ACTIVO</span>
-    </div>
-
-    <div class="viewport" id="viewportArea" onclick="handleTapToFocus(event)">
-        <video id="webcam" autoplay playsinline muted></video>
-        
-        <div class="focus-circle-ring" id="focusCircle">
-            <div class="lock-icon-badge">🔒</div>
-            <div class="sun-slider-badge">☀️</div>
+    <!-- VIEWPORT CON ANILLO DE ENFOQUE PRO Y BARALJA DE CARTAS STACK -->
+    <div class="suite-view" id="viewportArea">
+        <div id="videoContainer">
+            <video id="webcam" autoplay playsinline></video>
         </div>
 
-        <canvas id="internalCanvas" style="display:none;"></canvas>
-    </div>
-
-    <div class="lens-pill-bar collapsed" id="lensPillBar">
-        <button class="lens-btn" onclick="handleLensClick(0.6, this, event)">0.6x</button>
-        <button class="lens-btn active" onclick="handleLensClick(1.0, this, event)">1x</button>
-        <button class="lens-btn" onclick="handleLensClick(2.0, this, event)">2x</button>
-        <button class="lens-btn" onclick="handleLensClick(3.0, this, event)">3x</button>
-        <button class="lens-btn" onclick="handleLensClick(10.0, this, event)">10x</button>
-    </div>
-
-    <div class="dock-tooltip" id="dockTooltip">Módulo</div>
-
-    <div class="glass-dock" id="glassDockBar">
-        <div class="dock-icon-btn" data-key="pano" onclick="handleIconClick('pano', '🌐 Panorámica 360° V10', this, event)">🌐</div>
-        <div class="dock-icon-btn" data-key="timelapse" onclick="handleIconClick('timelapse', '⏱️ Time-Lapse Hyperlapse V10', this, event)">⏱️</div>
-        <div class="dock-icon-btn" data-key="scan" onclick="handleIconClick('scan', '📄 Scan Doc Pro V10', this, event)">📄</div>
-        <div class="dock-icon-btn" data-key="night" onclick="handleIconClick('night', '🌙 Nightography V10', this, event)">🌙</div>
-        <div class="dock-icon-btn" data-key="macro" onclick="handleIconClick('macro', '🔍 Macro Pro V10', this, event)">🔍</div>
-        <div class="dock-icon-btn" data-key="portrait" onclick="handleIconClick('portrait', '👤 Modo Retrato Bokeh V10', this, event)">👤</div>
-        <div class="dock-icon-btn" data-key="lonas" onclick="handleIconClick('lonas', '⛺ Lonas 3D V10', this, event)">⛺</div>
-        <div class="dock-icon-btn" data-key="custom" onclick="handleIconClick('custom', '🎨 Wallpapers V10', this, event)">🎨</div>
-        <div class="dock-icon-btn" data-key="print" onclick="handleIconClick('print', '🖨️ Imprenta PDF V10', this, event)">🖨️</div>
-        <div class="dock-icon-btn" data-key="cine" onclick="handleIconClick('cine', '🎬 Cine Scope V10', this, event)">🎬</div>
-        <div class="dock-icon-btn" data-key="raw" onclick="handleIconClick('raw', '📸 Revelado RAW V10', this, event)">📸</div>
-        <div class="dock-icon-btn" data-key="svg" onclick="handleIconClick('svg', '📐 SVG Logos V10', this, event)">📐</div>
-        <div class="dock-icon-btn" data-key="vid" onclick="handleIconClick('vid', '🎥 Video Motion V10', this, event)">🎥</div>
-        <div class="dock-icon-btn" data-key="depth" onclick="handleIconClick('depth', '🧠 Depth-Map NPU V10', this, event)">🧠</div>
-        <div class="dock-icon-btn" data-key="chef" onclick="handleIconClick('chef', '👨‍🍳 Chef Lean V10', this, event)">👨‍🍳</div>
-        <div class="dock-icon-btn" data-key="price" onclick="handleIconClick('price', '🏷️ Valuador Híbrido V10', this, event)">🏷️</div>
-        <div class="dock-icon-btn" data-key="ai" onclick="handleIconClick('ai', '✨ Generar Imagen AI V10', this, event)">✨</div>
-    </div>
-
-    <div class="bottom-shutter-bar">
-        <div class="side-btn" onclick="toggleLens()">🔄</div>
-        <div class="shutter-outer" id="shutterBtn" onclick="triggerNativeCaptureAndSave()">
-            <div class="shutter-inner" id="shutterInner"></div>
+        <!-- ANILLO DE ENFOQUE TÁCTICO CON CANDADO Y SOL -->
+        <div class="focus-ring" id="focusRing">
+            <div class="focus-lock-icon">🔒</div>
+            <div class="focus-sun-icon">☀️</div>
         </div>
-        <div class="side-btn" id="galleryThumbBtn" onclick="openGalleryModal()">
-            <span id="galleryIconPlaceholder">🖼️</span>
-        </div>
-    </div>
 
-    <div class="export-modal" id="exportModal">
-        <div class="export-card">
-            <div class="bot-drag" onclick="closeExportModal()"></div>
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h3 style="font-size:15px; font-weight:700; color:#00FFC8;">📤 Despacho Comercial & PDF</h3>
-                <button onclick="closeExportModal()" style="background:none; border:none; color:#888; font-size:16px; cursor:pointer;">✕</button>
+        <!-- TOP BAR NATIVA -->
+        <div class="top-dock">
+            <div class="hud-status-badge" id="moduleTitleBadge">
+                <span class="dot" id="statusDot"></span>
+                <span id="moduleNameText">NIGHTOGRAPHY</span>
             </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="top-action-btn" onclick="lockSuite()">🔒 Bloquear</button>
+                <button class="top-action-btn" id="botToggleBtn" onclick="openNanobot()">✨ ¿Qué quieres hacer?</button>
+            </div>
+        </div>
 
-            <input type="text" class="export-input" id="expClient" placeholder="Nombre del Cliente o Taller">
-            <input type="text" class="export-input" id="expConcept" placeholder="Concepto (ej. Lona Frontlit 4x3m / Rib Eye 3.8kg)">
-            <input type="number" class="export-input" id="expAmount" placeholder="Monto Total ($ MXN)">
-            <textarea class="export-input" id="expNotes" rows="2" placeholder="Especificaciones técnicas o tiempo de entrega..."></textarea>
+        <!-- BANNER CONTEXTUAL CENTRAL -->
+        <div class="center-hud-overlay" id="centerHud">
+            <div class="context-pill" id="contextPillText">🌙 NIGHTOGRAPHY: ISO BOOST + RAW DENOISE</div>
+        </div>
 
-            <button class="export-btn-whatsapp" onclick="sendToWhatsApp()">
-                <span>💬 Despachar por WhatsApp</span>
-            </button>
-            <button class="export-btn-pdf" onclick="generateTechnicalPDF()">
-                <span>📄 Descargar Orden PDF Membretada</span>
+        <!-- SELECTOR DE ZOOM PRO (0.6x, 1x, 2x) -->
+        <div class="hud-zoom-tag" id="zoomChip" onclick="cycleZoomLevel()">
+            🔍 <span id="zoomLabel">1x</span>
+        </div>
+
+        <!-- PILA DE CARTAS CENTRADA Y ERGONÓMICA AL LADO DEL SHUTTER -->
+        <div class="deck-stack-wrapper" id="deckStack">
+            <div class="deck-card-item pos-0" data-key="night">🌙</div>
+            <div class="deck-card-item pos-1" data-key="timelapse">⏱️</div>
+            <div class="deck-card-item pos-2" data-key="macro">🔍</div>
+            <div class="deck-card-item pos-3" data-key="chef">👨‍🍳</div>
+            <div class="deck-card-item pos-4" data-key="price">🏷️</div>
+        </div>
+
+        <!-- BARRA INFERIOR DE DISPARO -->
+        <div class="bottom-bar">
+            <div class="lens-switch-btn" onclick="toggleLens()">🔄</div>
+            <div class="shutter-btn" onclick="captureDirect()"></div>
+            <div class="gallery-thumb" id="thumbBox" onclick="openGalleryModal()"></div>
+        </div>
+    </div>
+
+    <!-- MESA DE EDICIÓN & EXPORTACIÓN POST-CAPTURA -->
+    <div id="postEditModal">
+        <div class="edit-header">
+            <div class="edit-title" id="editModalTitle">🛠️ POST-PROCESO & EDICIÓN</div>
+            <button class="edit-close-btn" onclick="closeEditModal()">✖ Volver a Cámara</button>
+        </div>
+        <div class="edit-preview-box">
+            <img id="editImagePreview" src="" alt="Captura a editar" />
+        </div>
+        <div class="edit-tools-panel">
+            <div class="tool-row" id="moduleToolRow">
+                <div class="tool-chip active" onclick="applyEditTool('original', this)">Normal</div>
+                <div class="tool-chip" onclick="applyEditTool('npu_boost', this)">✨ NPU Boost</div>
+                <div class="tool-chip" onclick="applyEditTool('alpha_matte', this)">✂️ Recorte Alfa</div>
+                <div class="tool-chip" onclick="applyEditTool('cinematic_grade', this)">🎞️ Grado Cine</div>
+            </div>
+            <button class="btn-export-master" onclick="exportEditedResult()">
+                💾 EXPORTAR MASTER HD / CLIP
             </button>
         </div>
     </div>
 
-    <div class="bot-modal" id="botModal">
-        <div class="bot-card">
-            <div class="bot-drag" onclick="closeNanoBotModal()"></div>
-            <div class="bot-header">
-                <div class="bot-title">
-                    <span>⚡ Nano-Bot Táctico</span>
-                    <span class="bot-badge" id="botModuleBadge">GENERAL</span>
-                </div>
-                <button onclick="closeNanoBotModal()" style="background:none; border:none; color:#888; font-size:16px; cursor:pointer;">✕</button>
-            </div>
-            
-            <div class="bot-quick-chips">
-                <button class="bot-chip" onclick="askNanoQuick('estado del almacenamiento')">💾 Estado del Almacenamiento</button>
-                <button class="bot-chip" onclick="askNanoQuick('exportar cotizacion')">📤 Exportar WhatsApp</button>
-                <button class="bot-chip" onclick="askNanoQuick('como usar el escaner')">📄 Escanear Documento</button>
-            </div>
-
-            <div class="bot-chat-stream" id="botChatStream">
-                <div class="bot-msg ia">
-                    ¡Qué onda! Bienvenido a <strong>BIAN V10</strong>. Sistema y almacenamiento optimizado en tiempo real.
-                </div>
-            </div>
-
-            <div class="bot-input-box">
-                <input type="text" class="bot-input" id="botUserInput" placeholder="Pregúntale al Nano-Bot..." onkeydown="if(event.key==='Enter') sendNanoBotMessage()">
-                <button class="bot-btn-send" onclick="sendNanoBotMessage()">➤</button>
-            </div>
+    <!-- MODAL GALERÍA SOBERANA -->
+    <div id="galleryModal">
+        <div class="edit-header">
+            <div class="edit-title" style="color:#00FFC8;">🖼️ GALERÍA SOBERANA (SQLITE LOCAL)</div>
+            <button class="edit-close-btn" onclick="closeGalleryModal()">✖ Cerrar</button>
         </div>
+        <div class="gallery-grid" id="galleryGridContent"></div>
     </div>
 
-    <div class="gallery-modal" id="galleryModal">
-        <div class="gallery-top">
-            <h3 style="font-size:16px; font-weight:700;">Galería Soberana V10</h3>
-            <button onclick="closeGalleryModal()" style="background:#1c1c22; border:1px solid #333; color:#fff; padding:6px 14px; border-radius:14px; font-size:12px;">Cerrar</button>
+    <!-- MODAL NANO-BOT ASISTENTE -->
+    <div id="nanobotModal">
+        <div>
+            <div class="edit-header">
+                <div class="edit-title" style="color:#00FFC8;">✨ NANO-BOT TÁCTICO BIAN</div>
+                <button class="edit-close-btn" onclick="closeNanobot()">✖ Cerrar</button>
+            </div>
+            <div class="bot-bubble" id="botMessageText">
+                Analizando escena...
+            </div>
+            <div class="bot-actions" id="botActionList"></div>
         </div>
-        <div class="gallery-grid" id="galleryGrid"></div>
+        <div style="font-size:10px; color:#555; text-align:center;">IA Soberana local operando en Snapdragon 8 Gen 2</div>
     </div>
+
+    <canvas id="canvas" style="display:none;"></canvas>
 
     <script>
         const video = document.getElementById('webcam');
-        const internalCanvas = document.getElementById('internalCanvas');
-        let selectedEngineKey = null;
-        let selectedEngineName = null;
-        let facingMode = 'environment';
-        let tooltipTimeout = null;
+        const canvas = document.getElementById('canvas');
+        const focusRing = document.getElementById('focusRing');
         let audioCtx = null;
-        let fadeCircleTimeout = null;
-        let currentStreamTrack = null;
-        let evaporateTimeout = null;
-
-        let isRecordingTimelapse = false;
-        let timelapseInterval = null;
-        let timelapseSeconds = 0;
-        let timelapseSpeedMultiplier = 4;
-
-        const enginesList = [
-            { key: 'pano', name: '🌐 Panorámica 360° V10' },
-            { key: 'timelapse', name: '⏱️ Time-Lapse Hyperlapse V10' },
-            { key: 'scan', name: '📄 Scan Doc Pro V10' },
-            { key: 'night', name: '🌙 Nightography V10' },
-            { key: 'macro', name: '🔍 Macro Pro V10' },
-            { key: 'portrait', name: '👤 Modo Retrato Bokeh V10' },
-            { key: 'lonas', name: '⛺ Lonas 3D V10' },
-            { key: 'custom', name: '🎨 Wallpapers V10' },
-            { key: 'print', name: '🖨️ Imprenta PDF V10' },
-            { key: 'cine', name: '🎬 Cine Scope V10' },
-            { key: 'raw', name: '📸 Revelado RAW V10' },
-            { key: 'svg', name: '📐 SVG Logos V10' },
-            { key: 'vid', name: '🎥 Video Motion V10' },
-            { key: 'depth', name: '🧠 Depth-Map NPU V10' },
-            { key: 'chef', name: '👨‍🍳 Chef Lean V10' },
-            { key: 'price', name: '🏷️ Valuador Híbrido V10' },
-            { key: 'ai', name: '✨ Generar Imagen AI V10' }
-        ];
+        let facingMode = 'environment';
+        let currentZoomIndex = 1;
+        const zoomLevels = [0.6, 1.0, 2.0];
+        let lastCapturedBlob = null;
 
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -786,696 +398,378 @@ HTML_CONTENT = """
             return audioCtx;
         }
 
-                function playGiftUnwrapSound() {
-            try {
-                const ctx = getAudioContext();
-                const now = ctx.currentTime;
-                // Acorde brillante y cute: C6, E6, G6, B6, C7 con brillo armónico
-                const sparkleNotes = [1046.50, 1318.51, 1567.98, 1975.53, 2093.00, 2637.02];
-                sparkleNotes.forEach((f, idx) => {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(f, now + (idx * 0.055));
-                    gain.gain.setValueAtTime(0.001, now + (idx * 0.055));
-                    gain.gain.linearRampToValueAtTime(0.16, now + (idx * 0.055) + 0.015);
-                    gain.gain.exponentialRampToValueAtTime(0.0001, now + (idx * 0.055) + 0.42);
-                    osc.start(now + (idx * 0.055));
-                    osc.stop(now + (idx * 0.055) + 0.43);
-                });
-            } catch(e) {}
+        function startCamera() {
+            if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
+            navigator.mediaDevices.getUserMedia({ video: { facingMode } })
+                .then(stream => { video.srcObject = stream; updateThumb(); })
+                .catch(err => console.warn("Permiso de cámara:", err));
         }
-
-        let touchStartY = 0;
-        const giftContainer = document.getElementById('giftUnlockBtn');
-        if (giftContainer) {
-            giftContainer.addEventListener('touchstart', (e) => {
-                touchStartY = e.touches[0].clientY;
-            }, { passive: true });
-
-            giftContainer.addEventListener('touchend', (e) => {
-                const touchEndY = e.changedTouches[0].clientY;
-                const deltaY = touchStartY - touchEndY;
-                if (deltaY > 30) {
-                    triggerGiftUnlock();
-                }
-            }, { passive: true });
-        }
-
-        function triggerGiftUnlock() {
-            const giftBox = document.getElementById('giftUnlockBtn');
-            const lockscreen = document.getElementById('lockscreen');
-            
-            // Sonido de bienvenida
-            playGiftUnwrapSound();
-            
-            // Animación del moño saliendo disparado
-            giftBox.classList.add('fly');
-
-            setTimeout(() => {
-                lockscreen.classList.add('unlocked');
-                startCamera();
-            }, 450);
-        }
-
-        function playWhatsAppSwooshSound() {
-            try {
-                const ctx = getAudioContext();
-                const now = ctx.currentTime;
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain); gain.connect(ctx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(440, now);
-                osc.frequency.exponentialRampToValueAtTime(840, now + 0.12);
-                gain.gain.setValueAtTime(0.001, now);
-                gain.gain.linearRampToValueAtTime(0.18, now + 0.03);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
-                osc.start(now); osc.stop(now + 0.14);
-            } catch(e) {}
-        }
-
-        function playSignatureProSound(key) {
-            try {
-                const ctx = getAudioContext();
-                const now = ctx.currentTime;
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain); gain.connect(ctx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(140, now);
-                osc.frequency.exponentialRampToValueAtTime(60, now + 0.15);
-                gain.gain.setValueAtTime(0.28, now);
-                gain.gain.linearRampToValueAtTime(0.001, now + 0.15);
-                osc.start(now); osc.stop(now + 0.15);
-            } catch(e) {}
-        }
-
-        function playFocusBeep() {
-            try {
-                const ctx = getAudioContext();
-                const now = ctx.currentTime;
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain); gain.connect(ctx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(1200, now);
-                osc.frequency.setValueAtTime(1600, now + 0.03);
-                gain.gain.setValueAtTime(0.08, now);
-                gain.gain.linearRampToValueAtTime(0.001, now + 0.08);
-                osc.start(now); osc.stop(now + 0.08);
-            } catch(e) {}
-        }
-
-        async function startCamera() {
-            if (video.srcObject) {
-                video.srcObject.getTracks().forEach(t => t.stop());
-            }
-
-            const constraints = {
-                audio: false,
-                video: {
-                    facingMode: facingMode,
-                    width: { ideal: 1920 },
-                    height: { ideal: 1080 }
-                }
-            };
-
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                video.srcObject = stream;
-                currentStreamTrack = stream.getVideoTracks()[0];
-                await video.play();
-
-                const circle = document.getElementById('focusCircle');
-                circle.style.left = '50%';
-                circle.style.top = '46%';
-                triggerCircleFade();
-                refreshThumb();
-            } catch(err) {
-                try {
-                    const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-                    video.srcObject = fallbackStream;
-                    currentStreamTrack = fallbackStream.getVideoTracks()[0];
-                    await video.play();
-                } catch(fatalErr) {
-                    console.error("Error fatal accediendo a cámara:", fatalErr);
-                }
-            }
-        }
+        startCamera();
 
         function toggleLens() {
             facingMode = (facingMode === 'environment') ? 'user' : 'environment';
             startCamera();
         }
 
-        function handleLensClick(zoomLevel, elem, event) {
-            const bar = document.getElementById('lensPillBar');
-            if (bar.classList.contains('collapsed')) {
-                bar.classList.remove('collapsed');
-                return;
-            }
-            document.querySelectorAll('.lens-btn').forEach(b => b.classList.remove('active'));
-            elem.classList.add('active');
-            bar.classList.add('collapsed');
-
-            if (currentStreamTrack && typeof currentStreamTrack.getCapabilities === 'function') {
-                const caps = currentStreamTrack.getCapabilities();
-                if (caps.zoom) {
-                    const min = caps.zoom.min || 1;
-                    const max = caps.zoom.max || 10;
-                    const targetZoom = Math.min(Math.max(zoomLevel, min), max);
-                    currentStreamTrack.applyConstraints({ advanced: [{ zoom: targetZoom }] })
-                        .catch(() => video.style.transform = `scale(${Math.max(1.0, zoomLevel)})`);
-                    return;
-                }
-            }
-            video.style.transform = `scale(${Math.max(1.0, zoomLevel)})`;
+        function cycleZoomLevel() {
+            currentZoomIndex = (currentZoomIndex + 1) % zoomLevels.length;
+            const z = zoomLevels[currentZoomIndex];
+            document.getElementById('zoomLabel').innerText = `${z}x`;
+            video.style.transform = `scale(${z})`;
         }
 
-        function triggerCircleFade() {
-            const circle = document.getElementById('focusCircle');
-            circle.classList.remove('faded');
-            if (fadeCircleTimeout) clearTimeout(fadeCircleTimeout);
-            fadeCircleTimeout = setTimeout(() => { circle.classList.add('faded'); }, 1800);
-        }
+        /* ALTERNANCIA CADA 5 SEGUNDOS DEL NANO-BOT */
+        let botLabelState = 0;
+        setInterval(() => {
+            const btn = document.getElementById('botToggleBtn');
+            botLabelState = (botLabelState === 0) ? 1 : 0;
+            btn.style.opacity = '0.2';
+            setTimeout(() => {
+                btn.innerHTML = (botLabelState === 0) ? '✨ ¿Qué quieres hacer?' : '🤖 Nano-Bot Táctico';
+                btn.style.opacity = '1';
+            }, 250);
+        }, 5000);
 
-        function handleTapToFocus(e) {
-            if (e.target.closest('.glass-dock') || e.target.closest('.bottom-shutter-bar') || e.target.closest('.top-float-left') || e.target.closest('.top-float-right') || e.target.closest('.lens-pill-bar') || e.target.closest('.dock-tooltip') || e.target.closest('.timelapse-hud') || e.target.closest('.pano-hud') || e.target.closest('.export-modal')) return;
-            
-            document.getElementById('lensPillBar').classList.add('collapsed');
+        /* ENFOQUE TÁCTICO AL TOCAR EL VISOR */
+        window.addEventListener('click', (e) => {
+            if (e.target.closest('.bottom-bar') || e.target.closest('.top-dock') || e.target.closest('#deckStack') || e.target.closest('#zoomChip') || !unlocked || e.target.closest('#postEditModal') || e.target.closest('#galleryModal') || e.target.closest('#nanobotModal')) return;
+            focusRing.style.left = `${e.clientX}px`;
+            focusRing.style.top = `${e.clientY}px`;
+            focusRing.classList.remove('active');
+            void focusRing.offsetWidth;
+            focusRing.classList.add('active');
+            setTimeout(() => focusRing.classList.remove('active'), 2500);
+        });
 
-            const viewport = document.getElementById('viewportArea');
-            const rect = viewport.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const clickY = e.clientY - rect.top;
-
-            const circle = document.getElementById('focusCircle');
-            circle.style.left = clickX + 'px';
-            circle.style.top = clickY + 'px';
-            circle.classList.add('glowing');
-            setTimeout(() => circle.classList.remove('glowing'), 300);
-
-            playFocusBeep();
-            triggerCircleFade();
-        }
-
-        function showDockTooltipAboveElement(name, elem) {
-            const tooltip = document.getElementById('dockTooltip');
-            const btnRect = elem.getBoundingClientRect();
-            tooltip.innerText = name;
-            tooltip.style.left = (btnRect.left + (btnRect.width / 2)) + 'px';
-            tooltip.style.bottom = (window.innerHeight - btnRect.top + 8) + 'px';
-            tooltip.classList.add('visible');
-
-            if (tooltipTimeout) clearTimeout(tooltipTimeout);
-            tooltipTimeout = setTimeout(() => { tooltip.classList.remove('visible'); }, 1800);
-        }
-
-        function arrangeAlbumStack(activeKey) {
-            const dock = document.getElementById('glassDockBar');
-            dock.classList.add('stacked-mode');
-
-            const allBtns = Array.from(document.querySelectorAll('.dock-icon-btn'));
-            const activeIndex = enginesList.findIndex(e => e.key === activeKey);
-
-            allBtns.forEach(btn => {
-                btn.className = 'dock-icon-btn';
-                const key = btn.getAttribute('data-key');
-                const idx = enginesList.findIndex(e => e.key === key);
-                let offset = (idx - activeIndex + enginesList.length) % enginesList.length;
-
-                if (offset === 0) {
-                    btn.classList.add('selected', 'active-glow');
-                } else {
-                    btn.classList.add('stack-layer');
-                    if (offset === 1) btn.classList.add('stack-1');
-                    else if (offset === 2) btn.classList.add('stack-2');
-                    else if (offset === 3) btn.classList.add('stack-3');
-                    else btn.classList.add('stack-deep');
-                }
-            });
-        }
-
-        function handleIconClick(key, name, elem, evt) {
-            if (selectedEngineKey === key) {
-                resetArmEngine();
-                return;
-            }
-            selectEngine(key, name, elem);
-        }
-
-        function selectEngine(key, name, elem) {
-            showDockTooltipAboveElement(name, elem);
-            playSignatureProSound(key);
-
-            if (evaporateTimeout) clearTimeout(evaporateTimeout);
-
-            selectedEngineKey = key;
-            selectedEngineName = name;
-
-            const dock = document.getElementById('glassDockBar');
-            dock.classList.remove('evaporated-dock');
-
-            arrangeAlbumStack(key);
-
-            document.getElementById('activeModuleName').innerText = key.toUpperCase();
-            document.getElementById('botModuleBadge').innerText = key.toUpperCase();
-
-            const statusChip = document.getElementById('modeStatusChip');
-            const statusText = document.getElementById('modeStatusText');
-            const scanFrame = document.getElementById('docScannerFrame');
-            const tlHud = document.getElementById('timelapseHud');
-            const panoHud = document.getElementById('panoHud');
-
-            video.className = "";
-            scanFrame.classList.remove('active');
-            tlHud.classList.remove('active');
-            panoHud.classList.remove('active');
-
-            if (key === 'pano') {
-                panoHud.classList.add('active');
-                statusText.innerText = "🌐 PANORÁMICA 360°: ARRASTRE CONTINUO GUIADO";
-                statusChip.classList.add('active');
-            } else if (key === 'timelapse') {
-                tlHud.classList.add('active');
-                statusText.innerText = `⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA ${timelapseSpeedMultiplier}x`;
-                statusChip.classList.add('active');
-            } else if (key === 'scan') {
-                video.classList.add('scan-mode');
-                scanFrame.classList.add('active');
-                statusText.innerText = "📄 ESCÁNER DOCUMENTAL: ALTO CONTRASTE + OCR";
-                statusChip.classList.add('active');
-            } else if (key === 'portrait') {
-                video.classList.add('portrait-bokeh');
-                statusText.innerText = "📸 MODO RETRATO: f/1.4 BOKEH NPU";
-                statusChip.classList.add('active');
-            } else if (key === 'night') {
-                video.classList.add('night-mode');
-                statusText.innerText = "🌙 NIGHTOGRAPHY: ISO BOOST + RAW DENOISE";
-                statusChip.classList.add('active');
-            } else if (key === 'macro') {
-                video.classList.add('macro-mode');
-                statusText.innerText = "🔍 MACRO PRO: REALCE TEXTURAL 8K";
-                statusChip.classList.add('active');
-            } else {
-                statusChip.classList.remove('active');
-            }
-
-            evaporateTimeout = setTimeout(() => {
-                const activeBtn = document.querySelector(`.dock-icon-btn[data-key="${key}"]`);
-                if (activeBtn) {
-                    activeBtn.classList.remove('active-glow');
-                    activeBtn.classList.add('evaporated');
-                }
-                dock.classList.add('evaporated-dock');
-            }, 1000);
-
-            triggerCircleFade();
-        }
-
-        function setTimeLapseSpeed(mult, btn) {
-            timelapseSpeedMultiplier = mult;
-            document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            document.getElementById('modeStatusText').innerText = `⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA ${timelapseSpeedMultiplier}x`;
-        }
-
-        function resetArmEngine() {
-            selectedEngineKey = null;
-            selectedEngineName = null;
-            if (evaporateTimeout) clearTimeout(evaporateTimeout);
-
-            const dock = document.getElementById('glassDockBar');
-            dock.classList.remove('stacked-mode', 'evaporated-dock');
-
-            document.querySelectorAll('.dock-icon-btn').forEach(btn => {
-                btn.className = 'dock-icon-btn';
-            });
-
-            video.className = "";
-            document.getElementById('docScannerFrame').classList.remove('active');
-            document.getElementById('timelapseHud').classList.remove('active');
-            document.getElementById('panoHud').classList.remove('active');
-            document.getElementById('modeStatusChip').classList.remove('active');
-
-            if (isRecordingTimelapse) stopTimeLapseRecording();
-
-            document.getElementById('activeModuleName').innerText = 'Cam Vision V10';
-            document.getElementById('botModuleBadge').innerText = 'GENERAL';
-            triggerCircleFade();
-        }
-
-        async function triggerNativeCaptureAndSave() {
-            if (!video.videoWidth) return;
-
-            if (selectedEngineKey === 'timelapse') {
-                if (!isRecordingTimelapse) startTimeLapseRecording();
-                else stopTimeLapseRecording();
-                return;
-            }
-
-            if (selectedEngineKey === 'pano') {
-                triggerPanoCapture();
-                return;
-            }
-
-            playWhatsAppSwooshSound();
-
-            const flash = document.getElementById('flashLayer');
-            flash.classList.add('flash');
-            setTimeout(() => flash.classList.remove('flash'), 120);
-
-            internalCanvas.width = video.videoWidth;
-            internalCanvas.height = video.videoHeight;
-            const ctx = internalCanvas.getContext('2d');
-
-            if (selectedEngineKey === 'scan') {
-                ctx.filter = 'grayscale(100%) contrast(160%) brightness(110%)';
-            } else {
-                ctx.filter = 'none';
-            }
-            ctx.drawImage(video, 0, 0, internalCanvas.width, internalCanvas.height);
-
-            const base64Data = internalCanvas.toDataURL('image/jpeg', 0.90);
-            const tag = selectedEngineName ? `Módulo ${selectedEngineName}` : "Captura Directa Cam Vision V10";
-
+        /* SONIDO CUTE DE BIENVENIDA */
+        function playCuteGiftSound() {
             try {
-                const res = await fetch('/bian/process/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ image_base64: base64Data, prompt_analysis: tag })
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                const notes = [1046.50, 1318.51, 1567.98, 1975.53, 2093.00, 2637.02];
+                notes.forEach((f, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(f, now + (i * 0.05));
+                    gain.gain.setValueAtTime(0.001, now + (i * 0.05));
+                    gain.gain.linearRampToValueAtTime(0.18, now + (i * 0.05) + 0.015);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + (i * 0.05) + 0.38);
+                    osc.start(now + (i * 0.05));
+                    osc.stop(now + (i * 0.05) + 0.39);
                 });
-                if (res.ok) {
-                    const saved = await res.json();
-                    updateThumbUI(saved.image_path);
-                }
-            } catch (err) {
-                console.error("Error guardando foto:", err);
-            }
-        }
-
-        function startTimeLapseRecording() {
-            isRecordingTimelapse = true;
-            timelapseSeconds = 0;
-            document.getElementById('recordDot').style.display = 'block';
-            document.getElementById('shutterInner').classList.add('recording');
-
-            timelapseInterval = setInterval(() => {
-                timelapseSeconds++;
-                const compSeconds = Math.max(1, Math.floor(timelapseSeconds / timelapseSpeedMultiplier));
-                const recMin = String(Math.floor(timelapseSeconds / 60)).padStart(2, '0');
-                const recSec = String(timelapseSeconds % 60).padStart(2, '0');
-                const vidMin = String(Math.floor(compSeconds / 60)).padStart(2, '0');
-                const vidSec = String(compSeconds % 60).padStart(2, '0');
-
-                document.getElementById('timelapseTimerText').innerText = `REC: ${recMin}:${recSec} (VID: ${vidMin}:${vidSec})`;
-            }, 1000);
-        }
-
-        async function stopTimeLapseRecording() {
-            isRecordingTimelapse = false;
-            clearInterval(timelapseInterval);
-            document.getElementById('recordDot').style.display = 'none';
-            document.getElementById('shutterInner').classList.remove('recording');
-
-            internalCanvas.width = video.videoWidth;
-            internalCanvas.height = video.videoHeight;
-            const ctx = internalCanvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, internalCanvas.width, internalCanvas.height);
-            const base64Data = internalCanvas.toDataURL('image/jpeg', 0.88);
-
-            try {
-                const res = await fetch('/bian/process/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        image_base64: base64Data,
-                        prompt_analysis: `Clip Time-Lapse ${timelapseSpeedMultiplier}x (${timelapseSeconds}s grabados)`
-                    })
-                });
-                if (res.ok) {
-                    const saved = await res.json();
-                    updateThumbUI(saved.image_path);
-                }
-            } catch(e) {}
-
-            document.getElementById('timelapseTimerText').innerText = "REC: 00:00 (VID: 00:00)";
-            alert(`✔ Time-Lapse compilado a ${timelapseSpeedMultiplier}x.`);
-        }
-
-        async function triggerPanoCapture() {
-            playWhatsAppSwooshSound();
-            internalCanvas.width = video.videoWidth * 2;
-            internalCanvas.height = video.videoHeight;
-            const ctx = internalCanvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-            ctx.drawImage(video, video.videoWidth, 0, video.videoWidth, video.videoHeight);
-
-            const base64Data = internalCanvas.toDataURL('image/jpeg', 0.88);
-            try {
-                const res = await fetch('/bian/process/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ image_base64: base64Data, prompt_analysis: "Toma Panorámica 360 Wide Sweep V10" })
-                });
-                if (res.ok) {
-                    const saved = await res.json();
-                    updateThumbUI(saved.image_path);
-                    alert("✔ Captura Panorámica cosida y guardada.");
-                }
             } catch(e) {}
         }
 
-        async function refreshThumb() {
+        let unlocked = false;
+        function unlockSuite() {
+            if (unlocked) return;
+            unlocked = true;
+            playCuteGiftSound();
+            document.getElementById('lockscreen').classList.add('unlocked');
+            applyActiveCardTheme(moduleCatalog[activeCardIndex]);
+        }
+
+        function lockSuite() {
+            unlocked = false;
+            document.getElementById('lockscreen').classList.remove('unlocked');
+            const border = document.getElementById('screenEdgeBorder');
+            border.style.borderColor = 'transparent';
+            border.style.boxShadow = 'none';
+        }
+
+        const giftBtn = document.getElementById('giftUnlockBtn');
+        let touchStartY = 0;
+
+        giftBtn.addEventListener('click', unlockSuite);
+        giftBtn.addEventListener('touchstart', (e) => { touchStartY = e.touches[0].clientY; }, { passive: true });
+        giftBtn.addEventListener('touchend', (e) => {
+            const deltaY = touchStartY - e.changedTouches[0].clientY;
+            if (deltaY > 25 || Math.abs(deltaY) < 10) unlockSuite();
+        }, { passive: true });
+
+        /* SWIPE GLOBAL */
+        window.addEventListener('touchstart', (e) => {
+            if (!e.target.closest('#deckStack') && !e.target.closest('#postEditModal') && !e.target.closest('#galleryModal') && !e.target.closest('#nanobotModal')) touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+        window.addEventListener('touchend', (e) => {
+            if (!e.target.closest('#deckStack') && !e.target.closest('#postEditModal') && !e.target.closest('#galleryModal') && !e.target.closest('#nanobotModal')) {
+                const deltaY = touchStartY - e.changedTouches[0].clientY;
+                if (!unlocked && deltaY > 35) unlockSuite();
+                else if (unlocked && deltaY < -75 && touchStartY < 120) lockSuite();
+            }
+        }, { passive: true });
+
+        /* CATÁLOGO DE MÓDULOS */
+        const moduleCatalog = [
+            { key: 'night', icon: '🌙', title: 'NIGHTOGRAPHY', pill: '🌙 NIGHTOGRAPHY: ISO BOOST + RAW DENOISE', color: '#5E5CE6', freqs: [180, 270, 360], type: 'sine', botTips: 'Baja iluminación detectada. Recomiendo estabilizar 1 segundo para capturar más fotones sin ruido.' },
+            { key: 'timelapse', icon: '⏱️', title: 'TIMELAPSE', pill: '⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA 4x', color: '#FF3B30', freqs: [220, 440, 880], type: 'sawtooth', botTips: 'Modo compresión activo. Selecciona 8x o 16x si vas a registrar movimiento de nubes o tránsito rápido.' },
+            { key: 'macro', icon: '🔍', title: 'MACRO PRO', pill: '🔍 ENFOQUE A CORTO ALCANCE ULTRA DETALLE', color: '#30D158', freqs: [880, 1100, 1320], type: 'triangle', botTips: 'Distancia de enfoque a 4-8 cm. La NPU optimizará el micro-contraste en texturas complejas.' },
+            { key: 'chef', icon: '👨‍🍳', title: 'CHEF LEAN V3', pill: '👨‍🍳 FOOD COST & CONTROL DE MERMA CÁRNICA', color: '#FF9F0A', freqs: [320, 480, 640], type: 'triangle', botTips: 'Insumo cárnico o gastronómico en mira. Calcula de inmediato la merma técnica y porciones netas.' },
+            { key: 'price', icon: '🏷️', title: 'VALUADOR HÍBRIDO', pill: '🏷️ TASACIÓN DE MERCADO OFFLINE/ONLINE', color: '#63E6E2', freqs: [480, 640, 800], type: 'sine', botTips: 'Cotejo comercial activado. Puedo estimar banda de costo de adquisición vs precio sugerido.' }
+        ];
+
+        let activeCardIndex = 0;
+        const deckStack = document.getElementById('deckStack');
+
+        function renderDeckStack() {
+            deckStack.innerHTML = '';
+            for (let i = 0; i < moduleCatalog.length; i++) {
+                const idx = (activeCardIndex + i) % moduleCatalog.length;
+                const m = moduleCatalog[idx];
+                const card = document.createElement('div');
+                card.className = `deck-card-item pos-${i}`;
+                card.innerText = m.icon;
+                card.setAttribute('data-key', m.key);
+                deckStack.appendChild(card);
+            }
+        }
+        renderDeckStack();
+
+        /* GESTO SWIPE VERTICAL EN LA BARAJA */
+        let deckTouchStartY = 0;
+        deckStack.addEventListener('touchstart', (e) => { deckTouchStartY = e.touches[0].clientY; }, { passive: true });
+        deckStack.addEventListener('touchend', (e) => {
+            const deltaY = deckTouchStartY - e.changedTouches[0].clientY;
+            if (deltaY > 20) shiftCard(1, 'slide-up');
+            else if (deltaY < -20) shiftCard(-1, 'slide-down');
+            else shiftCard(1, 'slide-up');
+        }, { passive: true });
+
+        function shiftCard(dir, animClass) {
+            const topCard = deckStack.querySelector('.pos-0');
+            if (topCard) topCard.classList.add(animClass);
+
+            setTimeout(() => {
+                activeCardIndex = (activeCardIndex + dir + moduleCatalog.length) % moduleCatalog.length;
+                const currentMod = moduleCatalog[activeCardIndex];
+                renderDeckStack();
+                applyActiveCardTheme(currentMod);
+            }, 180);
+        }
+
+        function applyActiveCardTheme(m) {
+            document.getElementById('moduleNameText').innerText = m.title;
+            document.getElementById('statusDot').style.background = m.color;
+            document.getElementById('contextPillText').innerText = m.pill;
+            document.getElementById('contextPillText').style.color = m.color;
+            document.getElementById('contextPillText').style.borderColor = `${m.color}66`;
+
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                m.freqs.forEach((f, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.type = m.type;
+                    osc.frequency.setValueAtTime(f, now + (i * 0.04));
+                    gain.gain.setValueAtTime(0.001, now + (i * 0.04));
+                    gain.gain.linearRampToValueAtTime(0.14, now + (i * 0.04) + 0.015);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + (i * 0.04) + 0.26);
+                    osc.start(now + (i * 0.04));
+                    osc.stop(now + (i * 0.04) + 0.27);
+                });
+            } catch(e) {}
+
+            // Encendido del color en icono y pantalla
+            const topCard = deckStack.querySelector('.pos-0');
+            if (topCard) {
+                topCard.style.borderColor = m.color;
+                topCard.style.background = m.color;
+                topCard.style.boxShadow = `0 0 22px ${m.color}`;
+            }
+
+            triggerModuleVisuals(m.color);
+
+            // EL COLOR DESAPARECE TOTALMENTE TRAS 1.5 SEGUNDOS (CERO SEGUNDO PLANO)
+            setTimeout(() => {
+                if (topCard) {
+                    topCard.style.borderColor = 'rgba(255, 255, 255, 0.25)';
+                    topCard.style.background = 'rgba(24, 25, 30, 0.92)';
+                    topCard.style.boxShadow = '0 8px 24px rgba(0,0,0,0.7)';
+                }
+            }, 1500);
+        }
+
+        function triggerModuleVisuals(color) {
+            const border = document.getElementById('screenEdgeBorder');
+            const ambient = document.getElementById('ambientLightLayer');
+
+            border.style.transition = 'border-color 0.08s ease-in, box-shadow 0.08s ease-in';
+            border.style.borderColor = color;
+            border.style.boxShadow = `inset 0 0 32px ${color}, 0 0 20px ${color}`;
+
+            ambient.style.background = `radial-gradient(circle at 50% 50%, ${color}48 0%, transparent 70%)`;
+            ambient.classList.remove('flash');
+            void ambient.offsetWidth;
+            ambient.classList.add('flash');
+
+            // Apagado completo en 1.5 segundos (transparent 100%)
+            setTimeout(() => {
+                border.style.transition = 'border-color 1.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 1.5s cubic-bezier(0.16, 1, 0.3, 1)';
+                border.style.borderColor = 'transparent';
+                border.style.boxShadow = 'none';
+                ambient.classList.remove('flash');
+            }, 100);
+        }
+
+        /* CAPTURA & EDICIÓN */
+        async function captureDirect() {
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const b64 = canvas.toDataURL('image/jpeg');
+
+            const res = await fetch('/bian/process/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image_base64: b64, prompt_analysis: 'Captura Master V10' })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
+                lastCapturedBlob = b64;
+                openEditModalWithCapture(b64);
+            }
+        }
+
+        async function updateThumb() {
             try {
                 const res = await fetch('/bian/images/');
                 const list = await res.json();
-                if (list.length > 0) {
-                    updateThumbUI(list[list.length - 1].image_path);
+                if(list.length > 0) {
+                    const last = list[list.length - 1];
+                    document.getElementById('thumbBox').innerHTML = `<img src="${last.image_path}" />`;
+                    lastCapturedBlob = last.image_path;
                 }
             } catch(e) {}
         }
 
-        function updateThumbUI(imgPath) {
-            const btn = document.getElementById('galleryThumbBtn');
-            const filename = imgPath.split('/').pop();
-            btn.innerHTML = `<img src="/bian/storage/bian/thumbs/${filename}" />`;
+        function openEditModalWithCapture(imgSrc) {
+            const curMod = moduleCatalog[activeCardIndex];
+            document.getElementById('editModalTitle').innerText = `🛠️ EDICIÓN: ${curMod.title}`;
+            document.getElementById('editModalTitle').style.color = curMod.color;
+            document.getElementById('editImagePreview').src = imgSrc;
+            document.getElementById('postEditModal').style.display = 'flex';
         }
 
-        function openExportModal() {
-            document.getElementById('exportModal').classList.add('active');
-            const activeName = selectedEngineName || "General";
-            document.getElementById('expConcept').value = `Cotización / Orden de Servicio (${activeName})`;
+        function closeEditModal() { document.getElementById('postEditModal').style.display = 'none'; }
+
+        function applyEditTool(tool, elem) {
+            document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
+            elem.classList.add('active');
+            const img = document.getElementById('editImagePreview');
+            if(tool === 'original') img.style.filter = 'none';
+            else if(tool === 'npu_boost') img.style.filter = 'contrast(1.25) saturate(1.3) brightness(1.05)';
+            else if(tool === 'alpha_matte') img.style.filter = 'drop-shadow(0 0 15px #00FFC8) contrast(1.1)';
+            else if(tool === 'cinematic_grade') img.style.filter = 'sepia(0.2) contrast(1.3) saturate(0.9)';
         }
 
-        function closeExportModal() {
-            document.getElementById('exportModal').classList.remove('active');
+        function exportEditedResult() {
+            const a = document.createElement('a');
+            a.href = document.getElementById('editImagePreview').src;
+            a.download = `bian_master_export_${Date.now()}.jpg`;
+            a.click();
+            alert("✔ Activo exportado con éxito a la memoria local.");
         }
 
-        async function saveOrderToDatabase(client, concept, amount, notes, channel) {
-            try {
-                const res = await fetch('/bian/orders/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        client_name: client,
-                        concept: concept,
-                        amount: parseFloat(amount) || 0.0,
-                        notes: notes,
-                        channel: channel
-                    })
-                });
-                return res.ok;
-            } catch(e) {
-                console.error("Error guardando orden en BD:", e);
-                return false;
-            }
-        }
-
-        async function sendToWhatsApp() {
-            const client = document.getElementById('expClient').value || "Cliente";
-            const concept = document.getElementById('expConcept').value || "Servicio Técnico";
-            const amount = document.getElementById('expAmount').value || "0";
-            const notes = document.getElementById('expNotes').value || "Sin notas";
-
-            await saveOrderToDatabase(client, concept, amount, notes, "whatsapp");
-
-            const lines = [
-                "*BIAN MASTER SUITE V10 - NOTA COMERCIAL*",
-                "",
-                `👤 *Cliente:* ${client}`,
-                `📦 *Concepto:* ${concept}`,
-                `💵 *Total:* $${amount} MXN`,
-                `📝 *Notas:* ${notes}`,
-                `🕒 *Fecha:* ${new Date().toLocaleDateString('es-MX')} - ${new Date().toLocaleTimeString('es-MX')}`,
-                "",
-                "_Generado desde Debian/Termux Galaxy S23 Ultra_"
-            ];
-
-            const textPayload = lines.join("\\n");
-            const url = `https://wa.me/?text=${encodeURIComponent(textPayload)}`;
-            window.open(url, '_blank');
-        }
-
-        async function generateTechnicalPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-
-            const client = document.getElementById('expClient').value || "Cliente General";
-            const concept = document.getElementById('expConcept').value || "Servicio Técnico";
-            const amount = document.getElementById('expAmount').value || "0";
-            const notes = document.getElementById('expNotes').value || "Sin notas adicionales";
-
-            await saveOrderToDatabase(client, concept, amount, notes, "pdf");
-
-            doc.setFillColor(15, 15, 20);
-            doc.rect(0, 0, 210, 30, 'F');
-
-            doc.setTextColor(0, 255, 200);
-            doc.setFontSize(16);
-            doc.text("BIAN V10 MASTER SUITE - ORDEN TÉCNICA", 14, 18);
-
-            doc.setTextColor(50, 50, 50);
-            doc.setFontSize(10);
-            doc.text(`Fecha de Emisión: ${new Date().toLocaleString('es-MX')}`, 14, 40);
-            doc.text(`Cliente / Taller: ${client}`, 14, 48);
-
-            doc.setDrawColor(0, 255, 200);
-            doc.line(14, 54, 196, 54);
-
-            doc.setFontSize(12);
-            doc.setTextColor(0, 0, 0);
-            doc.text(`Concepto: ${concept}`, 14, 66);
-            doc.text(`Monto Total: $${amount} MXN`, 14, 76);
-
-            doc.setFontSize(10);
-            doc.setTextColor(100, 100, 100);
-            doc.text("Especificaciones y Observaciones:", 14, 90);
-            doc.text(notes, 14, 98, { maxWidth: 180 });
-
-            doc.setDrawColor(200, 200, 200);
-            doc.rect(14, 120, 182, 35);
-            doc.setFontSize(9);
-            doc.text("FIRMA DE CONFORMIDAD Y RECEPCIÓN:", 18, 128);
-            doc.text("__________________________________________", 18, 145);
-
-            doc.save(`orden_bian_v10_${Date.now()}.pdf`);
-            alert("✔ PDF membretado guardado en BD y descargado.");
-        }
-
+        /* --- GALERÍA SOBERANA CON CARGA REAL DE FOTOS --- */
         async function openGalleryModal() {
             const modal = document.getElementById('galleryModal');
-            const grid = document.getElementById('galleryGrid');
-            modal.classList.add('active');
-            grid.innerHTML = "<p style='color:#777; font-size:12px; grid-column:span 3;'>Cargando miniaturas optimizadas...</p>";
+            const container = document.getElementById('galleryGridContent');
+            container.innerHTML = '<div style="color:#aaa; font-size:12px;">Cargando activos...</div>';
+            modal.style.display = 'flex';
 
             try {
                 const res = await fetch('/bian/images/');
-                const list = await res.json();
-                if (list.length === 0) {
-                    grid.innerHTML = "<p style='color:#888; font-size:12px; grid-column:span 3;'>No hay fotos capturadas aún.</p>";
+                const items = await res.json();
+                if(items.length === 0) {
+                    container.innerHTML = '<div style="color:#666; font-size:12px; grid-column:span 2;">No hay imágenes guardadas aún.</div>';
                     return;
                 }
-                grid.innerHTML = list.reverse().map(img => {
-                    const filename = img.image_path.split('/').pop();
-                    const thumbUrl = `/bian/storage/bian/thumbs/${filename}`;
-                    const fullUrl = img.image_path.startsWith('/bian') ? img.image_path : `/bian${img.image_path}`;
-                    return `
-                        <div class="gallery-item" onclick="window.open('${fullUrl}', '_blank')">
-                            <img src="${thumbUrl}" loading="lazy" />
+                container.innerHTML = '';
+                items.slice().reverse().forEach(img => {
+                    const card = document.createElement('div');
+                    card.className = 'gallery-card';
+                    card.onclick = () => {
+                        closeGalleryModal();
+                        openEditModalWithCapture(img.image_path);
+                    };
+                    card.innerHTML = `
+                        <img src="${img.image_path}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\' viewBox=\\'0 0 100 100\\'><rect width=\\'100\\' height=\\'100\\' fill=\\'%23222\\'/><text x=\\'50\\' y=\\'55\\' fill=\\'%23666\\' font-size=\\'11\\' text-anchor=\\'middle\\'>Sin Vista</text></svg>'"/>
+                        <div class="gallery-card-info">
+                            <div><strong>#${img.id}</strong> - ${img.prompt_analysis || 'Captura'}</div>
                         </div>
                     `;
-                }).join('');
-            } catch(e) {
-                grid.innerHTML = "<p style='color:#f55; font-size:12px;'>Error cargando galería.</p>";
-            }
-        }
-
-        function closeGalleryModal() {
-            document.getElementById('galleryModal').classList.remove('active');
-        }
-
-        function openNanoBotModal() {
-            document.getElementById('botModal').classList.add('active');
-            document.getElementById('botUserInput').focus();
-        }
-
-        function closeNanoBotModal() {
-            document.getElementById('botModal').classList.remove('active');
-        }
-
-        function askNanoQuick(text) {
-            document.getElementById('botUserInput').value = text;
-            sendNanoBotMessage();
-        }
-
-        async function sendNanoBotMessage() {
-            const input = document.getElementById('botUserInput');
-            const q = input.value.trim();
-            if (!q) return;
-
-            const chat = document.getElementById('botChatStream');
-            chat.innerHTML += `<div class="bot-msg user">${q}</div>`;
-            input.value = "";
-            chat.scrollTop = chat.scrollHeight;
-
-            try {
-                const res = await fetch('/bian/nanobot/query', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: q, current_module: selectedEngineKey || "general" })
+                    container.appendChild(card);
                 });
-                const data = await res.json();
-                chat.innerHTML += `<div class="bot-msg ia">${data.reply}</div>`;
             } catch(e) {
-                chat.innerHTML += `<div class="bot-msg ia">Nano-Bot V10 activo localmente.</div>`;
+                container.innerHTML = '<div style="color:#FF3B30;">Error cargando galería local.</div>';
             }
-            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function closeGalleryModal() { document.getElementById('galleryModal').style.display = 'none'; }
+
+        /* --- NANO-BOT ASISTENTE TÁCTICO --- */
+        function openNanobot() {
+            const curMod = moduleCatalog[activeCardIndex];
+            const modal = document.getElementById('nanobotModal');
+            const msg = document.getElementById('botMessageText');
+            const act = document.getElementById('botActionList');
+
+            msg.innerHTML = `
+                <div style="color:#00FFC8; font-weight:800; margin-bottom:6px;">🤖 Diagnóstico para ${curMod.title}:</div>
+                <div>${curMod.botTips}</div>
+            `;
+
+            act.innerHTML = `
+                <button class="bot-btn" onclick="executeBotAction('calibrate')">⚡ Calibrar Sensor & NPU para ${curMod.title}</button>
+                <button class="bot-btn" onclick="executeBotAction('focus')">🎯 Enfocar Sujeto al Centro</button>
+                <button class="bot-btn" onclick="executeBotAction('gallery')">🖼️ Explorar Capturas de este Modo</button>
+            `;
+
+            modal.style.display = 'flex';
+        }
+
+        function closeNanobot() { document.getElementById('nanobotModal').style.display = 'none'; }
+
+        function executeBotAction(action) {
+            closeNanobot();
+            if(action === 'calibrate') {
+                applyActiveCardTheme(moduleCatalog[activeCardIndex]);
+                alert("✔ Parámetros NPU y balance de blancos calibrados.");
+            } else if(action === 'focus') {
+                focusRing.style.left = "50%";
+                focusRing.style.top = "50%";
+                focusRing.classList.remove('active');
+                void focusRing.offsetWidth;
+                focusRing.classList.add('active');
+                setTimeout(() => focusRing.classList.remove('active'), 2500);
+            } else if(action === 'gallery') {
+                openGalleryModal();
+            }
         }
     </script>
 </body>
-</html>
-"""
+</html>"""
 
 @router.get("/ui", response_class=HTMLResponse)
 async def get_ui():
     return HTML_CONTENT
 
-@router.get("/status")
-async def status():
-    return {
-        "module": "bian",
-        "engine": "BIAN V10 Core - Tu app de fotos y video (Gift Ribbon Lockscreen)",
-        "status": "online"
-    }
-
 @router.post("/process/", response_model=ProcessedImage)
 def process_image(payload: ImageCaptureRequest, session: Session = Depends(get_session)):
     os.makedirs("storage/bian", exist_ok=True)
-    os.makedirs("storage/bian/thumbs", exist_ok=True)
-    
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    filename_rel = f"storage/bian/photo_{timestamp}.jpg"
-    thumb_rel = f"storage/bian/thumbs/photo_{timestamp}.jpg"
-    
+    filename = f"storage/bian/photo_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
     header, encoded = payload.image_base64.split(",", 1) if "," in payload.image_base64 else ("", payload.image_base64)
     data = base64.b64decode(encoded)
-    
-    with open(filename_rel, "wb") as f:
+    with open(filename, "wb") as f:
         f.write(data)
-        
-    try:
-        img = Image.open(io.BytesIO(data))
-        img.thumbnail((160, 160))
-        img.save(thumb_rel, format="JPEG", quality=75, optimize=True)
-    except Exception:
-        with open(thumb_rel, "wb") as f:
-            f.write(data)
-
-    db_image = ProcessedImage(image_path=f"/{filename_rel}", prompt_analysis=payload.prompt_analysis)
+    # Ruta estática montada directamente en /bian/storage/...
+    db_image = ProcessedImage(image_path=f"/bian/{filename}", prompt_analysis=payload.prompt_analysis)
     session.add(db_image)
     session.commit()
     session.refresh(db_image)
@@ -1484,77 +778,3 @@ def process_image(payload: ImageCaptureRequest, session: Session = Depends(get_s
 @router.get("/images/", response_model=list[ProcessedImage])
 def list_images(session: Session = Depends(get_session)):
     return session.exec(select(ProcessedImage)).all()
-
-@router.post("/orders/", response_model=CommercialOrder)
-def create_order(order_data: OrderCreateRequest, session: Session = Depends(get_session)):
-    order = CommercialOrder(
-        client_name=order_data.client_name,
-        concept=order_data.concept,
-        amount=order_data.amount,
-        notes=order_data.notes,
-        channel=order_data.channel
-    )
-    session.add(order)
-    session.commit()
-    session.refresh(order)
-    return order
-
-@router.get("/orders/", response_model=list[CommercialOrder])
-def list_orders(session: Session = Depends(get_session)):
-    return session.exec(select(CommercialOrder)).all()
-
-@router.get("/analytics/storage")
-def storage_analytics(session: Session = Depends(get_session)):
-    total_bytes = 0
-    file_count = 0
-    thumb_count = 0
-    
-    storage_dir = "storage/bian"
-    if os.path.exists(storage_dir):
-        for root, _, files in os.walk(storage_dir):
-            for f in files:
-                fp = os.path.join(root, f)
-                total_bytes += os.path.getsize(fp)
-                if "thumbs" in root:
-                    thumb_count += 1
-                else:
-                    file_count += 1
-                    
-    try:
-        total_orders = len(session.exec(select(CommercialOrder)).all())
-    except Exception:
-        total_orders = 0
-        
-    try:
-        total_photos = len(session.exec(select(ProcessedImage)).all())
-    except Exception:
-        total_photos = 0
-
-    return {
-        "total_mb": round(total_bytes / (1024 * 1024), 2),
-        "full_photos": file_count,
-        "cached_thumbs": thumb_count,
-        "db_photos_registered": total_photos,
-        "db_orders_registered": total_orders
-    }
-
-@router.post("/nanobot/query")
-def nanobot_query(payload: NanoBotQuery, session: Session = Depends(get_session)):
-    msg = payload.message.lower()
-
-    if any(k in msg for k in ["almacenamiento", "memoria", "espacio", "disco", "estado", "storage"]):
-        analytics = storage_analytics(session)
-        return {
-            "reply": f"💾 <strong>BIAN V10 Telemetría:</strong><br>"
-                     f"• Espacio Ocupado: <strong>{analytics['total_mb']} MB</strong><br>"
-                     f"• Fotos: <strong>{analytics['full_photos']}</strong> | Miniaturas: <strong>{analytics['cached_thumbs']}</strong><br>"
-                     f"• Órdenes Registradas: <strong>{analytics['db_orders_registered']}</strong>."
-        }
-    elif any(k in msg for k in ["export", "whatsapp", "pdf", "cotiz"]):
-        return {
-            "reply": "📤 <strong>V10 Despacho Comercial:</strong> Trazabilidad total de órdenes exportadas guardadas directamente en SQLite."
-        }
-    else:
-        return {
-            "reply": "✨ <strong>BIAN V10:</strong> Tu app de fotos y video activa y soberana."
-        }
