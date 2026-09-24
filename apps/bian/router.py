@@ -21,12 +21,11 @@ class CommercialOrder(SQLModel, table=True):
     channel: str = "whatsapp"
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
-# Inicializar tablas SQL si no existen
 SQLModel.metadata.create_all(engine)
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Captura Bian V9"
+    prompt_analysis: str = "Captura Bian V10"
 
 class NanoBotQuery(BaseModel):
     message: str
@@ -62,13 +61,126 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bian AI Suite - Cámara Pro Master V9</title>
+    <title>BIAN V10 - Tu app de fotos y video</title>
     <script src="https://unpkg.com/tesseract.js@v4.0.2/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; user-select: none; }
 
+        /* PANTALLA INTRO / LOCKSCREEN REGALO */
+        .lockscreen-overlay {
+            position: fixed; inset: 0; z-index: 999;
+            background: radial-gradient(circle at 50% 30%, #151520 0%, #030305 75%, #000000 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            padding: 50px 24px 40px; text-align: center;
+            transition: transform 0.85s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.8s ease;
+        }
+        .lockscreen-overlay.unlocked {
+            transform: translateY(-100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .intro-top-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(0, 255, 200, 0.08); border: 1px solid rgba(0, 255, 200, 0.3);
+            color: #00FFC8; font-size: 11px; font-weight: 800; letter-spacing: 2px;
+            padding: 6px 14px; border-radius: 20px; text-transform: uppercase;
+        }
+        .intro-top-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: #00FFC8; box-shadow: 0 0 8px #00FFC8; }
+
+        .brand-hero-block {
+            display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: -20px;
+        }
+        .brand-logo-title {
+            font-size: 56px; font-weight: 900; letter-spacing: 6px;
+            color: #FFFFFF;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.4), 0 0 45px rgba(255, 255, 255, 0.2);
+        }
+        .brand-slogan {
+            font-size: 19px; font-weight: 600; color: #E5E5EA;
+            letter-spacing: 1px; max-width: 280px; line-height: 1.3;
+        }
+        .brand-description {
+            font-size: 12px; color: #8E8E93; max-width: 310px; line-height: 1.5; margin-top: 10px;
+            background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px; padding: 12px 16px; backdrop-filter: blur(15px);
+        }
+
+        /* MOÑO DE REGALO INTERACTIVO */
+        .gift-unlock-container {
+            display: flex; flex-direction: column; align-items: center; gap: 14px;
+            cursor: pointer; position: relative; width: 100%; max-width: 260px;
+        }
+        .ribbon-box {
+            position: relative; width: 85px; height: 85px;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .ribbon-box:active { transform: scale(0.92); }
+        
+        .bow-knot {
+            width: 26px; height: 26px; border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #FFD60A, #FF9500);
+            box-shadow: 0 0 20px rgba(255, 214, 10, 0.75);
+            z-index: 5; position: relative;
+        }
+        .bow-loop {
+            position: absolute; width: 44px; height: 32px;
+            border: 3.5px solid #FFD60A; border-radius: 50% 50% 10% 50%;
+            background: linear-gradient(135deg, rgba(255, 214, 10, 0.4), rgba(255, 149, 0, 0.6));
+            box-shadow: 0 0 16px rgba(255, 149, 0, 0.5);
+            transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .bow-loop.left { left: 4px; top: 18px; transform: rotate(-35deg); }
+        .bow-loop.right { right: 4px; top: 18px; transform: scaleX(-1) rotate(-35deg); }
+        
+        .bow-tail {
+            position: absolute; width: 14px; height: 45px;
+            background: linear-gradient(to bottom, #FFD60A, #FF3B30);
+            bottom: -8px; border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(255, 59, 48, 0.4);
+            transition: all 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .bow-tail.left { left: 24px; transform: rotate(22deg); }
+        .bow-tail.right { right: 24px; transform: rotate(-22deg); }
+
+        /* Efecto de desatado volador */
+        .gift-unlock-container.fly .bow-loop.left {
+            transform: translate(-120px, -240px) rotate(-180deg) scale(0.1);
+            opacity: 0;
+        }
+        .gift-unlock-container.fly .bow-loop.right {
+            transform: translate(120px, -240px) rotate(180deg) scale(0.1);
+            opacity: 0;
+        }
+        .gift-unlock-container.fly .bow-tail.left {
+            transform: translate(-90px, 140px) rotate(-90deg) scale(0);
+            opacity: 0;
+        }
+        .gift-unlock-container.fly .bow-tail.right {
+            transform: translate(90px, 140px) rotate(90deg) scale(0);
+            opacity: 0;
+        }
+        .gift-unlock-container.fly .bow-knot {
+            transform: scale(2.8);
+            opacity: 0;
+            box-shadow: 0 0 50px #FFF, 0 0 100px #00FFC8;
+            transition: all 0.6s ease-out;
+        }
+
+        .unlock-hint-text {
+            font-size: 13px; font-weight: 700; color: #FFD60A;
+            letter-spacing: 1px; display: flex; align-items: center; gap: 6px;
+            animation: pulseHint 1.8s infinite alternate;
+        }
+        @keyframes pulseHint {
+            0% { opacity: 0.6; transform: translateY(0); }
+            100% { opacity: 1; transform: translateY(-3px); }
+        }
+
+        /* ELEMENTOS DEL VISOR MASTER V10 */
         .top-float-left {
             position: absolute; top: 16px; left: 18px; z-index: 50;
             background: rgba(22, 22, 26, 0.65);
@@ -438,11 +550,41 @@ HTML_CONTENT = """
 </head>
 <body>
 
+    <!-- LOCKSCREEN INTRO CON MOÑO DE REGALO VOLADOR -->
+    <div class="lockscreen-overlay" id="lockscreen">
+        <div class="intro-top-badge">
+            <span class="dot"></span>
+            <span>BIAN MASTER SUITE V10</span>
+        </div>
+
+        <div class="brand-hero-block">
+            <h1 class="brand-logo-title">BIAN</h1>
+            <h2 class="brand-slogan">Tu app de fotos y video</h2>
+            <p class="brand-description">
+                Potencia visual, sensor pro calibrado, flujo documental, costeo y 21 módulos soberanos ejecutados 100% de manera local.
+            </p>
+        </div>
+
+        <div class="gift-unlock-container" id="giftUnlockBtn" onclick="triggerGiftUnlock()">
+            <div class="ribbon-box">
+                <div class="bow-loop left"></div>
+                <div class="bow-loop right"></div>
+                <div class="bow-knot"></div>
+                <div class="bow-tail left"></div>
+                <div class="bow-tail right"></div>
+            </div>
+            <div class="unlock-hint-text">
+                <span>🎁 DESLIZA HACIA ARRIBA PARA ABRIR</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- UI PRINCIPAL -->
     <div class="shutter-flash" id="flashLayer"></div>
 
     <div class="top-float-left" id="activeModulePill">
         <div class="glow-dot"></div>
-        <span id="activeModuleName">Cam Vision V9</span>
+        <span id="activeModuleName">Cam Vision V10</span>
     </div>
 
     <div class="top-float-right">
@@ -491,7 +633,6 @@ HTML_CONTENT = """
     </div>
 
     <div class="viewport" id="viewportArea" onclick="handleTapToFocus(event)">
-        <!-- Video con atributos esenciales para Android WebRTC -->
         <video id="webcam" autoplay playsinline muted></video>
         
         <div class="focus-circle-ring" id="focusCircle">
@@ -513,23 +654,23 @@ HTML_CONTENT = """
     <div class="dock-tooltip" id="dockTooltip">Módulo</div>
 
     <div class="glass-dock" id="glassDockBar">
-        <div class="dock-icon-btn" data-key="pano" onclick="handleIconClick('pano', '🌐 Panorámica 360° V9', this, event)">🌐</div>
-        <div class="dock-icon-btn" data-key="timelapse" onclick="handleIconClick('timelapse', '⏱️ Time-Lapse Hyperlapse V9', this, event)">⏱️</div>
-        <div class="dock-icon-btn" data-key="scan" onclick="handleIconClick('scan', '📄 Scan Doc Pro V9', this, event)">📄</div>
-        <div class="dock-icon-btn" data-key="night" onclick="handleIconClick('night', '🌙 Nightography V9', this, event)">🌙</div>
-        <div class="dock-icon-btn" data-key="macro" onclick="handleIconClick('macro', '🔍 Macro Pro V9', this, event)">🔍</div>
-        <div class="dock-icon-btn" data-key="portrait" onclick="handleIconClick('portrait', '👤 Modo Retrato Bokeh V9', this, event)">👤</div>
-        <div class="dock-icon-btn" data-key="lonas" onclick="handleIconClick('lonas', '⛺ Lonas 3D V9', this, event)">⛺</div>
-        <div class="dock-icon-btn" data-key="custom" onclick="handleIconClick('custom', '🎨 Wallpapers V9', this, event)">🎨</div>
-        <div class="dock-icon-btn" data-key="print" onclick="handleIconClick('print', '🖨️ Imprenta PDF V9', this, event)">🖨️</div>
-        <div class="dock-icon-btn" data-key="cine" onclick="handleIconClick('cine', '🎬 Cine Scope V9', this, event)">🎬</div>
-        <div class="dock-icon-btn" data-key="raw" onclick="handleIconClick('raw', '📸 Revelado RAW V9', this, event)">📸</div>
-        <div class="dock-icon-btn" data-key="svg" onclick="handleIconClick('svg', '📐 SVG Logos V9', this, event)">📐</div>
-        <div class="dock-icon-btn" data-key="vid" onclick="handleIconClick('vid', '🎥 Video Motion V8', this, event)">🎥</div>
-        <div class="dock-icon-btn" data-key="depth" onclick="handleIconClick('depth', '🧠 Depth-Map NPU V9', this, event)">🧠</div>
-        <div class="dock-icon-btn" data-key="chef" onclick="handleIconClick('chef', '👨‍🍳 Chef Lean V9', this, event)">👨‍🍳</div>
-        <div class="dock-icon-btn" data-key="price" onclick="handleIconClick('price', '🏷️ Valuador Híbrido V7', this, event)">🏷️</div>
-        <div class="dock-icon-btn" data-key="ai" onclick="handleIconClick('ai', '✨ Generar Imagen AI V7', this, event)">✨</div>
+        <div class="dock-icon-btn" data-key="pano" onclick="handleIconClick('pano', '🌐 Panorámica 360° V10', this, event)">🌐</div>
+        <div class="dock-icon-btn" data-key="timelapse" onclick="handleIconClick('timelapse', '⏱️ Time-Lapse Hyperlapse V10', this, event)">⏱️</div>
+        <div class="dock-icon-btn" data-key="scan" onclick="handleIconClick('scan', '📄 Scan Doc Pro V10', this, event)">📄</div>
+        <div class="dock-icon-btn" data-key="night" onclick="handleIconClick('night', '🌙 Nightography V10', this, event)">🌙</div>
+        <div class="dock-icon-btn" data-key="macro" onclick="handleIconClick('macro', '🔍 Macro Pro V10', this, event)">🔍</div>
+        <div class="dock-icon-btn" data-key="portrait" onclick="handleIconClick('portrait', '👤 Modo Retrato Bokeh V10', this, event)">👤</div>
+        <div class="dock-icon-btn" data-key="lonas" onclick="handleIconClick('lonas', '⛺ Lonas 3D V10', this, event)">⛺</div>
+        <div class="dock-icon-btn" data-key="custom" onclick="handleIconClick('custom', '🎨 Wallpapers V10', this, event)">🎨</div>
+        <div class="dock-icon-btn" data-key="print" onclick="handleIconClick('print', '🖨️ Imprenta PDF V10', this, event)">🖨️</div>
+        <div class="dock-icon-btn" data-key="cine" onclick="handleIconClick('cine', '🎬 Cine Scope V10', this, event)">🎬</div>
+        <div class="dock-icon-btn" data-key="raw" onclick="handleIconClick('raw', '📸 Revelado RAW V10', this, event)">📸</div>
+        <div class="dock-icon-btn" data-key="svg" onclick="handleIconClick('svg', '📐 SVG Logos V10', this, event)">📐</div>
+        <div class="dock-icon-btn" data-key="vid" onclick="handleIconClick('vid', '🎥 Video Motion V10', this, event)">🎥</div>
+        <div class="dock-icon-btn" data-key="depth" onclick="handleIconClick('depth', '🧠 Depth-Map NPU V10', this, event)">🧠</div>
+        <div class="dock-icon-btn" data-key="chef" onclick="handleIconClick('chef', '👨‍🍳 Chef Lean V10', this, event)">👨‍🍳</div>
+        <div class="dock-icon-btn" data-key="price" onclick="handleIconClick('price', '🏷️ Valuador Híbrido V10', this, event)">🏷️</div>
+        <div class="dock-icon-btn" data-key="ai" onclick="handleIconClick('ai', '✨ Generar Imagen AI V10', this, event)">✨</div>
     </div>
 
     <div class="bottom-shutter-bar">
@@ -583,7 +724,7 @@ HTML_CONTENT = """
 
             <div class="bot-chat-stream" id="botChatStream">
                 <div class="bot-msg ia">
-                    ¡Qué onda! Soy tu <strong>Nano-Bot Táctico</strong>. Tienes activada la optimización de caché con miniaturas instantáneas y persistencia de órdenes comerciales en base de datos.
+                    ¡Qué onda! Bienvenido a <strong>BIAN V10</strong>. Sistema y almacenamiento optimizado en tiempo real.
                 </div>
             </div>
 
@@ -596,7 +737,7 @@ HTML_CONTENT = """
 
     <div class="gallery-modal" id="galleryModal">
         <div class="gallery-top">
-            <h3 style="font-size:16px; font-weight:700;">Galería Soberana (Miniaturas Rápidas)</h3>
+            <h3 style="font-size:16px; font-weight:700;">Galería Soberana V10</h3>
             <button onclick="closeGalleryModal()" style="background:#1c1c22; border:1px solid #333; color:#fff; padding:6px 14px; border-radius:14px; font-size:12px;">Cerrar</button>
         </div>
         <div class="gallery-grid" id="galleryGrid"></div>
@@ -620,29 +761,83 @@ HTML_CONTENT = """
         let timelapseSpeedMultiplier = 4;
 
         const enginesList = [
-            { key: 'pano', name: '🌐 Panorámica 360° V9' },
-            { key: 'timelapse', name: '⏱️ Time-Lapse Hyperlapse V9' },
-            { key: 'scan', name: '📄 Scan Doc Pro V9' },
-            { key: 'night', name: '🌙 Nightography V9' },
-            { key: 'macro', name: '🔍 Macro Pro V9' },
-            { key: 'portrait', name: '👤 Modo Retrato Bokeh V9' },
-            { key: 'lonas', name: '⛺ Lonas 3D V9' },
-            { key: 'custom', name: '🎨 Wallpapers V9' },
-            { key: 'print', name: '🖨️ Imprenta PDF V9' },
-            { key: 'cine', name: '🎬 Cine Scope V9' },
-            { key: 'raw', name: '📸 Revelado RAW V9' },
-            { key: 'svg', name: '📐 SVG Logos V9' },
-            { key: 'vid', name: '🎥 Video Motion V8' },
-            { key: 'depth', name: '🧠 Depth-Map NPU V9' },
-            { key: 'chef', name: '👨‍🍳 Chef Lean V9' },
-            { key: 'price', name: '🏷️ Valuador Híbrido V7' },
-            { key: 'ai', name: '✨ Generar Imagen AI V7' }
+            { key: 'pano', name: '🌐 Panorámica 360° V10' },
+            { key: 'timelapse', name: '⏱️ Time-Lapse Hyperlapse V10' },
+            { key: 'scan', name: '📄 Scan Doc Pro V10' },
+            { key: 'night', name: '🌙 Nightography V10' },
+            { key: 'macro', name: '🔍 Macro Pro V10' },
+            { key: 'portrait', name: '👤 Modo Retrato Bokeh V10' },
+            { key: 'lonas', name: '⛺ Lonas 3D V10' },
+            { key: 'custom', name: '🎨 Wallpapers V10' },
+            { key: 'print', name: '🖨️ Imprenta PDF V10' },
+            { key: 'cine', name: '🎬 Cine Scope V10' },
+            { key: 'raw', name: '📸 Revelado RAW V10' },
+            { key: 'svg', name: '📐 SVG Logos V10' },
+            { key: 'vid', name: '🎥 Video Motion V10' },
+            { key: 'depth', name: '🧠 Depth-Map NPU V10' },
+            { key: 'chef', name: '👨‍🍳 Chef Lean V10' },
+            { key: 'price', name: '🏷️ Valuador Híbrido V10' },
+            { key: 'ai', name: '✨ Generar Imagen AI V10' }
         ];
 
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
             return audioCtx;
+        }
+
+                function playGiftUnwrapSound() {
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                // Acorde brillante y cute: C6, E6, G6, B6, C7 con brillo armónico
+                const sparkleNotes = [1046.50, 1318.51, 1567.98, 1975.53, 2093.00, 2637.02];
+                sparkleNotes.forEach((f, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(f, now + (idx * 0.055));
+                    gain.gain.setValueAtTime(0.001, now + (idx * 0.055));
+                    gain.gain.linearRampToValueAtTime(0.16, now + (idx * 0.055) + 0.015);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + (idx * 0.055) + 0.42);
+                    osc.start(now + (idx * 0.055));
+                    osc.stop(now + (idx * 0.055) + 0.43);
+                });
+            } catch(e) {}
+        }
+
+        let touchStartY = 0;
+        const giftContainer = document.getElementById('giftUnlockBtn');
+        if (giftContainer) {
+            giftContainer.addEventListener('touchstart', (e) => {
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+
+            giftContainer.addEventListener('touchend', (e) => {
+                const touchEndY = e.changedTouches[0].clientY;
+                const deltaY = touchStartY - touchEndY;
+                if (deltaY > 30) {
+                    triggerGiftUnlock();
+                }
+            }, { passive: true });
+        }
+
+        function triggerGiftUnlock() {
+            const giftBox = document.getElementById('giftUnlockBtn');
+            const lockscreen = document.getElementById('lockscreen');
+            
+            // Sonido de bienvenida
+            playGiftUnwrapSound();
+            
+            // Animación del moño saliendo disparado
+            giftBox.classList.add('fly');
+
+            setTimeout(() => {
+                lockscreen.classList.add('unlocked');
+                startCamera();
+            }, 450);
         }
 
         function playWhatsAppSwooshSound() {
@@ -694,7 +889,6 @@ HTML_CONTENT = """
             } catch(e) {}
         }
 
-        // Constraints compatibles y estables para Android
         async function startCamera() {
             if (video.srcObject) {
                 video.srcObject.getTracks().forEach(t => t.stop());
@@ -721,7 +915,6 @@ HTML_CONTENT = """
                 triggerCircleFade();
                 refreshThumb();
             } catch(err) {
-                console.warn("Fallo con resolución ideal, intentando fallback estándar:", err);
                 try {
                     const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
                     video.srcObject = fallbackStream;
@@ -732,7 +925,6 @@ HTML_CONTENT = """
                 }
             }
         }
-        startCamera();
 
         function toggleLens() {
             facingMode = (facingMode === 'environment') ? 'user' : 'environment';
@@ -911,35 +1103,6 @@ HTML_CONTENT = """
             document.getElementById('modeStatusText').innerText = `⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA ${timelapseSpeedMultiplier}x`;
         }
 
-        let touchStartY = 0;
-        let touchStartX = 0;
-        const dockEl = document.getElementById('glassDockBar');
-
-        dockEl.addEventListener('touchstart', (e) => {
-            touchStartY = e.touches[0].clientY;
-            touchStartX = e.touches[0].clientX;
-        }, { passive: true });
-
-        dockEl.addEventListener('touchend', (e) => {
-            const touchEndY = e.changedTouches[0].clientY;
-            const touchEndX = e.changedTouches[0].clientX;
-            const deltaY = touchEndY - touchStartY;
-            const deltaX = touchEndX - touchStartX;
-
-            if (Math.abs(deltaY) > 28 && Math.abs(deltaY) > Math.abs(deltaX) && selectedEngineKey) {
-                if (deltaY > 0) cycleEngine(1);
-                else cycleEngine(-1);
-            }
-        }, { passive: true });
-
-        function cycleEngine(direction) {
-            const currentIdx = enginesList.findIndex(e => e.key === selectedEngineKey);
-            const nextIdx = (currentIdx + direction + enginesList.length) % enginesList.length;
-            const nextEngine = enginesList[nextIdx];
-            const nextBtn = document.querySelector(`.dock-icon-btn[data-key="${nextEngine.key}"]`);
-            selectEngine(nextEngine.key, nextEngine.name, nextBtn);
-        }
-
         function resetArmEngine() {
             selectedEngineKey = null;
             selectedEngineName = null;
@@ -960,7 +1123,7 @@ HTML_CONTENT = """
 
             if (isRecordingTimelapse) stopTimeLapseRecording();
 
-            document.getElementById('activeModuleName').innerText = 'Cam Vision V9';
+            document.getElementById('activeModuleName').innerText = 'Cam Vision V10';
             document.getElementById('botModuleBadge').innerText = 'GENERAL';
             triggerCircleFade();
         }
@@ -997,7 +1160,7 @@ HTML_CONTENT = """
             ctx.drawImage(video, 0, 0, internalCanvas.width, internalCanvas.height);
 
             const base64Data = internalCanvas.toDataURL('image/jpeg', 0.90);
-            const tag = selectedEngineName ? `Módulo ${selectedEngineName}` : "Captura Directa Cam Vision";
+            const tag = selectedEngineName ? `Módulo ${selectedEngineName}` : "Captura Directa Cam Vision V10";
 
             try {
                 const res = await fetch('/bian/process/', {
@@ -1076,7 +1239,7 @@ HTML_CONTENT = """
                 const res = await fetch('/bian/process/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ image_base64: base64Data, prompt_analysis: "Toma Panorámica 360 Wide Sweep V9" })
+                    body: JSON.stringify({ image_base64: base64Data, prompt_analysis: "Toma Panorámica 360 Wide Sweep V10" })
                 });
                 if (res.ok) {
                     const saved = await res.json();
@@ -1141,7 +1304,7 @@ HTML_CONTENT = """
             await saveOrderToDatabase(client, concept, amount, notes, "whatsapp");
 
             const lines = [
-                "*BIAN MASTER SUITE V9 - NOTA COMERCIAL*",
+                "*BIAN MASTER SUITE V10 - NOTA COMERCIAL*",
                 "",
                 `👤 *Cliente:* ${client}`,
                 `📦 *Concepto:* ${concept}`,
@@ -1173,7 +1336,7 @@ HTML_CONTENT = """
 
             doc.setTextColor(0, 255, 200);
             doc.setFontSize(16);
-            doc.text("BIAN V9 MASTER SUITE - ORDEN TÉCNICA", 14, 18);
+            doc.text("BIAN V10 MASTER SUITE - ORDEN TÉCNICA", 14, 18);
 
             doc.setTextColor(50, 50, 50);
             doc.setFontSize(10);
@@ -1199,7 +1362,7 @@ HTML_CONTENT = """
             doc.text("FIRMA DE CONFORMIDAD Y RECEPCIÓN:", 18, 128);
             doc.text("__________________________________________", 18, 145);
 
-            doc.save(`orden_bian_${Date.now()}.pdf`);
+            doc.save(`orden_bian_v10_${Date.now()}.pdf`);
             alert("✔ PDF membretado guardado en BD y descargado.");
         }
 
@@ -1268,7 +1431,7 @@ HTML_CONTENT = """
                 const data = await res.json();
                 chat.innerHTML += `<div class="bot-msg ia">${data.reply}</div>`;
             } catch(e) {
-                chat.innerHTML += `<div class="bot-msg ia">Nano-Bot activo localmente.</div>`;
+                chat.innerHTML += `<div class="bot-msg ia">Nano-Bot V10 activo localmente.</div>`;
             }
             chat.scrollTop = chat.scrollHeight;
         }
@@ -1285,7 +1448,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Samsung Native Camera Core V9 (Optimized Storage Engine: Thumbs + Orders SQL)",
+        "engine": "BIAN V10 Core - Tu app de fotos y video (Gift Ribbon Lockscreen)",
         "status": "online"
     }
 
@@ -1382,21 +1545,16 @@ def nanobot_query(payload: NanoBotQuery, session: Session = Depends(get_session)
     if any(k in msg for k in ["almacenamiento", "memoria", "espacio", "disco", "estado", "storage"]):
         analytics = storage_analytics(session)
         return {
-            "reply": f"💾 <strong>Telemetría de Almacenamiento:</strong><br>"
-                     f"• Espacio Total en Disco: <strong>{analytics['total_mb']} MB</strong><br>"
-                     f"• Fotos Originales: <strong>{analytics['full_photos']}</strong> | Miniaturas Caché: <strong>{analytics['cached_thumbs']}</strong><br>"
-                     f"• Órdenes Guardadas en BD: <strong>{analytics['db_orders_registered']}</strong>.<br>"
-                     f"<em>El pipeline de compresión y caché de miniaturas mantiene la app al 100%.</em>"
+            "reply": f"💾 <strong>BIAN V10 Telemetría:</strong><br>"
+                     f"• Espacio Ocupado: <strong>{analytics['total_mb']} MB</strong><br>"
+                     f"• Fotos: <strong>{analytics['full_photos']}</strong> | Miniaturas: <strong>{analytics['cached_thumbs']}</strong><br>"
+                     f"• Órdenes Registradas: <strong>{analytics['db_orders_registered']}</strong>."
         }
     elif any(k in msg for k in ["export", "whatsapp", "pdf", "cotiz"]):
         return {
-            "reply": "📤 <strong>Exportación Comercial:</strong> Al enviar por WhatsApp o generar un PDF, los datos se respaldan automáticamente en la tabla <code>commercialorder</code> de SQLite para trazabilidad contable."
-        }
-    elif any(k in msg for k in ["escaner", "scan", "doc"]):
-        return {
-            "reply": "📄 <strong>Scan Doc Pro:</strong> Encuadre central A4 con haz láser y filtro de contraste documental B/N."
+            "reply": "📤 <strong>V10 Despacho Comercial:</strong> Trazabilidad total de órdenes exportadas guardadas directamente en SQLite."
         }
     else:
         return {
-            "reply": "⚡ <strong>Motor Optimizado:</strong> Almacenamiento escalonado (Original + Thumbnail), persistencia comercial y bajo consumo de RAM."
+            "reply": "✨ <strong>BIAN V10:</strong> Tu app de fotos y video activa y soberana."
         }
