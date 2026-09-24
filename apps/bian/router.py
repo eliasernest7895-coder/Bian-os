@@ -18,6 +18,13 @@ class NanoBotQuery(BaseModel):
     message: str
     current_module: str = "general"
 
+class ExportPayload(BaseModel):
+    client_name: str = "Cliente Mostrador"
+    concept: str
+    amount: float
+    notes: str = "Sin observaciones"
+    channel: str = "whatsapp"
+
 @router.get("/storage/bian/{filename}")
 async def serve_bian_image(filename: str):
     file_path = os.path.join("storage", "bian", filename)
@@ -33,6 +40,7 @@ HTML_CONTENT = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bian AI Suite - Cámara Pro Master V9</title>
     <script src="https://unpkg.com/tesseract.js@v4.0.2/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; user-select: none; }
@@ -51,15 +59,19 @@ HTML_CONTENT = """
 
         .top-float-right {
             position: absolute; top: 16px; right: 18px; z-index: 50;
+            display: flex; gap: 8px;
+        }
+        .action-pill {
             background: rgba(255, 255, 255, 0.12);
             backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
             border: 1px solid rgba(255, 255, 255, 0.28);
-            color: #FFFFFF; font-size: 12px; font-weight: 700; padding: 8px 16px; border-radius: 22px;
+            color: #FFFFFF; font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 22px;
             display: flex; align-items: center; gap: 6px; cursor: pointer;
-            box-shadow: 0 6px 24px rgba(0,0,0,0.5), 0 0 14px rgba(255, 255, 255, 0.18);
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+            transition: all 0.2s ease;
         }
-        .top-float-right:active { transform: scale(0.95); background: rgba(255,255,255,0.22); }
+        .action-pill:active { transform: scale(0.94); background: rgba(255,255,255,0.22); }
+        .export-pill { border-color: rgba(0, 255, 200, 0.5); color: #00FFC8; }
 
         .viewport {
             position: absolute; inset: 0; width: 100%; height: 100%;
@@ -70,13 +82,11 @@ HTML_CONTENT = """
             transform-origin: center center;
             transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
         }
-        
         video.portrait-bokeh { filter: drop-shadow(0 0 16px rgba(0,255,200,0.3)); }
         video.night-mode { filter: brightness(1.35) contrast(1.1) saturate(1.2); }
         video.macro-mode { filter: contrast(1.25) saturate(1.15); }
         video.scan-mode { filter: grayscale(1) contrast(1.4) brightness(1.1); }
 
-        /* GUIA DE ESCANEO DE DOCUMENTOS CENTRADA */
         .doc-scanner-frame {
             position: absolute; top: 48%; left: 50%; transform: translate(-50%, -50%);
             width: 78%; max-width: 330px; aspect-ratio: 1 / 1.38;
@@ -99,11 +109,7 @@ HTML_CONTENT = """
             box-shadow: 0 0 12px #00FFC8, 0 0 20px #00FFC8;
             animation: scanLaserAnim 2.8s ease-in-out infinite alternate;
         }
-        @keyframes scanLaserAnim {
-            0% { top: 6%; opacity: 0.2; }
-            50% { opacity: 1; }
-            100% { top: 92%; opacity: 0.2; }
-        }
+        @keyframes scanLaserAnim { 0% { top: 6%; opacity: 0.2; } 50% { opacity: 1; } 100% { top: 92%; opacity: 0.2; } }
         .doc-label-badge {
             align-self: center; background: rgba(0,0,0,0.7);
             border: 1px solid rgba(0,255,200,0.4); color: #00FFC8;
@@ -111,7 +117,6 @@ HTML_CONTENT = """
             letter-spacing: 0.5px; text-transform: uppercase;
         }
 
-        /* HUD MODO TIME-LAPSE */
         .timelapse-hud {
             position: absolute; top: 110px; left: 50%; transform: translateX(-50%);
             display: none; flex-direction: column; align-items: center; gap: 8px; z-index: 45;
@@ -137,7 +142,6 @@ HTML_CONTENT = """
         }
         .speed-btn.active { background: #FF3B30; color: #fff; }
 
-        /* HUD MODO PANORAMICA */
         .pano-hud {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 86%; max-width: 360px; height: 70px;
@@ -154,7 +158,7 @@ HTML_CONTENT = """
             100% { transform: translateX(28px); opacity: 0.1; }
         }
         .pano-guide-line { position: absolute; left: 10%; right: 10%; height: 2px; background: rgba(255, 255, 255, 0.25); z-index: 1; }
-        .pano-level-ball { width: 14px; height: 14px; border-radius: 50%; background: #00FFC8; box-shadow: 0 0 10px #00FFC8; z-index: 2; transition: transform 0.1s linear; }
+        .pano-level-ball { width: 14px; height: 14px; border-radius: 50%; background: #00FFC8; box-shadow: 0 0 10px #00FFC8; z-index: 2; }
 
         .mode-status-chip {
             position: absolute; top: 68px; left: 50%; transform: translateX(-50%); z-index: 45;
@@ -323,6 +327,36 @@ HTML_CONTENT = """
         .side-btn:active { transform: scale(0.9); }
         .side-btn img { width: 100%; height: 100%; object-fit: cover; }
 
+        /* MODAL EXPORTACIÓN & COTIZACIÓN */
+        .export-modal {
+            position: fixed; inset: 0; z-index: 110; background: rgba(0,0,0,0.78);
+            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            display: none; flex-direction: column; justify-content: flex-end;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        .export-modal.active { display: flex; opacity: 1; }
+        .export-card {
+            background: #15151B; border-top: 1px solid rgba(0,255,200,0.3);
+            border-radius: 32px 32px 0 0; padding: 22px 20px;
+            max-height: 85vh; display: flex; flex-direction: column; gap: 12px;
+            box-shadow: 0 -12px 40px rgba(0,0,0,0.85);
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .export-input {
+            width: 100%; background: #1C1C24; border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 14px; padding: 10px 14px; color: #fff; font-size: 13px; outline: none;
+        }
+        .export-btn-whatsapp {
+            background: linear-gradient(135deg, #25D366, #128C7E); color: #fff;
+            border: none; border-radius: 16px; padding: 13px; font-weight: 700; font-size: 13px;
+            display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
+        }
+        .export-btn-pdf {
+            background: rgba(0, 255, 200, 0.15); border: 1px solid #00FFC8; color: #00FFC8;
+            border-radius: 16px; padding: 12px; font-weight: 700; font-size: 13px;
+            display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
+        }
+
         /* MODAL NANO-BOT */
         .bot-modal {
             position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.7);
@@ -388,8 +422,13 @@ HTML_CONTENT = """
         <span id="activeModuleName">Cam Vision V9</span>
     </div>
 
-    <div class="top-float-right" id="actionPromptPill" onclick="openNanoBotModal()">
-        <span>✨ ¿Qué quieres hacer?</span>
+    <div class="top-float-right">
+        <div class="action-pill export-pill" onclick="openExportModal()">
+            <span>📤 Exportar</span>
+        </div>
+        <div class="action-pill" onclick="openNanoBotModal()">
+            <span>✨ Nano-Bot</span>
+        </div>
     </div>
 
     <!-- GUIA TÁCTICA PARA DOCUMENTOS -->
@@ -453,7 +492,6 @@ HTML_CONTENT = """
     <div class="dock-tooltip" id="dockTooltip">Módulo</div>
 
     <div class="glass-dock" id="glassDockBar">
-        <!-- MODOS COMPLETOS DE LA CÁMARA NATIVA S23 ULTRA -->
         <div class="dock-icon-btn" data-key="pano" onclick="handleIconClick('pano', '🌐 Panorámica 360° V9', this, event)">🌐</div>
         <div class="dock-icon-btn" data-key="timelapse" onclick="handleIconClick('timelapse', '⏱️ Time-Lapse Hyperlapse V9', this, event)">⏱️</div>
         <div class="dock-icon-btn" data-key="scan" onclick="handleIconClick('scan', '📄 Scan Doc Pro V9', this, event)">📄</div>
@@ -483,6 +521,29 @@ HTML_CONTENT = """
         </div>
     </div>
 
+    <!-- MODAL EXPORTACIÓN & DESPACHO TÁCTICO -->
+    <div class="export-modal" id="exportModal">
+        <div class="export-card">
+            <div class="bot-drag" onclick="closeExportModal()"></div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="font-size:15px; font-weight:700; color:#00FFC8;">📤 Despacho Comercial & PDF</h3>
+                <button onclick="closeExportModal()" style="background:none; border:none; color:#888; font-size:16px; cursor:pointer;">✕</button>
+            </div>
+
+            <input type="text" class="export-input" id="expClient" placeholder="Nombre del Cliente o Taller">
+            <input type="text" class="export-input" id="expConcept" placeholder="Concepto (ej. Lona Frontlit 4x3m / Rib Eye 3.8kg)">
+            <input type="number" class="export-input" id="expAmount" placeholder="Monto Total ($ MXN)">
+            <textarea class="export-input" id="expNotes" rows="2" placeholder="Especificaciones técnicas o tiempo de entrega..."></textarea>
+
+            <button class="export-btn-whatsapp" onclick="sendToWhatsApp()">
+                <span>💬 Despachar por WhatsApp</span>
+            </button>
+            <button class="export-btn-pdf" onclick="generateTechnicalPDF()">
+                <span>📄 Descargar Orden PDF Membretada</span>
+            </button>
+        </div>
+    </div>
+
     <!-- MODAL NANO-BOT -->
     <div class="bot-modal" id="botModal">
         <div class="bot-card">
@@ -496,15 +557,14 @@ HTML_CONTENT = """
             </div>
             
             <div class="bot-quick-chips">
+                <button class="bot-chip" onclick="askNanoQuick('¿Cómo exporto una cotización a WhatsApp?')">📤 Exportar WhatsApp</button>
                 <button class="bot-chip" onclick="askNanoQuick('¿Cómo tomo una Panorámica?')">🌐 Panorámica 360°</button>
-                <button class="bot-chip" onclick="askNanoQuick('¿Cómo grabo un Time-Lapse?')">⏱️ Cómo grabar Time-Lapse</button>
                 <button class="bot-chip" onclick="askNanoQuick('¿Cómo uso el Escáner de Documentos?')">📄 Escanear Documento</button>
-                <button class="bot-chip" onclick="askNanoQuick('¿Qué hace Nightography?')">🌙 Modo Noche</button>
             </div>
 
             <div class="bot-chat-stream" id="botChatStream">
                 <div class="bot-msg ia">
-                    ¡Qué onda! Soy tu <strong>Nano-Bot Táctico</strong>. Tienes armada la suite completa: Panorámica 360°, Time-Lapse, Escáner Documental con OCR centrado, Nightography, Macro Pro, Retrato y las herramientas industriales.
+                    ¡Qué onda! Soy tu <strong>Nano-Bot Táctico</strong>. Tienes armada la suite completa con exportación directa por WhatsApp y generación de PDF membretado.
                 </div>
             </div>
 
@@ -540,10 +600,6 @@ HTML_CONTENT = """
         let timelapseInterval = null;
         let timelapseSeconds = 0;
         let timelapseSpeedMultiplier = 4;
-
-        /* PANORÁMICA */
-        let isPanoActive = false;
-        let panoFrames = [];
 
         const enginesList = [
             { key: 'pano', name: '🌐 Panorámica 360° V9' },
@@ -681,7 +737,7 @@ HTML_CONTENT = """
         }
 
         function handleTapToFocus(e) {
-            if (e.target.closest('.glass-dock') || e.target.closest('.bottom-shutter-bar') || e.target.closest('.top-float-left') || e.target.closest('.top-float-right') || e.target.closest('.lens-pill-bar') || e.target.closest('.dock-tooltip') || e.target.closest('.timelapse-hud') || e.target.closest('.pano-hud')) return;
+            if (e.target.closest('.glass-dock') || e.target.closest('.bottom-shutter-bar') || e.target.closest('.top-float-left') || e.target.closest('.top-float-right') || e.target.closest('.lens-pill-bar') || e.target.closest('.dock-tooltip') || e.target.closest('.timelapse-hud') || e.target.closest('.pano-hud') || e.target.closest('.export-modal')) return;
             
             document.getElementById('lensPillBar').classList.add('collapsed');
 
@@ -762,7 +818,6 @@ HTML_CONTENT = """
             document.getElementById('activeModuleName').innerText = key.toUpperCase();
             document.getElementById('botModuleBadge').innerText = key.toUpperCase();
 
-            // CONTROL DE MODOS
             const statusChip = document.getElementById('modeStatusChip');
             const statusText = document.getElementById('modeStatusText');
             const scanFrame = document.getElementById('docScannerFrame');
@@ -876,7 +931,6 @@ HTML_CONTENT = """
             triggerCircleFade();
         }
 
-        /* CAPTURA GENERAL / PANORÁMICA / TIME-LAPSE */
         async function triggerNativeCaptureAndSave() {
             if (video.videoWidth === 0) return;
 
@@ -926,7 +980,6 @@ HTML_CONTENT = """
             }
         }
 
-        /* LOGICA DE TIME-LAPSE */
         function startTimeLapseRecording() {
             isRecordingTimelapse = true;
             timelapseSeconds = 0;
@@ -976,14 +1029,11 @@ HTML_CONTENT = """
             alert(`✔ Time-Lapse compilado a ${timelapseSpeedMultiplier}x.`);
         }
 
-        /* LOGICA DE CAPTURA PANORÁMICA */
         async function triggerPanoCapture() {
             playWhatsAppSwooshSound();
             internalCanvas.width = video.videoWidth * 2;
             internalCanvas.height = video.videoHeight;
             const ctx = internalCanvas.getContext('2d');
-            
-            // Simular cosido de 2 fotogramas continuos en formato panorámico ultra ancho
             ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
             ctx.drawImage(video, video.videoWidth, 0, video.videoWidth, video.videoHeight);
 
@@ -997,7 +1047,7 @@ HTML_CONTENT = """
                 if (res.ok) {
                     const saved = await res.json();
                     updateThumbUI(saved.image_path);
-                    alert("✔ Captura Panorámica cosida y almacenada en Galería.");
+                    alert("✔ Captura Panorámica cosida y guardada.");
                 }
             } catch(e) {}
         }
@@ -1016,6 +1066,79 @@ HTML_CONTENT = """
             const btn = document.getElementById('galleryThumbBtn');
             const fixedPath = imgPath.startsWith('/bian') ? imgPath : `/bian${imgPath}`;
             btn.innerHTML = `<img src="${fixedPath}" />`;
+        }
+
+        /* MODAL EXPORTACIÓN */
+        function openExportModal() {
+            document.getElementById('exportModal').classList.add('active');
+            const activeName = selectedEngineName || "General";
+            document.getElementById('expConcept').value = `Cotización / Orden de Servicio (${activeName})`;
+        }
+
+        function closeExportModal() {
+            document.getElementById('exportModal').classList.remove('active');
+        }
+
+        function sendToWhatsApp() {
+            const client = document.getElementById('expClient').value || "Cliente";
+            const concept = document.getElementById('expConcept').value || "Servicio Técnico";
+            const amount = document.getElementById('expAmount').value || "0";
+            const notes = document.getElementById('expNotes').value || "Sin notas";
+
+            const msg = `*BIAN MASTER SUITE V9 - NOTA COMERCIAL*\\n\\n` +
+                        `👤 *Cliente:* ${client}\\n` +
+                        `📦 *Concepto:* ${concept}\\n` +
+                        `💵 *Total:* $${amount} MXN\\n` +
+                        `📝 *Notas:* ${notes}\\n` +
+                        `🕒 *Fecha:* ${new Date().toLocaleDateString('es-MX')} - ${new Date().toLocaleTimeString('es-MX')}\\n\\n` +
+                        `_Generado desde Debian/Termux Galaxy S23 Ultra_`;
+
+            const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+            window.open(url, '_blank');
+        }
+
+        function generateTechnicalPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const client = document.getElementById('expClient').value || "Cliente General";
+            const concept = document.getElementById('expConcept').value || "Servicio Técnico";
+            const amount = document.getElementById('expAmount').value || "0";
+            const notes = document.getElementById('expNotes').value || "Sin notas adicionales";
+
+            doc.setFillColor(15, 15, 20);
+            doc.rect(0, 0, 210, 30, 'F');
+
+            doc.setTextColor(0, 255, 200);
+            doc.setFontSize(16);
+            doc.text("BIAN V9 MASTER SUITE - ORDEN TÉCNICA", 14, 18);
+
+            doc.setTextColor(50, 50, 50);
+            doc.setFontSize(10);
+            doc.text(`Fecha de Emisión: ${new Date().toLocaleString('es-MX')}`, 14, 40);
+            doc.text(`Cliente / Taller: ${client}`, 14, 48);
+
+            doc.setDrawColor(0, 255, 200);
+            doc.line(14, 54, 196, 54);
+
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Concepto: ${concept}`, 14, 66);
+            doc.text(`Monto Total: $${amount} MXN`, 14, 76);
+
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text("Especificaciones y Observaciones:", 14, 90);
+            doc.text(notes, 14, 98, { maxWidth: 180 });
+
+            doc.setDrawColor(200, 200, 200);
+            doc.rect(14, 120, 182, 35);
+            doc.setFontSize(9);
+            doc.text("FIRMA DE CONFORMIDAD Y RECEPCIÓN:", 18, 128);
+            doc.text("__________________________________________", 18, 145);
+
+            doc.save(`orden_bian_${Date.now()}.pdf`);
+            alert("✔ PDF membretado generado y descargado.");
         }
 
         async function openGalleryModal() {
@@ -1098,7 +1221,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Samsung Native Camera Core V9 (Full Camera Trinity: Pano, Time-Lapse, Scan)",
+        "engine": "Samsung Native Camera Core V9 (Direct Export Hub: PDF & WhatsApp)",
         "status": "online"
     }
 
@@ -1127,31 +1250,23 @@ def nanobot_query(payload: NanoBotQuery):
     msg = payload.message.lower()
     mod = payload.current_module
 
-    if "pano" in msg or "panoramica" in msg or "sweep" in msg:
+    if "export" in msg or "whatsapp" in msg or "pdf" in msg or "cotiz" in msg:
         return {
-            "reply": "🌐 <strong>Panorámica 360°:</strong> Sigue la línea de horizonte y la flecha guía. Mantén el teléfono nivelado mientras haces el barrido continuo para tomas ultra anchas de espacios o anuncios."
+            "reply": "📤 <strong>Exportación Directa:</strong> Toca el botón verde <strong>Exportar</strong> arriba a la derecha. Puedes redactar cliente, concepto y monto para enviarlo con formato limpio a WhatsApp o descargar el PDF membretado con recuadro de firma."
         }
-    elif "timelapse" in msg or "rapida" in msg or "hyper" in msg:
+    elif "pano" in msg or "panoramica" in msg:
         return {
-            "reply": "⏱️ <strong>Time-Lapse Hyperlapse:</strong> Selecciona la velocidad (4x, 8x, 16x o 32x) y presiona el disparador rojo. El cronómetro gemelo muestra el tiempo real vs la duración final del clip."
+            "reply": "🌐 <strong>Panorámica 360°:</strong> Sigue la línea de horizonte y la flecha guía manteniendo el teléfono nivelado."
         }
-    elif "scan" in msg or "doc" in msg or "ticket" in msg:
+    elif "timelapse" in msg or "rapida" in msg:
         return {
-            "reply": "📄 <strong>Scan Doc Pro:</strong> Alinea el documento o ticket en el marco central. La línea láser realiza lectura óptica y genera un duplicado en alto contraste B/N."
+            "reply": "⏱️ <strong>Time-Lapse Hyperlapse:</strong> Selecciona velocidad (4x-32x) y presiona el disparador para registrar procesos continuos."
         }
-    elif "noche" in msg or "night" in msg:
+    elif "scan" in msg or "doc" in msg:
         return {
-            "reply": "🌙 <strong>Nightography:</strong> Activa el sensor para condiciones de baja luz con reducción de ruido en sombras profundas."
-        }
-    elif "macro" in msg:
-        return {
-            "reply": "🔍 <strong>Macro Pro:</strong> Optimizado para capturar detalles a milímetros de distancia con realce de texturas finas."
-        }
-    elif "retrato" in msg or "portrait" in msg or "bokeh" in msg:
-        return {
-            "reply": "👤 <strong>Modo Retrato Bokeh:</strong> Aisla el sujeto en primer plano y desenfoca suavemente el fondo con apertura f/1.4."
+            "reply": "📄 <strong>Scan Doc Pro:</strong> Encuadre central A4 con haz láser y filtro de contraste documental B/N."
         }
     else:
         return {
-            "reply": f"🎯 Tienes a la mano <strong>🌐 Panorámica</strong>, <strong>⏱️ Time-Lapse</strong>, <strong>📄 Scan Doc</strong>, <strong>🌙 Noche</strong>, <strong>🔍 Macro</strong>, <strong>👤 Retrato</strong> y las herramientas de taller y negocio."
+            "reply": f"🎯 Tienes a la mano <strong>📤 Exportar</strong> (PDF/WhatsApp), <strong>🌐 Panorámica</strong>, <strong>⏱️ Time-Lapse</strong>, <strong>📄 Scan Doc</strong> y la suite completa de taller y carnicería."
         }
