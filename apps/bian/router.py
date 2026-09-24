@@ -12,7 +12,6 @@ import io
 
 router = APIRouter(prefix="/bian", tags=["Bian AI Vision Pro"])
 
-# Modelo de Base de Datos para Órdenes y Cotizaciones
 class CommercialOrder(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     client_name: str
@@ -49,7 +48,6 @@ async def serve_bian_thumb(filename: str):
     file_path = os.path.join("storage", "bian", "thumbs", filename)
     if os.path.exists(file_path):
         return FileResponse(file_path)
-    # Fallback a la imagen original si aún no tiene thumb
     orig_path = os.path.join("storage", "bian", filename)
     if os.path.exists(orig_path):
         return FileResponse(orig_path)
@@ -452,7 +450,6 @@ HTML_CONTENT = """
         </div>
     </div>
 
-    <!-- GUIA TÁCTICA PARA DOCUMENTOS -->
     <div class="doc-scanner-frame" id="docScannerFrame">
         <div class="scanner-laser-line"></div>
         <div class="doc-row">
@@ -466,7 +463,6 @@ HTML_CONTENT = """
         </div>
     </div>
 
-    <!-- HUD SUPERIOR PARA TIME-LAPSE -->
     <div class="timelapse-hud" id="timelapseHud">
         <div class="timelapse-pill">
             <div class="record-blink" id="recordDot" style="display:none;"></div>
@@ -480,7 +476,6 @@ HTML_CONTENT = """
         </div>
     </div>
 
-    <!-- HUD MODO PANORÁMICA -->
     <div class="pano-hud" id="panoHud">
         <div class="pano-guide-line"></div>
         <div class="pano-level-ball" id="panoBall"></div>
@@ -542,7 +537,6 @@ HTML_CONTENT = """
         </div>
     </div>
 
-    <!-- MODAL EXPORTACIÓN & DESPACHO TÁCTICO -->
     <div class="export-modal" id="exportModal">
         <div class="export-card">
             <div class="bot-drag" onclick="closeExportModal()"></div>
@@ -565,7 +559,6 @@ HTML_CONTENT = """
         </div>
     </div>
 
-    <!-- MODAL NANO-BOT -->
     <div class="bot-modal" id="botModal">
         <div class="bot-card">
             <div class="bot-drag" onclick="closeNanoBotModal()"></div>
@@ -578,9 +571,9 @@ HTML_CONTENT = """
             </div>
             
             <div class="bot-quick-chips">
-                <button class="bot-chip" onclick="askNanoQuick('¿Cómo está el almacenamiento?')">💾 Estado del Almacenamiento</button>
-                <button class="bot-chip" onclick="askNanoQuick('¿Cómo exporto una cotización a WhatsApp?')">📤 Exportar WhatsApp</button>
-                <button class="bot-chip" onclick="askNanoQuick('¿Cómo uso el Escáner de Documentos?')">📄 Escanear Documento</button>
+                <button class="bot-chip" onclick="askNanoQuick('estado del almacenamiento')">💾 Estado del Almacenamiento</button>
+                <button class="bot-chip" onclick="askNanoQuick('exportar cotizacion')">📤 Exportar WhatsApp</button>
+                <button class="bot-chip" onclick="askNanoQuick('como usar el escaner')">📄 Escanear Documento</button>
             </div>
 
             <div class="bot-chat-stream" id="botChatStream">
@@ -1124,6 +1117,7 @@ HTML_CONTENT = """
 
             await saveOrderToDatabase(client, concept, amount, notes, "whatsapp");
 
+            // Formato con asterisco inicial corregido para negrita limpia
             const msg = `*BIAN MASTER SUITE V9 - NOTA COMERCIAL*\\n\\n` +
                         `👤 *Cliente:* ${client}\\n` +
                         `📦 *Concepto:* ${concept}\\n` +
@@ -1280,17 +1274,14 @@ def process_image(payload: ImageCaptureRequest, session: Session = Depends(get_s
     header, encoded = payload.image_base64.split(",", 1) if "," in payload.image_base64 else ("", payload.image_base64)
     data = base64.b64decode(encoded)
     
-    # 1. Guardar archivo original
     with open(filename_rel, "wb") as f:
         f.write(data)
         
-    # 2. Generar miniatura rápida optimizada (160x160)
     try:
         img = Image.open(io.BytesIO(data))
         img.thumbnail((160, 160))
         img.save(thumb_rel, format="JPEG", quality=75, optimize=True)
     except Exception:
-        # En caso de fallo en Pillow, copiar directamente
         with open(thumb_rel, "wb") as f:
             f.write(data)
 
@@ -1354,7 +1345,8 @@ def storage_analytics(session: Session = Depends(get_session)):
 def nanobot_query(payload: NanoBotQuery, session: Session = Depends(get_session)):
     msg = payload.message.lower()
 
-    if "almacenamiento" in msg or "memoria" in msg or "espacio" in msg or "disco" in msg:
+    # Detección flexible para consultas de almacenamiento
+    if any(k in msg for k in ["almacenamiento", "memoria", "espacio", "disco", "estado", "storage"]):
         analytics = storage_analytics(session)
         return {
             "reply": f"💾 <strong>Telemetría de Almacenamiento:</strong><br>"
@@ -1363,9 +1355,13 @@ def nanobot_query(payload: NanoBotQuery, session: Session = Depends(get_session)
                      f"• Órdenes Guardadas en BD: <strong>{analytics['db_orders_registered']}</strong>.<br>"
                      f"<em>El pipeline de compresión y caché de miniaturas mantiene la app al 100%.</em>"
         }
-    elif "export" in msg or "whatsapp" in msg or "pdf" in msg:
+    elif any(k in msg for k in ["export", "whatsapp", "pdf", "cotiz"]):
         return {
             "reply": "📤 <strong>Exportación Comercial:</strong> Al enviar por WhatsApp o generar un PDF, los datos se respaldan automáticamente en la tabla <code>commercialorder</code> de SQLite para trazabilidad contable."
+        }
+    elif any(k in msg for k in ["escaner", "scan", "doc"]):
+        return {
+            "reply": "📄 <strong>Scan Doc Pro:</strong> Encuadre central A4 con haz láser y filtro de contraste documental B/N."
         }
     else:
         return {
