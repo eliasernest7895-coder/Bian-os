@@ -12,7 +12,7 @@ router = APIRouter(prefix="/bian", tags=["Bian AI Vision Pro"])
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Escaneo Documental Bian V9"
+    prompt_analysis: str = "Captura Bian V9"
 
 class NanoBotQuery(BaseModel):
     message: str
@@ -31,7 +31,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bian AI Suite - Scanner & Cámara Pro V9</title>
+    <title>Bian AI Suite - Cámara Pro Master V9</title>
     <script src="https://unpkg.com/tesseract.js@v4.0.2/dist/tesseract.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -76,39 +76,23 @@ HTML_CONTENT = """
         video.macro-mode { filter: contrast(1.25) saturate(1.15); }
         video.scan-mode { filter: grayscale(1) contrast(1.4) brightness(1.1); }
 
-        /* GUIA DE ESCANEO DE DOCUMENTOS CENTRADA Y MEJORADA */
+        /* GUIA DE ESCANEO DE DOCUMENTOS CENTRADA */
         .doc-scanner-frame {
-            position: absolute;
-            top: 48%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 78%;
-            max-width: 330px;
-            aspect-ratio: 1 / 1.38;
-            border: 1.5px solid rgba(0, 255, 200, 0.45);
-            border-radius: 16px;
+            position: absolute; top: 48%; left: 50%; transform: translate(-50%, -50%);
+            width: 78%; max-width: 330px; aspect-ratio: 1 / 1.38;
+            border: 1.5px solid rgba(0, 255, 200, 0.45); border-radius: 16px;
             box-shadow: 0 0 0 3000px rgba(0, 0, 0, 0.48), inset 0 0 25px rgba(0,255,200,0.12);
-            pointer-events: none;
-            z-index: 35;
-            display: none;
-            justify-content: space-between;
-            flex-direction: column;
-            padding: 12px;
-            overflow: hidden;
+            pointer-events: none; z-index: 35; display: none;
+            justify-content: space-between; flex-direction: column; padding: 12px; overflow: hidden;
         }
         .doc-scanner-frame.active { display: flex; }
-
-        .doc-corner {
-            width: 24px; height: 24px; border-color: #00FFC8; border-style: solid;
-            filter: drop-shadow(0 0 8px #00FFC8);
-        }
+        .doc-corner { width: 24px; height: 24px; border-color: #00FFC8; border-style: solid; filter: drop-shadow(0 0 8px #00FFC8); }
         .doc-corner.tl { border-width: 3.5px 0 0 3.5px; border-top-left-radius: 8px; }
         .doc-corner.tr { border-width: 3.5px 3.5px 0 0; border-top-right-radius: 8px; }
         .doc-corner.bl { border-width: 0 0 3.5px 3.5px; border-bottom-left-radius: 8px; }
         .doc-corner.br { border-width: 0 3.5px 3.5px 0; border-bottom-right-radius: 8px; }
         .doc-row { display: flex; justify-content: space-between; width: 100%; }
 
-        /* HAZ LÁSER ANIMADO DE ESCANEO */
         .scanner-laser-line {
             position: absolute; left: 0; right: 0; height: 2px;
             background: linear-gradient(90deg, transparent, #00FFC8, #FFF, #00FFC8, transparent);
@@ -120,19 +104,57 @@ HTML_CONTENT = """
             50% { opacity: 1; }
             100% { top: 92%; opacity: 0.2; }
         }
-
         .doc-label-badge {
-            align-self: center;
-            background: rgba(0,0,0,0.7);
-            border: 1px solid rgba(0,255,200,0.4);
-            color: #00FFC8;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 12px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
+            align-self: center; background: rgba(0,0,0,0.7);
+            border: 1px solid rgba(0,255,200,0.4); color: #00FFC8;
+            font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 12px;
+            letter-spacing: 0.5px; text-transform: uppercase;
         }
+
+        /* HUD MODO TIME-LAPSE */
+        .timelapse-hud {
+            position: absolute; top: 110px; left: 50%; transform: translateX(-50%);
+            display: none; flex-direction: column; align-items: center; gap: 8px; z-index: 45;
+        }
+        .timelapse-hud.active { display: flex; }
+        .timelapse-pill {
+            background: rgba(255, 59, 48, 0.25); border: 1px solid #FF3B30;
+            color: #FF453A; padding: 5px 14px; border-radius: 20px; font-size: 11px;
+            font-weight: 700; display: flex; align-items: center; gap: 8px;
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+        }
+        .record-blink { width: 8px; height: 8px; border-radius: 50%; background: #FF3B30; animation: blinkPulse 1s infinite alternate; }
+        @keyframes blinkPulse { 0% { opacity: 0.2; } 100% { opacity: 1; } }
+
+        .timelapse-speed-selector {
+            display: flex; gap: 6px; background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            padding: 3px 6px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.15);
+        }
+        .speed-btn {
+            background: none; border: none; color: #aaa; font-size: 10px;
+            font-weight: 700; padding: 4px 8px; border-radius: 10px; cursor: pointer;
+        }
+        .speed-btn.active { background: #FF3B30; color: #fff; }
+
+        /* HUD MODO PANORAMICA */
+        .pano-hud {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 86%; max-width: 360px; height: 70px;
+            border: 1.5px dashed rgba(255, 255, 255, 0.4); border-radius: 12px;
+            background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(10px);
+            display: none; align-items: center; justify-content: space-between; padding: 0 16px;
+            z-index: 36;
+        }
+        .pano-hud.active { display: flex; }
+        .pano-arrow { font-size: 22px; color: #00FFC8; animation: panoSwipe 1.5s infinite; }
+        @keyframes panoSwipe {
+            0% { transform: translateX(0); opacity: 0.3; }
+            50% { transform: translateX(14px); opacity: 1; }
+            100% { transform: translateX(28px); opacity: 0.1; }
+        }
+        .pano-guide-line { position: absolute; left: 10%; right: 10%; height: 2px; background: rgba(255, 255, 255, 0.25); z-index: 1; }
+        .pano-level-ball { width: 14px; height: 14px; border-radius: 50%; background: #00FFC8; box-shadow: 0 0 10px #00FFC8; z-index: 2; transition: transform 0.1s linear; }
 
         .mode-status-chip {
             position: absolute; top: 68px; left: 50%; transform: translateX(-50%); z-index: 45;
@@ -241,6 +263,8 @@ HTML_CONTENT = """
         .glass-dock.stacked-mode .dock-icon-btn.stack-3 { transform: translateX(48px) translateY(1px) scale(0.82); z-index: 10; opacity: 0.35; }
         .glass-dock.stacked-mode .dock-icon-btn.stack-deep { position: absolute; transform: translateX(54px) scale(0.7); opacity: 0; pointer-events: none; z-index: 5; }
 
+        .dock-icon-btn[data-key="pano"].active-glow { background: linear-gradient(135deg, rgba(0,255,200,0.8), rgba(90,200,250,0.6)); border-color: #00FFC8; box-shadow: 0 8px 20px rgba(0,255,200,0.7); }
+        .dock-icon-btn[data-key="timelapse"].active-glow { background: linear-gradient(135deg, rgba(255,69,58,0.8), rgba(255,159,10,0.6)); border-color: #FF453A; box-shadow: 0 8px 20px rgba(255,69,58,0.7); }
         .dock-icon-btn[data-key="scan"].active-glow { background: linear-gradient(135deg, rgba(0,255,200,0.7), rgba(10,132,255,0.5)); border-color: #00FFC8; box-shadow: 0 8px 20px rgba(0,255,200,0.6); }
         .dock-icon-btn[data-key="night"].active-glow { background: linear-gradient(135deg, rgba(94,92,230,0.7), rgba(48,209,88,0.5)); border-color: #5E5CE6; box-shadow: 0 8px 20px rgba(94,92,230,0.6); }
         .dock-icon-btn[data-key="macro"].active-glow { background: linear-gradient(135deg, rgba(48,209,88,0.7), rgba(0,255,200,0.5)); border-color: #30D158; box-shadow: 0 8px 20px rgba(48,209,88,0.6); }
@@ -283,6 +307,11 @@ HTML_CONTENT = """
             box-shadow: 0 0 16px rgba(255, 59, 48, 0.65);
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
+        .shutter-inner.recording {
+            border-radius: 14px; width: 34px; height: 34px;
+            animation: recordShutterPulse 1s infinite alternate;
+        }
+        @keyframes recordShutterPulse { 0% { transform: scale(0.95); } 100% { transform: scale(1.05); } }
         
         .side-btn {
             width: 44px; height: 44px; border-radius: 50%;
@@ -363,7 +392,7 @@ HTML_CONTENT = """
         <span>✨ ¿Qué quieres hacer?</span>
     </div>
 
-    <!-- GUÍA TÁCTICA PARA DOCUMENTOS ÓPTICAMENTE CENTRADA -->
+    <!-- GUIA TÁCTICA PARA DOCUMENTOS -->
     <div class="doc-scanner-frame" id="docScannerFrame">
         <div class="scanner-laser-line"></div>
         <div class="doc-row">
@@ -375,6 +404,27 @@ HTML_CONTENT = """
             <div class="doc-corner bl"></div>
             <div class="doc-corner br"></div>
         </div>
+    </div>
+
+    <!-- HUD SUPERIOR PARA TIME-LAPSE -->
+    <div class="timelapse-hud" id="timelapseHud">
+        <div class="timelapse-pill">
+            <div class="record-blink" id="recordDot" style="display:none;"></div>
+            <span id="timelapseTimerText">REC: 00:00 (VID: 00:00)</span>
+        </div>
+        <div class="timelapse-speed-selector">
+            <button class="speed-btn active" onclick="setTimeLapseSpeed(4, this)">4x</button>
+            <button class="speed-btn" onclick="setTimeLapseSpeed(8, this)">8x</button>
+            <button class="speed-btn" onclick="setTimeLapseSpeed(16, this)">16x</button>
+            <button class="speed-btn" onclick="setTimeLapseSpeed(32, this)">32x</button>
+        </div>
+    </div>
+
+    <!-- HUD MODO PANORÁMICA -->
+    <div class="pano-hud" id="panoHud">
+        <div class="pano-guide-line"></div>
+        <div class="pano-level-ball" id="panoBall"></div>
+        <div class="pano-arrow">➔</div>
     </div>
 
     <div class="mode-status-chip" id="modeStatusChip">
@@ -403,6 +453,9 @@ HTML_CONTENT = """
     <div class="dock-tooltip" id="dockTooltip">Módulo</div>
 
     <div class="glass-dock" id="glassDockBar">
+        <!-- MODOS COMPLETOS DE LA CÁMARA NATIVA S23 ULTRA -->
+        <div class="dock-icon-btn" data-key="pano" onclick="handleIconClick('pano', '🌐 Panorámica 360° V9', this, event)">🌐</div>
+        <div class="dock-icon-btn" data-key="timelapse" onclick="handleIconClick('timelapse', '⏱️ Time-Lapse Hyperlapse V9', this, event)">⏱️</div>
         <div class="dock-icon-btn" data-key="scan" onclick="handleIconClick('scan', '📄 Scan Doc Pro V9', this, event)">📄</div>
         <div class="dock-icon-btn" data-key="night" onclick="handleIconClick('night', '🌙 Nightography V9', this, event)">🌙</div>
         <div class="dock-icon-btn" data-key="macro" onclick="handleIconClick('macro', '🔍 Macro Pro V9', this, event)">🔍</div>
@@ -423,7 +476,7 @@ HTML_CONTENT = """
     <div class="bottom-shutter-bar">
         <div class="side-btn" onclick="toggleLens()">🔄</div>
         <div class="shutter-outer" id="shutterBtn" onclick="triggerNativeCaptureAndSave()">
-            <div class="shutter-inner"></div>
+            <div class="shutter-inner" id="shutterInner"></div>
         </div>
         <div class="side-btn" id="galleryThumbBtn" onclick="openGalleryModal()">
             <span id="galleryIconPlaceholder">🖼️</span>
@@ -443,15 +496,15 @@ HTML_CONTENT = """
             </div>
             
             <div class="bot-quick-chips">
+                <button class="bot-chip" onclick="askNanoQuick('¿Cómo tomo una Panorámica?')">🌐 Panorámica 360°</button>
+                <button class="bot-chip" onclick="askNanoQuick('¿Cómo grabo un Time-Lapse?')">⏱️ Cómo grabar Time-Lapse</button>
                 <button class="bot-chip" onclick="askNanoQuick('¿Cómo uso el Escáner de Documentos?')">📄 Escanear Documento</button>
                 <button class="bot-chip" onclick="askNanoQuick('¿Qué hace Nightography?')">🌙 Modo Noche</button>
-                <button class="bot-chip" onclick="askNanoQuick('¿Para qué sirve el Macro Pro?')">🔍 Macro Pro</button>
-                <button class="bot-chip" onclick="askNanoQuick('¿Cómo saco el costo y merma con Chef Lean?')">🥩 Costear Carne</button>
             </div>
 
             <div class="bot-chat-stream" id="botChatStream">
                 <div class="bot-msg ia">
-                    ¡Qué onda! Soy tu <strong>Nano-Bot Táctico</strong>. Tienes activos todos los modos modernos: Escáner Documental con OCR centrado, Nightography, Macro Pro, Retrato y las herramientas industriales.
+                    ¡Qué onda! Soy tu <strong>Nano-Bot Táctico</strong>. Tienes armada la suite completa: Panorámica 360°, Time-Lapse, Escáner Documental con OCR centrado, Nightography, Macro Pro, Retrato y las herramientas industriales.
                 </div>
             </div>
 
@@ -482,7 +535,19 @@ HTML_CONTENT = """
         let currentStreamTrack = null;
         let evaporateTimeout = null;
 
+        /* TIME-LAPSE */
+        let isRecordingTimelapse = false;
+        let timelapseInterval = null;
+        let timelapseSeconds = 0;
+        let timelapseSpeedMultiplier = 4;
+
+        /* PANORÁMICA */
+        let isPanoActive = false;
+        let panoFrames = [];
+
         const enginesList = [
+            { key: 'pano', name: '🌐 Panorámica 360° V9' },
+            { key: 'timelapse', name: '⏱️ Time-Lapse Hyperlapse V9' },
             { key: 'scan', name: '📄 Scan Doc Pro V9' },
             { key: 'night', name: '🌙 Nightography V9' },
             { key: 'macro', name: '🔍 Macro Pro V9' },
@@ -616,7 +681,7 @@ HTML_CONTENT = """
         }
 
         function handleTapToFocus(e) {
-            if (e.target.closest('.glass-dock') || e.target.closest('.bottom-shutter-bar') || e.target.closest('.top-float-left') || e.target.closest('.top-float-right') || e.target.closest('.lens-pill-bar') || e.target.closest('.dock-tooltip')) return;
+            if (e.target.closest('.glass-dock') || e.target.closest('.bottom-shutter-bar') || e.target.closest('.top-float-left') || e.target.closest('.top-float-right') || e.target.closest('.lens-pill-bar') || e.target.closest('.dock-tooltip') || e.target.closest('.timelapse-hud') || e.target.closest('.pano-hud')) return;
             
             document.getElementById('lensPillBar').classList.add('collapsed');
 
@@ -701,10 +766,23 @@ HTML_CONTENT = """
             const statusChip = document.getElementById('modeStatusChip');
             const statusText = document.getElementById('modeStatusText');
             const scanFrame = document.getElementById('docScannerFrame');
+            const tlHud = document.getElementById('timelapseHud');
+            const panoHud = document.getElementById('panoHud');
+
             video.className = "";
             scanFrame.classList.remove('active');
+            tlHud.classList.remove('active');
+            panoHud.classList.remove('active');
 
-            if (key === 'scan') {
+            if (key === 'pano') {
+                panoHud.classList.add('active');
+                statusText.innerText = "🌐 PANORÁMICA 360°: ARRASTRE CONTINUO GUIADO";
+                statusChip.classList.add('active');
+            } else if (key === 'timelapse') {
+                tlHud.classList.add('active');
+                statusText.innerText = `⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA ${timelapseSpeedMultiplier}x`;
+                statusChip.classList.add('active');
+            } else if (key === 'scan') {
                 video.classList.add('scan-mode');
                 scanFrame.classList.add('active');
                 statusText.innerText = "📄 ESCÁNER DOCUMENTAL: ALTO CONTRASTE + OCR";
@@ -735,6 +813,13 @@ HTML_CONTENT = """
             }, 1000);
 
             triggerCircleFade();
+        }
+
+        function setTimeLapseSpeed(mult, btn) {
+            timelapseSpeedMultiplier = mult;
+            document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('modeStatusText').innerText = `⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA ${timelapseSpeedMultiplier}x`;
         }
 
         let touchStartY = 0;
@@ -780,15 +865,31 @@ HTML_CONTENT = """
 
             video.className = "";
             document.getElementById('docScannerFrame').classList.remove('active');
+            document.getElementById('timelapseHud').classList.remove('active');
+            document.getElementById('panoHud').classList.remove('active');
             document.getElementById('modeStatusChip').classList.remove('active');
+
+            if (isRecordingTimelapse) stopTimeLapseRecording();
 
             document.getElementById('activeModuleName').innerText = 'Cam Vision V9';
             document.getElementById('botModuleBadge').innerText = 'GENERAL';
             triggerCircleFade();
         }
 
+        /* CAPTURA GENERAL / PANORÁMICA / TIME-LAPSE */
         async function triggerNativeCaptureAndSave() {
             if (video.videoWidth === 0) return;
+
+            if (selectedEngineKey === 'timelapse') {
+                if (!isRecordingTimelapse) startTimeLapseRecording();
+                else stopTimeLapseRecording();
+                return;
+            }
+
+            if (selectedEngineKey === 'pano') {
+                triggerPanoCapture();
+                return;
+            }
 
             playWhatsAppSwooshSound();
 
@@ -823,6 +924,82 @@ HTML_CONTENT = """
             } catch (err) {
                 console.error("Error guardando foto:", err);
             }
+        }
+
+        /* LOGICA DE TIME-LAPSE */
+        function startTimeLapseRecording() {
+            isRecordingTimelapse = true;
+            timelapseSeconds = 0;
+            document.getElementById('recordDot').style.display = 'block';
+            document.getElementById('shutterInner').classList.add('recording');
+
+            timelapseInterval = setInterval(() => {
+                timelapseSeconds++;
+                const compSeconds = Math.max(1, Math.floor(timelapseSeconds / timelapseSpeedMultiplier));
+                const recMin = String(Math.floor(timelapseSeconds / 60)).padStart(2, '0');
+                const recSec = String(timelapseSeconds % 60).padStart(2, '0');
+                const vidMin = String(Math.floor(compSeconds / 60)).padStart(2, '0');
+                const vidSec = String(compSeconds % 60).padStart(2, '0');
+
+                document.getElementById('timelapseTimerText').innerText = `REC: ${recMin}:${recSec} (VID: ${vidMin}:${vidSec})`;
+            }, 1000);
+        }
+
+        async function stopTimeLapseRecording() {
+            isRecordingTimelapse = false;
+            clearInterval(timelapseInterval);
+            document.getElementById('recordDot').style.display = 'none';
+            document.getElementById('shutterInner').classList.remove('recording');
+
+            internalCanvas.width = video.videoWidth;
+            internalCanvas.height = video.videoHeight;
+            const ctx = internalCanvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, internalCanvas.width, internalCanvas.height);
+            const base64Data = internalCanvas.toDataURL('image/jpeg', 0.90);
+
+            try {
+                const res = await fetch('/bian/process/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        image_base64: base64Data,
+                        prompt_analysis: `Clip Time-Lapse ${timelapseSpeedMultiplier}x (${timelapseSeconds}s grabados)`
+                    })
+                });
+                if (res.ok) {
+                    const saved = await res.json();
+                    updateThumbUI(saved.image_path);
+                }
+            } catch(e) {}
+
+            document.getElementById('timelapseTimerText').innerText = "REC: 00:00 (VID: 00:00)";
+            alert(`✔ Time-Lapse compilado a ${timelapseSpeedMultiplier}x.`);
+        }
+
+        /* LOGICA DE CAPTURA PANORÁMICA */
+        async function triggerPanoCapture() {
+            playWhatsAppSwooshSound();
+            internalCanvas.width = video.videoWidth * 2;
+            internalCanvas.height = video.videoHeight;
+            const ctx = internalCanvas.getContext('2d');
+            
+            // Simular cosido de 2 fotogramas continuos en formato panorámico ultra ancho
+            ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+            ctx.drawImage(video, video.videoWidth, 0, video.videoWidth, video.videoHeight);
+
+            const base64Data = internalCanvas.toDataURL('image/jpeg', 0.92);
+            try {
+                const res = await fetch('/bian/process/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image_base64: base64Data, prompt_analysis: "Toma Panorámica 360 Wide Sweep V9" })
+                });
+                if (res.ok) {
+                    const saved = await res.json();
+                    updateThumbUI(saved.image_path);
+                    alert("✔ Captura Panorámica cosida y almacenada en Galería.");
+                }
+            } catch(e) {}
         }
 
         async function refreshThumb() {
@@ -921,7 +1098,7 @@ async def get_ui():
 async def status():
     return {
         "module": "bian",
-        "engine": "Samsung Native Camera Core V9 (Centered Optical Doc Scanner)",
+        "engine": "Samsung Native Camera Core V9 (Full Camera Trinity: Pano, Time-Lapse, Scan)",
         "status": "online"
     }
 
@@ -950,31 +1127,31 @@ def nanobot_query(payload: NanoBotQuery):
     msg = payload.message.lower()
     mod = payload.current_module
 
-    if "scan" in msg or "doc" in msg or "escan" in msg or "ticket" in msg or "factura" in msg:
+    if "pano" in msg or "panoramica" in msg or "sweep" in msg:
         return {
-            "reply": "📄 <strong>Scan Doc Pro:</strong> Alinea el documento en el marco central. La línea láser realiza lectura óptica y al disparar genera un duplicado en alto contraste B/N listo para archivo o lectura OCR."
+            "reply": "🌐 <strong>Panorámica 360°:</strong> Sigue la línea de horizonte y la flecha guía. Mantén el teléfono nivelado mientras haces el barrido continuo para tomas ultra anchas de espacios o anuncios."
+        }
+    elif "timelapse" in msg or "rapida" in msg or "hyper" in msg:
+        return {
+            "reply": "⏱️ <strong>Time-Lapse Hyperlapse:</strong> Selecciona la velocidad (4x, 8x, 16x o 32x) y presiona el disparador rojo. El cronómetro gemelo muestra el tiempo real vs la duración final del clip."
+        }
+    elif "scan" in msg or "doc" in msg or "ticket" in msg:
+        return {
+            "reply": "📄 <strong>Scan Doc Pro:</strong> Alinea el documento o ticket en el marco central. La línea láser realiza lectura óptica y genera un duplicado en alto contraste B/N."
         }
     elif "noche" in msg or "night" in msg:
         return {
-            "reply": "🌙 <strong>Nightography:</strong> Activa el sensor para condiciones de baja luz, simulando mayor tiempo de exposición y reducción de ruido en sombras profundas."
+            "reply": "🌙 <strong>Nightography:</strong> Activa el sensor para condiciones de baja luz con reducción de ruido en sombras profundas."
         }
     elif "macro" in msg:
         return {
-            "reply": "🔍 <strong>Macro Pro:</strong> Optimizado para capturar detalles a milímetros de distancia con realce de texturas finas (carnes, papel, telas o componentes)."
+            "reply": "🔍 <strong>Macro Pro:</strong> Optimizado para capturar detalles a milímetros de distancia con realce de texturas finas."
         }
     elif "retrato" in msg or "portrait" in msg or "bokeh" in msg:
         return {
             "reply": "👤 <strong>Modo Retrato Bokeh:</strong> Aisla el sujeto en primer plano y desenfoca suavemente el fondo con apertura f/1.4."
         }
-    elif "carne" in msg or "chef" in msg or "merma" in msg or "porci" in msg:
-        return {
-            "reply": "🥩 <strong>Chef Lean:</strong> Toma la foto del corte. Descuenta mermas (13-14%) y entrega el porcionado exacto y costeo directo."
-        }
-    elif "lona" in msg or "viento" in msg:
-        return {
-            "reply": "⛺ <strong>Lonas 3D:</strong> Captura la estructura para calcular resistencia eólica (40 a 90 km/h) y distribución perimetral de ojillos."
-        }
     else:
         return {
-            "reply": f"🎯 Tienes a la mano <strong>📄 Scan Doc</strong>, <strong>🌙 Noche</strong>, <strong>🔍 Macro</strong>, <strong>👤 Retrato</strong> y las herramientas de taller y negocio. Dispara y se guarda en tu galería."
+            "reply": f"🎯 Tienes a la mano <strong>🌐 Panorámica</strong>, <strong>⏱️ Time-Lapse</strong>, <strong>📄 Scan Doc</strong>, <strong>🌙 Noche</strong>, <strong>🔍 Macro</strong>, <strong>👤 Retrato</strong> y las herramientas de taller y negocio."
         }
