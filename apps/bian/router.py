@@ -43,7 +43,6 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .ambient-fade-light.flash { opacity: 1; transition: opacity 0.05s ease-in; }
 
-        /* 1. LOCKSCREEN CON TAPA DE LENTE 35MM */
         #lockscreen {
             position: fixed; inset: 0; background: #050608; z-index: 200;
             display: flex; flex-direction: column; align-items: center; justify-content: space-between;
@@ -65,7 +64,6 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .brand-subtitle { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 15px; }
 
-        /* TAPA DE LENTE INTERACTIVA */
         .lens-cap-assembly {
             display: flex; flex-direction: column; align-items: center; cursor: pointer;
             touch-action: none; user-select: none; margin-bottom: 20px;
@@ -86,12 +84,10 @@ HTML_CONTENT = """<!DOCTYPE html>
         .lens-cap-sub { font-size: 7px; color: #777; letter-spacing: 1px; margin-top: 2px; }
         .lens-cap-hint { font-size: 10px; font-weight: 800; color: #aaa; margin-top: 10px; letter-spacing: 1px; text-transform: uppercase; }
 
-        /* VIEWPORT Y VISOR */
         .suite-view { width: 100vw; height: 100vh; position: relative; background: #000; overflow: hidden; display: flex; flex-direction: column; }
         #videoContainer { width: 100%; height: 100%; position: relative; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
 
-        /* TOP HUD */
         .top-dock {
             position: absolute; top: 16px; left: 16px; right: 16px; z-index: 100;
             display: flex; justify-content: space-between; align-items: center;
@@ -146,11 +142,10 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: flex; align-items: center; gap: 4px; user-select: none;
         }
 
-        /* 2. PILA DE CARTAS (MODO MAZO Y MODO CUADRÍCULA DESPLEGADA) */
         .deck-stack-wrapper {
             position: absolute; bottom: 98px; left: calc(50% + 55px); z-index: 105;
             width: 58px; height: 58px; perspective: 600px; touch-action: none;
-            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .deck-card-item {
             position: absolute; inset: 0; border-radius: 18px;
@@ -158,7 +153,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: flex; align-items: center; justify-content: center; font-size: 25px;
             cursor: pointer; backdrop-filter: blur(16px);
             box-shadow: 0 8px 24px rgba(0,0,0,0.7);
-            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             user-select: none;
         }
         .deck-card-item.pos-0 { transform: translate3d(0, 0, 0); z-index: 6; opacity: 1; }
@@ -167,21 +162,35 @@ HTML_CONTENT = """<!DOCTYPE html>
         .deck-card-item.pos-3 { transform: translate3d(18px, -15px, -45px) rotate(12deg); z-index: 3; opacity: 0.45; }
         .deck-card-item.pos-4 { transform: translate3d(24px, -20px, -60px) rotate(16deg); z-index: 2; opacity: 0.25; }
 
-        /* CUADRÍCULA DESPLEGADA */
-        .deck-stack-wrapper.expanded {
-            position: fixed; inset: 80px 20px 120px 20px; width: auto; height: auto;
-            display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
-            background: rgba(6, 7, 10, 0.95); border: 1px solid #222; border-radius: 20px;
-            padding: 16px; backdrop-filter: blur(25px); z-index: 160; overflow-y: auto;
+        .deck-card-item.slide-up { transform: translate3d(0, -70px, 40px) scale(1.08); opacity: 0; }
+        .deck-card-item.slide-down { transform: translate3d(0, 70px, 40px) scale(1.08); opacity: 0; }
+
+        #horizontalDockBar {
+            position: absolute; bottom: 104px; left: 16px; right: 16px; z-index: 110;
+            background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 28px; padding: 8px 14px; backdrop-filter: blur(25px);
+            display: none; align-items: center; gap: 12px; overflow-x: auto; scrollbar-width: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.85);
+            transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .deck-stack-wrapper.expanded .deck-card-item {
-            position: relative; inset: auto; width: 100%; height: 85px;
-            transform: none !important; opacity: 1 !important; flex-direction: column;
-            gap: 6px; font-size: 24px; border-radius: 14px; background: #121318;
+        #horizontalDockBar.active { display: flex; }
+        #horizontalDockBar::-webkit-scrollbar { display: none; }
+
+        .dock-item-btn {
+            position: relative; flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05); border: 1.5px solid rgba(255, 255, 255, 0.15);
+            display: flex; align-items: center; justify-content: center; font-size: 20px;
+            cursor: pointer; transition: all 0.2s ease;
         }
-        .deck-stack-wrapper.expanded .deck-card-item .card-label {
-            font-size: 10px; font-weight: 800; color: #fff; text-transform: uppercase;
+        .dock-item-btn.active {
+            background: rgba(255, 255, 255, 0.18);
+            transform: scale(1.12);
         }
+        .dock-dot-indicator {
+            position: absolute; bottom: -3px; width: 6px; height: 6px; border-radius: 50%;
+            display: none;
+        }
+        .dock-item-btn.active .dock-dot-indicator { display: block; }
 
         .bottom-bar {
             position: absolute; bottom: 20px; left: 0; right: 0; z-index: 100;
@@ -202,7 +211,6 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* 3. BURBUJA FLOTANTE ARRASTRABLE (CHATHEAD STYLE) */
         #floatingGadget {
             position: fixed; top: 180px; left: 14px; width: 48px; height: 48px;
             border-radius: 50%; background: #0c0d12; border: 2px solid #00FFC8;
@@ -213,7 +221,6 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         #floatingGadget:active { cursor: grabbing; transform: scale(1.08); }
 
-        /* MINI-TALLER FLOTANTE DESPLEGABLE */
         #floatingPanel {
             display: none; position: fixed; inset: 100px 18px 120px 18px; z-index: 260;
             background: rgba(10, 12, 16, 0.96); border: 1px solid #00FFC8; border-radius: 20px;
@@ -222,7 +229,6 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .float-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 
-        /* MODALES */
         #postEditModal {
             display: none; position: fixed; inset: 0; z-index: 300; background: rgba(6, 7, 10, 0.96);
             backdrop-filter: blur(20px); flex-direction: column; padding: 20px 18px 25px 18px;
@@ -287,7 +293,6 @@ HTML_CONTENT = """<!DOCTYPE html>
     <div class="edge-screen-border" id="screenEdgeBorder"></div>
     <div class="ambient-fade-light" id="ambientLightLayer"></div>
 
-    <!-- 1. LOCKSCREEN CON TAPA DE LENTE 35MM -->
     <div id="lockscreen">
         <div class="pill-badge">• BIAN MASTER SUITE V10</div>
 
@@ -295,7 +300,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             <div class="brand-title">BIAN</div>
             <div class="brand-subtitle">Tu app de fotos y video</div>
             <div style="font-size:11px; color:#777; max-width:280px; margin:0 auto; line-height:1.4;">
-                Sensor calibrado, óptica anamórfica, IA local y 21 módulos de producción soberana.
+                Sensor calibrado, óptica anamórfica, IA local y módulos de producción soberana.
             </div>
         </div>
 
@@ -308,10 +313,8 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- 3. GADGET BURBUJA FLOTANTE ESTILO MESSENGER -->
     <div id="floatingGadget" title="Arrastra o toca para abrir taller">⚡</div>
 
-    <!-- PANEL DEL GADGET FLOTANTE -->
     <div id="floatingPanel">
         <div class="float-header">
             <div style="font-size:13px; font-weight:800; color:#00FFC8;">⚡ TALLER TÁCTICO FLOTANTE</div>
@@ -326,7 +329,6 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- VIEWPORT CON ANILLO DE ENFOQUE PRO -->
     <div class="suite-view" id="viewportArea">
         <div id="videoContainer">
             <video id="webcam" autoplay playsinline></video>
@@ -356,8 +358,9 @@ HTML_CONTENT = """<!DOCTYPE html>
             🔍 <span id="zoomLabel">1x</span>
         </div>
 
-        <!-- 2. PILA DE CARTAS: TAP DESPLIEGA CUADRÍCULA -->
-        <div class="deck-stack-wrapper" id="deckStack"></div>
+        <div class="deck-stack-wrapper" id="deckStack" onclick="openHorizontalDock()"></div>
+
+        <div id="horizontalDockBar"></div>
 
         <div class="bottom-bar">
             <div class="lens-switch-btn" onclick="toggleLens()">🔄</div>
@@ -366,7 +369,6 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- MODAL POST-CAPTURA -->
     <div id="postEditModal">
         <div class="edit-header">
             <div class="edit-title" id="editModalTitle">🛠️ POST-PROCESO & EDICIÓN</div>
@@ -388,7 +390,6 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- MODAL GALERÍA -->
     <div id="galleryModal">
         <div class="edit-header">
             <div class="edit-title" style="color:#00FFC8;">🖼️ GALERÍA SOBERANA (SQLITE LOCAL)</div>
@@ -397,7 +398,6 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="gallery-grid" id="galleryGridContent"></div>
     </div>
 
-    <!-- MODAL NANO-BOT -->
     <div id="nanobotModal">
         <div>
             <div class="edit-header">
@@ -421,7 +421,8 @@ HTML_CONTENT = """<!DOCTYPE html>
         let currentZoomIndex = 1;
         const zoomLevels = [0.6, 1.0, 2.0];
         let lastCapturedBlob = null;
-        let isDeckExpanded = false;
+        let lastClickedModuleIndex = -1;
+        let lastModuleClickTime = 0;
 
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -449,7 +450,6 @@ HTML_CONTENT = """<!DOCTYPE html>
             video.style.transform = `scale(${z})`;
         }
 
-        /* ALTERNANCIA CADA 5 SEG DEL NANO-BOT */
         let botLabelState = 0;
         setInterval(() => {
             const btn = document.getElementById('botToggleBtn');
@@ -461,9 +461,8 @@ HTML_CONTENT = """<!DOCTYPE html>
             }, 250);
         }, 5000);
 
-        /* ENFOQUE TÁCTICO */
         window.addEventListener('click', (e) => {
-            if (e.target.closest('.bottom-bar') || e.target.closest('.top-dock') || e.target.closest('#deckStack') || e.target.closest('#zoomChip') || !unlocked || e.target.closest('#postEditModal') || e.target.closest('#galleryModal') || e.target.closest('#nanobotModal') || e.target.closest('#floatingGadget') || e.target.closest('#floatingPanel')) return;
+            if (e.target.closest('.bottom-bar') || e.target.closest('.top-dock') || e.target.closest('#deckStack') || e.target.closest('#horizontalDockBar') || e.target.closest('#zoomChip') || !unlocked || e.target.closest('#postEditModal') || e.target.closest('#galleryModal') || e.target.closest('#nanobotModal') || e.target.closest('#floatingGadget') || e.target.closest('#floatingPanel')) return;
             focusRing.style.left = `${e.clientX}px`;
             focusRing.style.top = `${e.clientY}px`;
             focusRing.classList.remove('active');
@@ -472,7 +471,6 @@ HTML_CONTENT = """<!DOCTYPE html>
             setTimeout(() => focusRing.classList.remove('active'), 2500);
         });
 
-        /* SONIDO DE OBTURADOR ANALÓGICO (DESTAPAR LENTE) */
         function playLensCapShutterSound() {
             try {
                 const ctx = getAudioContext();
@@ -520,19 +518,17 @@ HTML_CONTENT = """<!DOCTYPE html>
             if (deltaY > 20 || Math.abs(deltaY) < 10) unlockSuite();
         }, { passive: true });
 
-        /* SWIPE GLOBAL */
         window.addEventListener('touchstart', (e) => {
-            if (!e.target.closest('#deckStack') && !e.target.closest('#postEditModal') && !e.target.closest('#galleryModal') && !e.target.closest('#nanobotModal') && !e.target.closest('#floatingGadget') && !e.target.closest('#floatingPanel')) touchStartY = e.touches[0].clientY;
+            if (!e.target.closest('#deckStack') && !e.target.closest('#horizontalDockBar') && !e.target.closest('#postEditModal') && !e.target.closest('#galleryModal') && !e.target.closest('#nanobotModal') && !e.target.closest('#floatingGadget') && !e.target.closest('#floatingPanel')) touchStartY = e.touches[0].clientY;
         }, { passive: true });
         window.addEventListener('touchend', (e) => {
-            if (!e.target.closest('#deckStack') && !e.target.closest('#postEditModal') && !e.target.closest('#galleryModal') && !e.target.closest('#nanobotModal') && !e.target.closest('#floatingGadget') && !e.target.closest('#floatingPanel')) {
+            if (!e.target.closest('#deckStack') && !e.target.closest('#horizontalDockBar') && !e.target.closest('#postEditModal') && !e.target.closest('#galleryModal') && !e.target.closest('#nanobotModal') && !e.target.closest('#floatingGadget') && !e.target.closest('#floatingPanel')) {
                 const deltaY = touchStartY - e.changedTouches[0].clientY;
                 if (!unlocked && deltaY > 35) unlockSuite();
                 else if (unlocked && deltaY < -75 && touchStartY < 120) lockSuite();
             }
         }, { passive: true });
 
-        /* CATÁLOGO DE MÓDULOS */
         const moduleCatalog = [
             { key: 'night', icon: '🌙', title: 'NIGHTOGRAPHY', pill: '🌙 NIGHTOGRAPHY: ISO BOOST + RAW DENOISE', color: '#5E5CE6', botTips: 'Baja iluminación detectada. Estabiliza 1 seg para máxima nitidez sin ruido.' },
             { key: 'timelapse', icon: '⏱️', title: 'TIMELAPSE', pill: '⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA 4x', color: '#FF3B30', botTips: 'Modo compresión activo. Ideal para registrar tránsito o nubes.' },
@@ -545,62 +541,81 @@ HTML_CONTENT = """<!DOCTYPE html>
 
         let activeCardIndex = 0;
         const deckStack = document.getElementById('deckStack');
+        const horizontalDock = document.getElementById('horizontalDockBar');
 
-        /* RENDER DE LA BARAJA (MAZO VS CUADRÍCULA DESPLEGADA) */
         function renderDeckStack() {
             deckStack.innerHTML = '';
-            if (!isDeckExpanded) {
-                deckStack.className = 'deck-stack-wrapper';
-                for (let i = 0; i < 5; i++) {
-                    const idx = (activeCardIndex + i) % moduleCatalog.length;
-                    const m = moduleCatalog[idx];
-                    const card = document.createElement('div');
-                    card.className = `deck-card-item pos-${i}`;
-                    card.innerText = m.icon;
-                    card.setAttribute('data-key', m.key);
-                    card.onclick = (e) => {
-                        e.stopPropagation();
-                        toggleDeckExpansion();
-                    };
-                    deckStack.appendChild(card);
-                }
-            } else {
-                deckStack.className = 'deck-stack-wrapper expanded';
-                moduleCatalog.forEach((m, idx) => {
-                    const card = document.createElement('div');
-                    card.className = 'deck-card-item';
-                    card.style.borderColor = (idx === activeCardIndex) ? m.color : '#333';
-                    card.innerHTML = `<span>${m.icon}</span><span class="card-label" style="color:${(idx === activeCardIndex) ? m.color : '#fff'};">${m.title}</span>`;
-                    card.onclick = (e) => {
-                        e.stopPropagation();
-                        activeCardIndex = idx;
-                        isDeckExpanded = false;
-                        renderDeckStack();
-                        applyActiveCardTheme(moduleCatalog[activeCardIndex]);
-                    };
-                    deckStack.appendChild(card);
-                });
+            for (let i = 0; i < 5; i++) {
+                const idx = (activeCardIndex + i) % moduleCatalog.length;
+                const m = moduleCatalog[idx];
+                const card = document.createElement('div');
+                card.className = `deck-card-item pos-${i}`;
+                card.innerText = m.icon;
+                card.setAttribute('data-key', m.key);
+                deckStack.appendChild(card);
             }
         }
         renderDeckStack();
 
-        function toggleDeckExpansion() {
-            isDeckExpanded = !isDeckExpanded;
-            renderDeckStack();
+        function renderHorizontalDock() {
+            horizontalDock.innerHTML = '';
+            moduleCatalog.forEach((m, idx) => {
+                const btn = document.createElement('div');
+                btn.className = `dock-item-btn ${(idx === activeCardIndex) ? 'active' : ''}`;
+                btn.innerHTML = `
+                    <span>${m.icon}</span>
+                    <span class="dock-dot-indicator" style="background:${m.color}; box-shadow:0 0 6px ${m.color};"></span>
+                `;
+                if(idx === activeCardIndex) {
+                    btn.style.borderColor = m.color;
+                    btn.style.boxShadow = `0 0 12px ${m.color}88`;
+                }
+
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    const now = Date.now();
+                    const isDoubleClick = (lastClickedModuleIndex === idx) && (now - lastModuleClickTime < 650);
+
+                    // Si se presiona el que ya está activo o se hace doble clic en otro
+                    if (idx === activeCardIndex || isDoubleClick) {
+                        activeCardIndex = idx;
+                        closeHorizontalDock();
+                        renderDeckStack();
+                        applyActiveCardTheme(moduleCatalog[activeCardIndex]);
+                        lastClickedModuleIndex = -1;
+                    } else {
+                        // Primer toque en un módulo diferente: lo activa y mantiene el dock abierto
+                        activeCardIndex = idx;
+                        lastClickedModuleIndex = idx;
+                        lastModuleClickTime = now;
+                        renderHorizontalDock();
+                        applyActiveCardTheme(moduleCatalog[activeCardIndex]);
+                    }
+                };
+                horizontalDock.appendChild(btn);
+            });
         }
 
-        /* GESTO SWIPE EN MODO MAZO */
+        function openHorizontalDock() {
+            renderHorizontalDock();
+            deckStack.style.display = 'none';
+            horizontalDock.classList.add('active');
+        }
+
+        function closeHorizontalDock() {
+            horizontalDock.classList.remove('active');
+            deckStack.style.display = 'block';
+        }
+
         let deckTouchStartY = 0;
         deckStack.addEventListener('touchstart', (e) => {
-            if (!isDeckExpanded) deckTouchStartY = e.touches[0].clientY;
+            deckTouchStartY = e.touches[0].clientY;
         }, { passive: true });
 
         deckStack.addEventListener('touchend', (e) => {
-            if (!isDeckExpanded) {
-                const deltaY = deckTouchStartY - e.changedTouches[0].clientY;
-                if (deltaY > 20) shiftCard(1, 'slide-up');
-                else if (deltaY < -20) shiftCard(-1, 'slide-down');
-            }
+            const deltaY = deckTouchStartY - e.changedTouches[0].clientY;
+            if (deltaY > 20) shiftCard(1, 'slide-up');
+            else if (deltaY < -20) shiftCard(-1, 'slide-down');
         }, { passive: true });
 
         function shiftCard(dir, animClass) {
@@ -621,7 +636,6 @@ HTML_CONTENT = """<!DOCTYPE html>
             document.getElementById('contextPillText').style.color = m.color;
             document.getElementById('contextPillText').style.borderColor = `${m.color}66`;
 
-            // Actualizar gadget flotante
             document.getElementById('floatingGadget').innerText = m.icon;
             document.getElementById('floatingGadget').style.borderColor = m.color;
             document.getElementById('floatModTitle').innerText = m.title;
@@ -629,7 +643,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             document.getElementById('floatModDesc').innerText = m.botTips;
 
             const topCard = deckStack.querySelector('.pos-0');
-            if (topCard && !isDeckExpanded) {
+            if (topCard) {
                 topCard.style.borderColor = m.color;
                 topCard.style.background = m.color;
                 topCard.style.boxShadow = `0 0 22px ${m.color}`;
@@ -637,9 +651,8 @@ HTML_CONTENT = """<!DOCTYPE html>
 
             triggerModuleVisuals(m.color);
 
-            // Se apaga al 100% tras 1.5 segundos
             setTimeout(() => {
-                if (topCard && !isDeckExpanded) {
+                if (topCard) {
                     topCard.style.borderColor = 'rgba(255, 255, 255, 0.25)';
                     topCard.style.background = 'rgba(24, 25, 30, 0.92)';
                     topCard.style.boxShadow = '0 8px 24px rgba(0,0,0,0.7)';
@@ -668,7 +681,6 @@ HTML_CONTENT = """<!DOCTYPE html>
             }, 100);
         }
 
-        /* 3. LÓGICA DE ARRASTRE Y REBOTE MAGNÉTICO (BURBUJA ESTILO MESSENGER) */
         const gadget = document.getElementById('floatingGadget');
         let isDragging = false;
         let dragStartX, dragStartY, gadgetStartX, gadgetStartY;
@@ -711,7 +723,6 @@ HTML_CONTENT = """<!DOCTYPE html>
                 return;
             }
 
-            // Snap-to-edge magnético
             const rect = gadget.getBoundingClientRect();
             const snapLeft = (rect.left + rect.width / 2 < window.innerWidth / 2) ? 14 : (window.innerWidth - 62);
             gadget.style.left = `${snapLeft}px`;
@@ -727,13 +738,12 @@ HTML_CONTENT = """<!DOCTYPE html>
                 const list = document.getElementById('floatActionList');
                 list.innerHTML = `
                     <button class="bot-btn" onclick="captureDirect(); toggleFloatingPanel();">📸 Disparar con perfil ${cur.title}</button>
-                    <button class="bot-btn" onclick="toggleDeckExpansion(); toggleFloatingPanel();">🎴 Abrir selector de módulos</button>
+                    <button class="bot-btn" onclick="openHorizontalDock(); toggleFloatingPanel();">🎴 Ver todos los módulos en dock</button>
                     <button class="bot-btn" onclick="openGalleryModal(); toggleFloatingPanel();">🖼️ Ver galería</button>
                 `;
             }
         }
 
-        /* CAPTURA & EDICIÓN */
         async function captureDirect() {
             canvas.width = video.videoWidth || 640;
             canvas.height = video.videoHeight || 480;
@@ -794,7 +804,6 @@ HTML_CONTENT = """<!DOCTYPE html>
             alert("✔ Activo exportado con éxito a la memoria local.");
         }
 
-        /* GALERÍA SOBERANA */
         async function openGalleryModal() {
             const modal = document.getElementById('galleryModal');
             const container = document.getElementById('galleryGridContent');
@@ -831,7 +840,6 @@ HTML_CONTENT = """<!DOCTYPE html>
 
         function closeGalleryModal() { document.getElementById('galleryModal').style.display = 'none'; }
 
-        /* NANO-BOT */
         function openNanobot() {
             const curMod = moduleCatalog[activeCardIndex];
             const modal = document.getElementById('nanobotModal');
