@@ -11,7 +11,6 @@ from datetime import datetime
 
 router = APIRouter(prefix="/bian", tags=["Bian Master Suite V10"])
 
-# Montar carpeta de almacenamiento para servir imágenes en la galería
 os.makedirs("storage/bian", exist_ok=True)
 router.mount("/storage", StaticFiles(directory="storage"), name="storage")
 
@@ -29,7 +28,6 @@ HTML_CONTENT = """<!DOCTYPE html>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; width: 100vw; overflow: hidden; position: fixed; }
 
-        /* BORDE PERIMETRAL QUE SE APAGA TOTALMENTE (1.5 SEG) */
         .edge-screen-border {
             position: fixed; inset: 0; pointer-events: none; z-index: 150;
             border: 3px solid transparent;
@@ -37,7 +35,6 @@ HTML_CONTENT = """<!DOCTYPE html>
             transition: border-color 1.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 1.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* LUZ AMBIENTAL DESTELLO */
         .ambient-fade-light {
             position: fixed; inset: 0; pointer-events: none; z-index: 140;
             background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.25) 0%, transparent 70%);
@@ -46,7 +43,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .ambient-fade-light.flash { opacity: 1; transition: opacity 0.05s ease-in; }
 
-        /* LOCKSCREEN BRANDING BLANCO */
+        /* 1. LOCKSCREEN CON TAPA DE LENTE 35MM */
         #lockscreen {
             position: fixed; inset: 0; background: #050608; z-index: 200;
             display: flex; flex-direction: column; align-items: center; justify-content: space-between;
@@ -64,19 +61,30 @@ HTML_CONTENT = """<!DOCTYPE html>
         .brand-title {
             font-size: 64px; font-weight: 900; letter-spacing: 8px; color: #FFFFFF;
             text-shadow: 0 0 20px rgba(255, 255, 255, 0.45), 0 0 50px rgba(255, 255, 255, 0.2);
-            line-height: 1; margin-bottom: 12px;
+            line-height: 1; margin-bottom: 8px;
         }
-        .brand-subtitle { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 20px; }
-        .brand-card {
-            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px; padding: 16px 20px; max-width: 320px; margin: 0 auto;
-            font-size: 11px; color: #888; line-height: 1.5; backdrop-filter: blur(10px);
-        }
+        .brand-subtitle { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 15px; }
 
-        .gift-container { display: flex; flex-direction: column; align-items: center; cursor: pointer; touch-action: none; padding: 15px; user-select: none; }
-        .gift-bow-svg { width: 76px; height: 76px; filter: drop-shadow(0 0 16px rgba(255, 170, 0, 0.65)); transition: transform 0.25s ease; }
-        .gift-container:active .gift-bow-svg { transform: scale(1.12); }
-        .gift-hint { font-size: 11px; font-weight: 800; color: #FFD200; margin-top: 10px; letter-spacing: 1.5px; text-transform: uppercase; }
+        /* TAPA DE LENTE INTERACTIVA */
+        .lens-cap-assembly {
+            display: flex; flex-direction: column; align-items: center; cursor: pointer;
+            touch-action: none; user-select: none; margin-bottom: 20px;
+        }
+        .lens-cap-disk {
+            width: 90px; height: 90px; border-radius: 50%;
+            background: radial-gradient(circle, #25262c 0%, #111216 70%, #08080a 100%);
+            border: 3px solid #333640;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.9), inset 0 0 10px rgba(255,255,255,0.1);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .lens-cap-disk::before {
+            content: ''; position: absolute; inset: 8px; border-radius: 50%;
+            border: 1px dashed rgba(255,255,255,0.25);
+        }
+        .lens-cap-center { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #00FFC8; text-shadow: 0 0 8px rgba(0,255,200,0.6); }
+        .lens-cap-sub { font-size: 7px; color: #777; letter-spacing: 1px; margin-top: 2px; }
+        .lens-cap-hint { font-size: 10px; font-weight: 800; color: #aaa; margin-top: 10px; letter-spacing: 1px; text-transform: uppercase; }
 
         /* VIEWPORT Y VISOR */
         .suite-view { width: 100vw; height: 100vh; position: relative; background: #000; overflow: hidden; display: flex; flex-direction: column; }
@@ -100,13 +108,11 @@ HTML_CONTENT = """<!DOCTYPE html>
             backdrop-filter: blur(10px); cursor: pointer; display: flex; align-items: center; gap: 4px;
         }
 
-        /* BOTÓN ALTERNANTE NANO-BOT (CADA 5 SEG) */
         #botToggleBtn {
             border-color: rgba(0,255,200,0.4); color: #00FFC8;
-            transition: all 0.4s ease; min-width: 145px; justify-content: center;
+            transition: all 0.4s ease; min-width: 155px; justify-content: center;
         }
 
-        /* BANNER CONTEXTUAL CENTRAL */
         .center-hud-overlay {
             position: absolute; top: 68px; left: 0; right: 0; z-index: 95;
             display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none;
@@ -118,7 +124,6 @@ HTML_CONTENT = """<!DOCTYPE html>
             transition: all 0.3s ease;
         }
 
-        /* ANILLO DE ENFOQUE TÁCTICO */
         .focus-ring {
             position: absolute; width: 84px; height: 84px; border-radius: 50%;
             border: 1.5px solid rgba(255, 255, 255, 0.85);
@@ -130,10 +135,9 @@ HTML_CONTENT = """<!DOCTYPE html>
             opacity: 0;
         }
         .focus-ring.active { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-        .focus-lock-icon { font-size: 11px; color: #FFD200; filter: drop-shadow(0 0 4px rgba(255,210,0,0.8)); }
-        .focus-sun-icon { font-size: 13px; color: #FFAA00; filter: drop-shadow(0 0 4px rgba(255,170,0,0.8)); }
+        .focus-lock-icon { font-size: 11px; color: #FFD200; }
+        .focus-sun-icon { font-size: 13px; color: #FFAA00; }
 
-        /* SELECTOR DE ZOOM INTERACTIVO (0.6x / 1x / 2x) */
         .hud-zoom-tag {
             position: absolute; bottom: 155px; left: 24px; z-index: 100;
             background: rgba(20, 20, 24, 0.82); border: 1px solid rgba(255, 255, 255, 0.18);
@@ -142,10 +146,11 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: flex; align-items: center; gap: 4px; user-select: none;
         }
 
-        /* PILA DE CARTAS CENTRADA Y ERGONÓMICA */
+        /* 2. PILA DE CARTAS (MODO MAZO Y MODO CUADRÍCULA DESPLEGADA) */
         .deck-stack-wrapper {
             position: absolute; bottom: 98px; left: calc(50% + 55px); z-index: 105;
             width: 58px; height: 58px; perspective: 600px; touch-action: none;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .deck-card-item {
             position: absolute; inset: 0; border-radius: 18px;
@@ -153,7 +158,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: flex; align-items: center; justify-content: center; font-size: 25px;
             cursor: pointer; backdrop-filter: blur(16px);
             box-shadow: 0 8px 24px rgba(0,0,0,0.7);
-            transition: all 1.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
             user-select: none;
         }
         .deck-card-item.pos-0 { transform: translate3d(0, 0, 0); z-index: 6; opacity: 1; }
@@ -162,10 +167,22 @@ HTML_CONTENT = """<!DOCTYPE html>
         .deck-card-item.pos-3 { transform: translate3d(18px, -15px, -45px) rotate(12deg); z-index: 3; opacity: 0.45; }
         .deck-card-item.pos-4 { transform: translate3d(24px, -20px, -60px) rotate(16deg); z-index: 2; opacity: 0.25; }
 
-        .deck-card-item.slide-up { transform: translate3d(0, -70px, 40px) scale(1.08); opacity: 0; }
-        .deck-card-item.slide-down { transform: translate3d(0, 70px, 40px) scale(1.08); opacity: 0; }
+        /* CUADRÍCULA DESPLEGADA */
+        .deck-stack-wrapper.expanded {
+            position: fixed; inset: 80px 20px 120px 20px; width: auto; height: auto;
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
+            background: rgba(6, 7, 10, 0.95); border: 1px solid #222; border-radius: 20px;
+            padding: 16px; backdrop-filter: blur(25px); z-index: 160; overflow-y: auto;
+        }
+        .deck-stack-wrapper.expanded .deck-card-item {
+            position: relative; inset: auto; width: 100%; height: 85px;
+            transform: none !important; opacity: 1 !important; flex-direction: column;
+            gap: 6px; font-size: 24px; border-radius: 14px; background: #121318;
+        }
+        .deck-stack-wrapper.expanded .deck-card-item .card-label {
+            font-size: 10px; font-weight: 800; color: #fff; text-transform: uppercase;
+        }
 
-        /* BARRA INFERIOR DE DISPARO */
         .bottom-bar {
             position: absolute; bottom: 20px; left: 0; right: 0; z-index: 100;
             display: flex; justify-content: space-around; align-items: center; padding: 0 25px;
@@ -185,7 +202,27 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* MODAL DE EDICIÓN POST-CAPTURA */
+        /* 3. BURBUJA FLOTANTE ARRASTRABLE (CHATHEAD STYLE) */
+        #floatingGadget {
+            position: fixed; top: 180px; left: 14px; width: 48px; height: 48px;
+            border-radius: 50%; background: #0c0d12; border: 2px solid #00FFC8;
+            box-shadow: 0 6px 18px rgba(0, 255, 200, 0.4); z-index: 250;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; cursor: grab; touch-action: none; user-select: none;
+            transition: border-color 0.2s ease;
+        }
+        #floatingGadget:active { cursor: grabbing; transform: scale(1.08); }
+
+        /* MINI-TALLER FLOTANTE DESPLEGABLE */
+        #floatingPanel {
+            display: none; position: fixed; inset: 100px 18px 120px 18px; z-index: 260;
+            background: rgba(10, 12, 16, 0.96); border: 1px solid #00FFC8; border-radius: 20px;
+            backdrop-filter: blur(25px); flex-direction: column; padding: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.85);
+        }
+        .float-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+
+        /* MODALES */
         #postEditModal {
             display: none; position: fixed; inset: 0; z-index: 300; background: rgba(6, 7, 10, 0.96);
             backdrop-filter: blur(20px); flex-direction: column; padding: 20px 18px 25px 18px;
@@ -216,7 +253,6 @@ HTML_CONTENT = """<!DOCTYPE html>
             gap: 8px; box-shadow: 0 4px 18px rgba(0, 255, 200, 0.4); margin-top: 4px;
         }
 
-        /* MODAL GALERÍA SOBERANA (CON GRID COMPACTO DE FOTOS) */
         #galleryModal {
             display: none; position: fixed; inset: 0; z-index: 320; background: rgba(5, 6, 8, 0.98);
             backdrop-filter: blur(25px); flex-direction: column; padding: 20px;
@@ -231,7 +267,6 @@ HTML_CONTENT = """<!DOCTYPE html>
         .gallery-card img { width: 100%; height: 110px; object-fit: cover; background: #000; }
         .gallery-card-info { padding: 6px 8px; font-size: 10px; color: #888; background: #16171d; }
 
-        /* MODAL NANO-BOT ASISTENTE */
         #nanobotModal {
             display: none; position: fixed; inset: 0; z-index: 330; background: rgba(5, 6, 8, 0.95);
             backdrop-filter: blur(25px); flex-direction: column; padding: 20px; justify-content: space-between;
@@ -252,50 +287,56 @@ HTML_CONTENT = """<!DOCTYPE html>
     <div class="edge-screen-border" id="screenEdgeBorder"></div>
     <div class="ambient-fade-light" id="ambientLightLayer"></div>
 
-    <!-- LOCKSCREEN CON BRANDING BLANCO Y GESTO DE MOÑO -->
+    <!-- 1. LOCKSCREEN CON TAPA DE LENTE 35MM -->
     <div id="lockscreen">
         <div class="pill-badge">• BIAN MASTER SUITE V10</div>
 
         <div class="brand-center">
             <div class="brand-title">BIAN</div>
             <div class="brand-subtitle">Tu app de fotos y video</div>
-            <div class="brand-card">
-                Potencia visual, sensor pro calibrado, flujo documental, costeo y 21 módulos soberanos ejecutados 100% de manera local.
+            <div style="font-size:11px; color:#777; max-width:280px; margin:0 auto; line-height:1.4;">
+                Sensor calibrado, óptica anamórfica, IA local y 21 módulos de producción soberana.
             </div>
         </div>
 
-        <div class="gift-container" id="giftUnlockBtn">
-            <svg class="gift-bow-svg" viewBox="0 0 100 100">
-                <defs>
-                    <linearGradient id="bowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#FFF275"/>
-                        <stop offset="50%" stop-color="#FFAA00"/>
-                        <stop offset="100%" stop-color="#FF3300"/>
-                    </linearGradient>
-                </defs>
-                <path d="M50 50 C30 20 5 35 25 55 C40 65 50 52 50 50 Z" fill="url(#bowGrad)"/>
-                <path d="M50 50 C70 20 95 35 75 55 C60 65 50 52 50 50 Z" fill="url(#bowGrad)"/>
-                <circle cx="50" cy="50" r="10" fill="#FFE600"/>
-                <path d="M46 55 Q35 75 25 90 Q38 82 48 60 Z" fill="url(#bowGrad)"/>
-                <path d="M54 55 Q65 75 75 90 Q62 82 52 60 Z" fill="url(#bowGrad)"/>
-            </svg>
-            <div class="gift-hint">🎁 TOCA O DESLIZA PARA ENTRAR</div>
+        <div class="lens-cap-assembly" id="lensCapUnlockBtn">
+            <div class="lens-cap-disk" id="lensCapDisk">
+                <div class="lens-cap-center">BIAN</div>
+                <div class="lens-cap-sub">F/1.4 • 35MM</div>
+            </div>
+            <div class="lens-cap-hint">🔓 TOCA O DESLIZA PARA DESTAPAR</div>
         </div>
     </div>
 
-    <!-- VIEWPORT CON ANILLO DE ENFOQUE PRO Y BARALJA DE CARTAS STACK -->
+    <!-- 3. GADGET BURBUJA FLOTANTE ESTILO MESSENGER -->
+    <div id="floatingGadget" title="Arrastra o toca para abrir taller">⚡</div>
+
+    <!-- PANEL DEL GADGET FLOTANTE -->
+    <div id="floatingPanel">
+        <div class="float-header">
+            <div style="font-size:13px; font-weight:800; color:#00FFC8;">⚡ TALLER TÁCTICO FLOTANTE</div>
+            <button class="edit-close-btn" onclick="toggleFloatingPanel()">✖ Cerrar</button>
+        </div>
+        <div style="flex:1; overflow-y:auto; font-size:12px; color:#aaa; display:flex; flex-direction:column; gap:10px;">
+            <div style="background:#14151b; padding:12px; border-radius:12px; border:1px solid #222;">
+                <div style="color:#fff; font-weight:700; margin-bottom:4px;" id="floatModTitle">MODO ACTIVO</div>
+                <div id="floatModDesc">Herramienta flotante lista para usarse junto a otras tareas.</div>
+            </div>
+            <div class="bot-actions" id="floatActionList"></div>
+        </div>
+    </div>
+
+    <!-- VIEWPORT CON ANILLO DE ENFOQUE PRO -->
     <div class="suite-view" id="viewportArea">
         <div id="videoContainer">
             <video id="webcam" autoplay playsinline></video>
         </div>
 
-        <!-- ANILLO DE ENFOQUE TÁCTICO CON CANDADO Y SOL -->
         <div class="focus-ring" id="focusRing">
             <div class="focus-lock-icon">🔒</div>
             <div class="focus-sun-icon">☀️</div>
         </div>
 
-        <!-- TOP BAR NATIVA -->
         <div class="top-dock">
             <div class="hud-status-badge" id="moduleTitleBadge">
                 <span class="dot" id="statusDot"></span>
@@ -307,26 +348,17 @@ HTML_CONTENT = """<!DOCTYPE html>
             </div>
         </div>
 
-        <!-- BANNER CONTEXTUAL CENTRAL -->
         <div class="center-hud-overlay" id="centerHud">
             <div class="context-pill" id="contextPillText">🌙 NIGHTOGRAPHY: ISO BOOST + RAW DENOISE</div>
         </div>
 
-        <!-- SELECTOR DE ZOOM PRO (0.6x, 1x, 2x) -->
         <div class="hud-zoom-tag" id="zoomChip" onclick="cycleZoomLevel()">
             🔍 <span id="zoomLabel">1x</span>
         </div>
 
-        <!-- PILA DE CARTAS CENTRADA Y ERGONÓMICA AL LADO DEL SHUTTER -->
-        <div class="deck-stack-wrapper" id="deckStack">
-            <div class="deck-card-item pos-0" data-key="night">🌙</div>
-            <div class="deck-card-item pos-1" data-key="timelapse">⏱️</div>
-            <div class="deck-card-item pos-2" data-key="macro">🔍</div>
-            <div class="deck-card-item pos-3" data-key="chef">👨‍🍳</div>
-            <div class="deck-card-item pos-4" data-key="price">🏷️</div>
-        </div>
+        <!-- 2. PILA DE CARTAS: TAP DESPLIEGA CUADRÍCULA -->
+        <div class="deck-stack-wrapper" id="deckStack"></div>
 
-        <!-- BARRA INFERIOR DE DISPARO -->
         <div class="bottom-bar">
             <div class="lens-switch-btn" onclick="toggleLens()">🔄</div>
             <div class="shutter-btn" onclick="captureDirect()"></div>
@@ -334,7 +366,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- MESA DE EDICIÓN & EXPORTACIÓN POST-CAPTURA -->
+    <!-- MODAL POST-CAPTURA -->
     <div id="postEditModal">
         <div class="edit-header">
             <div class="edit-title" id="editModalTitle">🛠️ POST-PROCESO & EDICIÓN</div>
@@ -356,7 +388,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- MODAL GALERÍA SOBERANA -->
+    <!-- MODAL GALERÍA -->
     <div id="galleryModal">
         <div class="edit-header">
             <div class="edit-title" style="color:#00FFC8;">🖼️ GALERÍA SOBERANA (SQLITE LOCAL)</div>
@@ -365,16 +397,14 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="gallery-grid" id="galleryGridContent"></div>
     </div>
 
-    <!-- MODAL NANO-BOT ASISTENTE -->
+    <!-- MODAL NANO-BOT -->
     <div id="nanobotModal">
         <div>
             <div class="edit-header">
                 <div class="edit-title" style="color:#00FFC8;">✨ NANO-BOT TÁCTICO BIAN</div>
                 <button class="edit-close-btn" onclick="closeNanobot()">✖ Cerrar</button>
             </div>
-            <div class="bot-bubble" id="botMessageText">
-                Analizando escena...
-            </div>
+            <div class="bot-bubble" id="botMessageText">Analizando escena...</div>
             <div class="bot-actions" id="botActionList"></div>
         </div>
         <div style="font-size:10px; color:#555; text-align:center;">IA Soberana local operando en Snapdragon 8 Gen 2</div>
@@ -391,6 +421,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         let currentZoomIndex = 1;
         const zoomLevels = [0.6, 1.0, 2.0];
         let lastCapturedBlob = null;
+        let isDeckExpanded = false;
 
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -418,7 +449,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             video.style.transform = `scale(${z})`;
         }
 
-        /* ALTERNANCIA CADA 5 SEGUNDOS DEL NANO-BOT */
+        /* ALTERNANCIA CADA 5 SEG DEL NANO-BOT */
         let botLabelState = 0;
         setInterval(() => {
             const btn = document.getElementById('botToggleBtn');
@@ -430,9 +461,9 @@ HTML_CONTENT = """<!DOCTYPE html>
             }, 250);
         }, 5000);
 
-        /* ENFOQUE TÁCTICO AL TOCAR EL VISOR */
+        /* ENFOQUE TÁCTICO */
         window.addEventListener('click', (e) => {
-            if (e.target.closest('.bottom-bar') || e.target.closest('.top-dock') || e.target.closest('#deckStack') || e.target.closest('#zoomChip') || !unlocked || e.target.closest('#postEditModal') || e.target.closest('#galleryModal') || e.target.closest('#nanobotModal')) return;
+            if (e.target.closest('.bottom-bar') || e.target.closest('.top-dock') || e.target.closest('#deckStack') || e.target.closest('#zoomChip') || !unlocked || e.target.closest('#postEditModal') || e.target.closest('#galleryModal') || e.target.closest('#nanobotModal') || e.target.closest('#floatingGadget') || e.target.closest('#floatingPanel')) return;
             focusRing.style.left = `${e.clientX}px`;
             focusRing.style.top = `${e.clientY}px`;
             focusRing.classList.remove('active');
@@ -441,24 +472,20 @@ HTML_CONTENT = """<!DOCTYPE html>
             setTimeout(() => focusRing.classList.remove('active'), 2500);
         });
 
-        /* SONIDO CUTE DE BIENVENIDA */
-        function playCuteGiftSound() {
+        /* SONIDO DE OBTURADOR ANALÓGICO (DESTAPAR LENTE) */
+        function playLensCapShutterSound() {
             try {
                 const ctx = getAudioContext();
                 const now = ctx.currentTime;
-                const notes = [1046.50, 1318.51, 1567.98, 1975.53, 2093.00, 2637.02];
-                notes.forEach((f, i) => {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.connect(gain); gain.connect(ctx.destination);
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(f, now + (i * 0.05));
-                    gain.gain.setValueAtTime(0.001, now + (i * 0.05));
-                    gain.gain.linearRampToValueAtTime(0.18, now + (i * 0.05) + 0.015);
-                    gain.gain.exponentialRampToValueAtTime(0.0001, now + (i * 0.05) + 0.38);
-                    osc.start(now + (i * 0.05));
-                    osc.stop(now + (i * 0.05) + 0.39);
-                });
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(140, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.12);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                osc.start(now); osc.stop(now + 0.13);
             } catch(e) {}
         }
 
@@ -466,35 +493,39 @@ HTML_CONTENT = """<!DOCTYPE html>
         function unlockSuite() {
             if (unlocked) return;
             unlocked = true;
-            playCuteGiftSound();
-            document.getElementById('lockscreen').classList.add('unlocked');
-            applyActiveCardTheme(moduleCatalog[activeCardIndex]);
+            playLensCapShutterSound();
+            const cap = document.getElementById('lensCapDisk');
+            cap.style.transform = 'rotate(-45deg) scale(1.18)';
+            setTimeout(() => {
+                document.getElementById('lockscreen').classList.add('unlocked');
+                applyActiveCardTheme(moduleCatalog[activeCardIndex]);
+            }, 180);
         }
 
         function lockSuite() {
             unlocked = false;
             document.getElementById('lockscreen').classList.remove('unlocked');
+            document.getElementById('lensCapDisk').style.transform = 'none';
             const border = document.getElementById('screenEdgeBorder');
             border.style.borderColor = 'transparent';
             border.style.boxShadow = 'none';
         }
 
-        const giftBtn = document.getElementById('giftUnlockBtn');
+        const lensCapBtn = document.getElementById('lensCapUnlockBtn');
         let touchStartY = 0;
-
-        giftBtn.addEventListener('click', unlockSuite);
-        giftBtn.addEventListener('touchstart', (e) => { touchStartY = e.touches[0].clientY; }, { passive: true });
-        giftBtn.addEventListener('touchend', (e) => {
+        lensCapBtn.addEventListener('click', unlockSuite);
+        lensCapBtn.addEventListener('touchstart', (e) => { touchStartY = e.touches[0].clientY; }, { passive: true });
+        lensCapBtn.addEventListener('touchend', (e) => {
             const deltaY = touchStartY - e.changedTouches[0].clientY;
-            if (deltaY > 25 || Math.abs(deltaY) < 10) unlockSuite();
+            if (deltaY > 20 || Math.abs(deltaY) < 10) unlockSuite();
         }, { passive: true });
 
         /* SWIPE GLOBAL */
         window.addEventListener('touchstart', (e) => {
-            if (!e.target.closest('#deckStack') && !e.target.closest('#postEditModal') && !e.target.closest('#galleryModal') && !e.target.closest('#nanobotModal')) touchStartY = e.touches[0].clientY;
+            if (!e.target.closest('#deckStack') && !e.target.closest('#postEditModal') && !e.target.closest('#galleryModal') && !e.target.closest('#nanobotModal') && !e.target.closest('#floatingGadget') && !e.target.closest('#floatingPanel')) touchStartY = e.touches[0].clientY;
         }, { passive: true });
         window.addEventListener('touchend', (e) => {
-            if (!e.target.closest('#deckStack') && !e.target.closest('#postEditModal') && !e.target.closest('#galleryModal') && !e.target.closest('#nanobotModal')) {
+            if (!e.target.closest('#deckStack') && !e.target.closest('#postEditModal') && !e.target.closest('#galleryModal') && !e.target.closest('#nanobotModal') && !e.target.closest('#floatingGadget') && !e.target.closest('#floatingPanel')) {
                 const deltaY = touchStartY - e.changedTouches[0].clientY;
                 if (!unlocked && deltaY > 35) unlockSuite();
                 else if (unlocked && deltaY < -75 && touchStartY < 120) lockSuite();
@@ -503,38 +534,73 @@ HTML_CONTENT = """<!DOCTYPE html>
 
         /* CATÁLOGO DE MÓDULOS */
         const moduleCatalog = [
-            { key: 'night', icon: '🌙', title: 'NIGHTOGRAPHY', pill: '🌙 NIGHTOGRAPHY: ISO BOOST + RAW DENOISE', color: '#5E5CE6', freqs: [180, 270, 360], type: 'sine', botTips: 'Baja iluminación detectada. Recomiendo estabilizar 1 segundo para capturar más fotones sin ruido.' },
-            { key: 'timelapse', icon: '⏱️', title: 'TIMELAPSE', pill: '⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA 4x', color: '#FF3B30', freqs: [220, 440, 880], type: 'sawtooth', botTips: 'Modo compresión activo. Selecciona 8x o 16x si vas a registrar movimiento de nubes o tránsito rápido.' },
-            { key: 'macro', icon: '🔍', title: 'MACRO PRO', pill: '🔍 ENFOQUE A CORTO ALCANCE ULTRA DETALLE', color: '#30D158', freqs: [880, 1100, 1320], type: 'triangle', botTips: 'Distancia de enfoque a 4-8 cm. La NPU optimizará el micro-contraste en texturas complejas.' },
-            { key: 'chef', icon: '👨‍🍳', title: 'CHEF LEAN V3', pill: '👨‍🍳 FOOD COST & CONTROL DE MERMA CÁRNICA', color: '#FF9F0A', freqs: [320, 480, 640], type: 'triangle', botTips: 'Insumo cárnico o gastronómico en mira. Calcula de inmediato la merma técnica y porciones netas.' },
-            { key: 'price', icon: '🏷️', title: 'VALUADOR HÍBRIDO', pill: '🏷️ TASACIÓN DE MERCADO OFFLINE/ONLINE', color: '#63E6E2', freqs: [480, 640, 800], type: 'sine', botTips: 'Cotejo comercial activado. Puedo estimar banda de costo de adquisición vs precio sugerido.' }
+            { key: 'night', icon: '🌙', title: 'NIGHTOGRAPHY', pill: '🌙 NIGHTOGRAPHY: ISO BOOST + RAW DENOISE', color: '#5E5CE6', botTips: 'Baja iluminación detectada. Estabiliza 1 seg para máxima nitidez sin ruido.' },
+            { key: 'timelapse', icon: '⏱️', title: 'TIMELAPSE', pill: '⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA 4x', color: '#FF3B30', botTips: 'Modo compresión activo. Ideal para registrar tránsito o nubes.' },
+            { key: 'macro', icon: '🔍', title: 'MACRO PRO', pill: '🔍 ENFOQUE A CORTO ALCANCE ULTRA DETALLE', color: '#30D158', botTips: 'Distancia de 4-8 cm. La NPU optimiza el micro-contraste.' },
+            { key: 'chef', icon: '👨‍🍳', title: 'CHEF LEAN V3', pill: '👨‍🍳 FOOD COST & CONTROL DE MERMA CÁRNICA', color: '#FF9F0A', botTips: 'Insumo cárnico en mira. Calcula de inmediato la merma y porciones netas.' },
+            { key: 'price', icon: '🏷️', title: 'VALUADOR HÍBRIDO', pill: '🏷️ TASACIÓN DE MERCADO OFFLINE/ONLINE', color: '#63E6E2', botTips: 'Cotejo comercial activado. Estima banda de compra vs venta sugerida.' },
+            { key: 'depth', icon: '🧠', title: 'DEPTH-MAP NPU', pill: '🧠 ESTIMACIÓN VOLUMÉTRICA Z-BUFFER', color: '#00FFC8', botTips: 'Cálculo de profundidad monocular para mallas 3D.' },
+            { key: 'cine', icon: '🎬', title: 'CINE SCOPE V8', pill: '🎬 ANAMÓRFICO 2.39:1 & BLUE STREAK FLARE', color: '#FF0055', botTips: 'Grado cinematográfico DCI con grano de haluro de plata 35mm.' }
         ];
 
         let activeCardIndex = 0;
         const deckStack = document.getElementById('deckStack');
 
+        /* RENDER DE LA BARAJA (MAZO VS CUADRÍCULA DESPLEGADA) */
         function renderDeckStack() {
             deckStack.innerHTML = '';
-            for (let i = 0; i < moduleCatalog.length; i++) {
-                const idx = (activeCardIndex + i) % moduleCatalog.length;
-                const m = moduleCatalog[idx];
-                const card = document.createElement('div');
-                card.className = `deck-card-item pos-${i}`;
-                card.innerText = m.icon;
-                card.setAttribute('data-key', m.key);
-                deckStack.appendChild(card);
+            if (!isDeckExpanded) {
+                deckStack.className = 'deck-stack-wrapper';
+                for (let i = 0; i < 5; i++) {
+                    const idx = (activeCardIndex + i) % moduleCatalog.length;
+                    const m = moduleCatalog[idx];
+                    const card = document.createElement('div');
+                    card.className = `deck-card-item pos-${i}`;
+                    card.innerText = m.icon;
+                    card.setAttribute('data-key', m.key);
+                    card.onclick = (e) => {
+                        e.stopPropagation();
+                        toggleDeckExpansion();
+                    };
+                    deckStack.appendChild(card);
+                }
+            } else {
+                deckStack.className = 'deck-stack-wrapper expanded';
+                moduleCatalog.forEach((m, idx) => {
+                    const card = document.createElement('div');
+                    card.className = 'deck-card-item';
+                    card.style.borderColor = (idx === activeCardIndex) ? m.color : '#333';
+                    card.innerHTML = `<span>${m.icon}</span><span class="card-label" style="color:${(idx === activeCardIndex) ? m.color : '#fff'};">${m.title}</span>`;
+                    card.onclick = (e) => {
+                        e.stopPropagation();
+                        activeCardIndex = idx;
+                        isDeckExpanded = false;
+                        renderDeckStack();
+                        applyActiveCardTheme(moduleCatalog[activeCardIndex]);
+                    };
+                    deckStack.appendChild(card);
+                });
             }
         }
         renderDeckStack();
 
-        /* GESTO SWIPE VERTICAL EN LA BARAJA */
+        function toggleDeckExpansion() {
+            isDeckExpanded = !isDeckExpanded;
+            renderDeckStack();
+        }
+
+        /* GESTO SWIPE EN MODO MAZO */
         let deckTouchStartY = 0;
-        deckStack.addEventListener('touchstart', (e) => { deckTouchStartY = e.touches[0].clientY; }, { passive: true });
+        deckStack.addEventListener('touchstart', (e) => {
+            if (!isDeckExpanded) deckTouchStartY = e.touches[0].clientY;
+        }, { passive: true });
+
         deckStack.addEventListener('touchend', (e) => {
-            const deltaY = deckTouchStartY - e.changedTouches[0].clientY;
-            if (deltaY > 20) shiftCard(1, 'slide-up');
-            else if (deltaY < -20) shiftCard(-1, 'slide-down');
-            else shiftCard(1, 'slide-up');
+            if (!isDeckExpanded) {
+                const deltaY = deckTouchStartY - e.changedTouches[0].clientY;
+                if (deltaY > 20) shiftCard(1, 'slide-up');
+                else if (deltaY < -20) shiftCard(-1, 'slide-down');
+            }
         }, { passive: true });
 
         function shiftCard(dir, animClass) {
@@ -543,9 +609,8 @@ HTML_CONTENT = """<!DOCTYPE html>
 
             setTimeout(() => {
                 activeCardIndex = (activeCardIndex + dir + moduleCatalog.length) % moduleCatalog.length;
-                const currentMod = moduleCatalog[activeCardIndex];
                 renderDeckStack();
-                applyActiveCardTheme(currentMod);
+                applyActiveCardTheme(moduleCatalog[activeCardIndex]);
             }, 180);
         }
 
@@ -556,26 +621,15 @@ HTML_CONTENT = """<!DOCTYPE html>
             document.getElementById('contextPillText').style.color = m.color;
             document.getElementById('contextPillText').style.borderColor = `${m.color}66`;
 
-            try {
-                const ctx = getAudioContext();
-                const now = ctx.currentTime;
-                m.freqs.forEach((f, i) => {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.connect(gain); gain.connect(ctx.destination);
-                    osc.type = m.type;
-                    osc.frequency.setValueAtTime(f, now + (i * 0.04));
-                    gain.gain.setValueAtTime(0.001, now + (i * 0.04));
-                    gain.gain.linearRampToValueAtTime(0.14, now + (i * 0.04) + 0.015);
-                    gain.gain.exponentialRampToValueAtTime(0.0001, now + (i * 0.04) + 0.26);
-                    osc.start(now + (i * 0.04));
-                    osc.stop(now + (i * 0.04) + 0.27);
-                });
-            } catch(e) {}
+            // Actualizar gadget flotante
+            document.getElementById('floatingGadget').innerText = m.icon;
+            document.getElementById('floatingGadget').style.borderColor = m.color;
+            document.getElementById('floatModTitle').innerText = m.title;
+            document.getElementById('floatModTitle').style.color = m.color;
+            document.getElementById('floatModDesc').innerText = m.botTips;
 
-            // Encendido del color en icono y pantalla
             const topCard = deckStack.querySelector('.pos-0');
-            if (topCard) {
+            if (topCard && !isDeckExpanded) {
                 topCard.style.borderColor = m.color;
                 topCard.style.background = m.color;
                 topCard.style.boxShadow = `0 0 22px ${m.color}`;
@@ -583,9 +637,9 @@ HTML_CONTENT = """<!DOCTYPE html>
 
             triggerModuleVisuals(m.color);
 
-            // EL COLOR DESAPARECE TOTALMENTE TRAS 1.5 SEGUNDOS (CERO SEGUNDO PLANO)
+            // Se apaga al 100% tras 1.5 segundos
             setTimeout(() => {
-                if (topCard) {
+                if (topCard && !isDeckExpanded) {
                     topCard.style.borderColor = 'rgba(255, 255, 255, 0.25)';
                     topCard.style.background = 'rgba(24, 25, 30, 0.92)';
                     topCard.style.boxShadow = '0 8px 24px rgba(0,0,0,0.7)';
@@ -606,13 +660,77 @@ HTML_CONTENT = """<!DOCTYPE html>
             void ambient.offsetWidth;
             ambient.classList.add('flash');
 
-            // Apagado completo en 1.5 segundos (transparent 100%)
             setTimeout(() => {
                 border.style.transition = 'border-color 1.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 1.5s cubic-bezier(0.16, 1, 0.3, 1)';
                 border.style.borderColor = 'transparent';
                 border.style.boxShadow = 'none';
                 ambient.classList.remove('flash');
             }, 100);
+        }
+
+        /* 3. LÓGICA DE ARRASTRE Y REBOTE MAGNÉTICO (BURBUJA ESTILO MESSENGER) */
+        const gadget = document.getElementById('floatingGadget');
+        let isDragging = false;
+        let dragStartX, dragStartY, gadgetStartX, gadgetStartY;
+        let hasMovedSignificantly = false;
+
+        gadget.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            hasMovedSignificantly = false;
+            const touch = e.touches[0];
+            dragStartX = touch.clientX;
+            dragStartY = touch.clientY;
+            const rect = gadget.getBoundingClientRect();
+            gadgetStartX = rect.left;
+            gadgetStartY = rect.top;
+            gadget.style.transition = 'none';
+        }, { passive: true });
+
+        window.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            const touch = e.touches[0];
+            const deltaX = touch.clientX - dragStartX;
+            const deltaY = touch.clientY - dragStartY;
+
+            if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) hasMovedSignificantly = true;
+
+            const newX = Math.min(window.innerWidth - 52, Math.max(4, gadgetStartX + deltaX));
+            const newY = Math.min(window.innerHeight - 100, Math.max(60, gadgetStartY + deltaY));
+
+            gadget.style.left = `${newX}px`;
+            gadget.style.top = `${newY}px`;
+        }, { passive: true });
+
+        window.addEventListener('touchend', (e) => {
+            if (!isDragging) return;
+            isDragging = false;
+            gadget.style.transition = 'left 0.35s cubic-bezier(0.16, 1, 0.3, 1), top 0.35s ease';
+
+            if (!hasMovedSignificantly) {
+                toggleFloatingPanel();
+                return;
+            }
+
+            // Snap-to-edge magnético
+            const rect = gadget.getBoundingClientRect();
+            const snapLeft = (rect.left + rect.width / 2 < window.innerWidth / 2) ? 14 : (window.innerWidth - 62);
+            gadget.style.left = `${snapLeft}px`;
+        });
+
+        function toggleFloatingPanel() {
+            const panel = document.getElementById('floatingPanel');
+            const isOpen = panel.style.display === 'flex';
+            panel.style.display = isOpen ? 'none' : 'flex';
+
+            if (!isOpen) {
+                const cur = moduleCatalog[activeCardIndex];
+                const list = document.getElementById('floatActionList');
+                list.innerHTML = `
+                    <button class="bot-btn" onclick="captureDirect(); toggleFloatingPanel();">📸 Disparar con perfil ${cur.title}</button>
+                    <button class="bot-btn" onclick="toggleDeckExpansion(); toggleFloatingPanel();">🎴 Abrir selector de módulos</button>
+                    <button class="bot-btn" onclick="openGalleryModal(); toggleFloatingPanel();">🖼️ Ver galería</button>
+                `;
+            }
         }
 
         /* CAPTURA & EDICIÓN */
@@ -676,7 +794,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             alert("✔ Activo exportado con éxito a la memoria local.");
         }
 
-        /* --- GALERÍA SOBERANA CON CARGA REAL DE FOTOS --- */
+        /* GALERÍA SOBERANA */
         async function openGalleryModal() {
             const modal = document.getElementById('galleryModal');
             const container = document.getElementById('galleryGridContent');
@@ -713,7 +831,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 
         function closeGalleryModal() { document.getElementById('galleryModal').style.display = 'none'; }
 
-        /* --- NANO-BOT ASISTENTE TÁCTICO --- */
+        /* NANO-BOT */
         function openNanobot() {
             const curMod = moduleCatalog[activeCardIndex];
             const modal = document.getElementById('nanobotModal');
@@ -740,7 +858,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             closeNanobot();
             if(action === 'calibrate') {
                 applyActiveCardTheme(moduleCatalog[activeCardIndex]);
-                alert("✔ Parámetros NPU y balance de blancos calibrados.");
+                alert("✔ Parámetros NPU calibrados.");
             } else if(action === 'focus') {
                 focusRing.style.left = "50%";
                 focusRing.style.top = "50%";
@@ -768,7 +886,6 @@ def process_image(payload: ImageCaptureRequest, session: Session = Depends(get_s
     data = base64.b64decode(encoded)
     with open(filename, "wb") as f:
         f.write(data)
-    # Ruta estática montada directamente en /bian/storage/...
     db_image = ProcessedImage(image_path=f"/bian/{filename}", prompt_analysis=payload.prompt_analysis)
     session.add(db_image)
     session.commit()
