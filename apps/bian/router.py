@@ -16,42 +16,41 @@ router.mount("/storage", StaticFiles(directory="storage"), name="storage")
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Captura Generador AI V8"
+    prompt_analysis: str = "Captura Despacho Comercial V2"
 
 HTML_CONTENT = """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>BIAN MASTER SUITE PRO - GENERADOR AI V8</title>
+    <title>BIAN MASTER SUITE V10 - DESPACHO COMERCIAL V2</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', Roboto, monospace; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; width: 100vw; overflow: hidden; position: fixed; }
 
         .edge-screen-border {
             position: fixed; inset: 0; pointer-events: none; z-index: 150;
-            border: 3px solid transparent; box-shadow: inset 0 0 0px transparent;
-            transition: border-color 1.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 3.5px solid transparent; box-shadow: inset 0 0 0px transparent;
+            transition: border-color 0.1s ease-in, box-shadow 0.1s ease-in;
         }
 
         .ambient-fade-light {
             position: fixed; inset: 0; pointer-events: none; z-index: 140;
-            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.25) 0%, transparent 70%);
-            opacity: 0; transition: opacity 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.3) 0%, transparent 70%);
+            opacity: 0; transition: opacity 0.1s ease-in;
         }
-        .ambient-fade-light.flash { opacity: 1; transition: opacity 0.05s ease-in; }
+        .ambient-fade-light.flash { opacity: 1; }
 
-        /* LOCKSCREEN TAPA 35MM */
         #lockscreen {
             position: fixed; inset: 0; background: #050608; z-index: 200;
             display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-            padding: 45px 20px 35px 20px; transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease;
+            padding: 45px 20px 35px 20px; transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease;
         }
         #lockscreen.unlocked { transform: translateY(-100%); opacity: 0; pointer-events: none; }
 
         .pill-badge {
-            background: rgba(0, 255, 200, 0.08); border: 1px solid rgba(0, 255, 200, 0.3);
-            color: #00FFC8; font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+            background: rgba(0, 230, 118, 0.08); border: 1px solid rgba(0, 230, 118, 0.3);
+            color: #00E676; font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
             padding: 6px 14px; border-radius: 20px; text-transform: uppercase;
         }
         .brand-center { text-align: center; margin-top: auto; margin-bottom: auto; }
@@ -59,23 +58,22 @@ HTML_CONTENT = """<!DOCTYPE html>
             font-size: 64px; font-weight: 900; letter-spacing: 8px; color: #FFFFFF;
             text-shadow: 0 0 20px rgba(255, 255, 255, 0.45); line-height: 1; margin-bottom: 8px;
         }
-        .brand-subtitle { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 15px; }
+        .brand-subtitle { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 12px; }
 
         .lens-cap-assembly {
             display: flex; flex-direction: column; align-items: center; cursor: pointer; touch-action: none; margin-bottom: 20px;
         }
         .lens-cap-disk {
-            width: 90px; height: 90px; border-radius: 50%;
+            width: 95px; height: 95px; border-radius: 50%;
             background: radial-gradient(circle, #25262c 0%, #111216 70%, #08080a 100%);
             border: 3px solid #333640; box-shadow: 0 8px 30px rgba(0,0,0,0.9);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            position: relative; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s;
         }
-        .lens-cap-center { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #FF007A; }
-        .lens-cap-sub { font-size: 7px; color: #777; margin-top: 2px; }
+        .lens-cap-center { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #00E676; transition: color 0.3s; }
+        .lens-cap-sub { font-size: 7.5px; color: #888; margin-top: 2px; }
         .lens-cap-hint { font-size: 10px; font-weight: 800; color: #aaa; margin-top: 10px; letter-spacing: 1px; }
 
-        /* VIEWPORT Y VISOR */
         .suite-view { width: 100vw; height: 100vh; position: relative; background: #000; overflow: hidden; display: flex; flex-direction: column; }
         #videoContainer { width: 100%; height: 100%; position: relative; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
@@ -86,36 +84,33 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         #ghostScopeCanvas.active { opacity: 0.75; }
 
-        /* 1. RETÍCULA DE MATRIZ NEURONAL EN TIEMPO REAL */
-        #neuralMatrixCanvas {
+        /* CANVAS DE ESPORAS CON DESVANECIMIENTO CONTROLADO DE 1.5s */
+        #sporesMatrixCanvas {
             position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 52;
+            opacity: 0; transition: opacity 1.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
+        #sporesMatrixCanvas.active { opacity: 1; transition: opacity 0.05s ease-in; }
 
-        /* 1. HUD GENERADOR AI V8 */
-        .ai-hud-container {
-            display: none; position: absolute; top: 110px; left: 16px; right: 16px;
+        /* HUD DESPACHO COMERCIAL V2 */
+        .dispatch-hud-container {
+            display: none; position: absolute; top: 120px; left: 16px; right: 16px;
             z-index: 60; flex-direction: column; align-items: center; gap: 8px; pointer-events: auto;
         }
-        .ai-prompt-box {
-            display: flex; width: 100%; max-width: 380px; background: rgba(18, 6, 22, 0.88);
-            border: 1px solid rgba(255, 0, 122, 0.45); border-radius: 16px; padding: 6px 12px;
-            backdrop-filter: blur(14px); gap: 8px; align-items: center;
+        .dispatch-status-pill {
+            display: flex; gap: 10px; align-items: center; background: rgba(8, 28, 16, 0.88);
+            border: 1px solid rgba(0, 230, 118, 0.45); border-radius: 20px; padding: 5px 14px;
+            backdrop-filter: blur(14px); font-size: 11px; font-weight: 800; color: #00E676;
         }
-        .ai-prompt-input {
-            flex: 1; background: transparent; border: none; color: #fff; font-size: 11px;
-            font-family: inherit; outline: none;
-        }
-        .ai-prompt-input::placeholder { color: #888; }
-        .ai-style-selector {
-            display: flex; gap: 6px; background: rgba(14, 6, 18, 0.8);
+        .dispatch-carrier-selector {
+            display: flex; gap: 6px; background: rgba(6, 20, 12, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; padding: 4px 8px;
-            backdrop-filter: blur(12px); overflow-x: auto; max-width: 100%; scrollbar-width: none;
+            backdrop-filter: blur(12px);
         }
-        .ai-chip-btn {
+        .dispatch-chip-btn {
             padding: 3px 9px; font-size: 10px; font-weight: 800; border-radius: 12px;
-            color: #888; background: transparent; border: none; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+            color: #888; background: transparent; border: none; cursor: pointer; transition: all 0.2s;
         }
-        .ai-chip-btn.active { background: #FF007A; color: #fff; box-shadow: 0 0 8px rgba(255,0,122,0.6); }
+        .dispatch-chip-btn.active { background: #00E676; color: #000; box-shadow: 0 0 8px rgba(0,230,118,0.6); }
 
         .aero-hud-overlay {
             position: absolute; inset: 0; pointer-events: none; z-index: 50;
@@ -123,7 +118,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .horizon-line {
             position: absolute; top: 50%; left: 25%; width: 50%; height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 0, 122, 0.6), transparent);
+            background: linear-gradient(90deg, transparent, rgba(0, 230, 118, 0.6), transparent);
         }
         .hud-telemetry-corner {
             display: flex; justify-content: space-between; font-family: monospace;
@@ -134,7 +129,6 @@ HTML_CONTENT = """<!DOCTYPE html>
             border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(8px);
         }
 
-        /* TOP DOCK */
         .top-dock {
             position: absolute; top: 16px; left: 16px; right: 16px; z-index: 100;
             display: flex; justify-content: space-between; align-items: center;
@@ -144,30 +138,30 @@ HTML_CONTENT = """<!DOCTYPE html>
             color: #fff; font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 20px;
             backdrop-filter: blur(10px); display: flex; align-items: center; gap: 6px;
         }
-        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #FF007A; display: inline-block; }
+        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #00E676; display: inline-block; }
         .top-action-btn {
             background: rgba(18, 18, 22, 0.72); border: 1px solid rgba(255, 255, 255, 0.15);
             color: #fff; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 20px;
             backdrop-filter: blur(10px); cursor: pointer; display: flex; align-items: center; gap: 4px;
         }
         #botToggleBtn {
-            border-color: rgba(255,0,122,0.4); color: #FF007A; transition: all 0.4s ease; min-width: 155px; justify-content: center;
+            border-color: rgba(0,230,118,0.4); color: #00E676; transition: all 0.4s ease; min-width: 155px; justify-content: center;
         }
 
         .ghost-scope-btn {
-            background: rgba(18, 18, 22, 0.75); border: 1px solid rgba(255, 0, 122, 0.35);
-            color: #FF007A; font-size: 10px; font-weight: 800; padding: 6px 11px; border-radius: 18px;
+            background: rgba(18, 18, 22, 0.75); border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff; font-size: 10px; font-weight: 800; padding: 6px 11px; border-radius: 18px;
             cursor: pointer; backdrop-filter: blur(8px);
         }
-        .ghost-scope-btn.active { background: #FF007A; color: #fff; box-shadow: 0 0 14px rgba(255,0,122,0.6); }
+        .ghost-scope-btn.active { background: #00FFC8; color: #000; box-shadow: 0 0 14px rgba(0,255,200,0.6); }
 
         .center-hud-overlay {
             position: absolute; top: 68px; left: 0; right: 0; z-index: 95;
             display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none;
         }
         .context-pill {
-            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(255, 0, 122, 0.4);
-            color: #FF007A; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
+            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(0, 230, 118, 0.4);
+            color: #00E676; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
             padding: 4px 14px; border-radius: 20px; backdrop-filter: blur(10px); text-transform: uppercase;
         }
 
@@ -183,11 +177,10 @@ HTML_CONTENT = """<!DOCTYPE html>
         .hud-zoom-tag {
             position: absolute; bottom: 155px; left: 24px; z-index: 100;
             background: rgba(20, 20, 24, 0.82); border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 18px; padding: 5px 12px; font-size: 12px; font-weight: 800; color: #FF007A;
+            border-radius: 18px; padding: 5px 12px; font-size: 12px; font-weight: 800; color: #fff;
             cursor: pointer; backdrop-filter: blur(12px);
         }
 
-        /* MODO CARTAS */
         .deck-stack-wrapper {
             position: absolute; bottom: 98px; left: calc(50% + 55px); z-index: 105;
             width: 58px; height: 58px; perspective: 600px; touch-action: none;
@@ -205,7 +198,6 @@ HTML_CONTENT = """<!DOCTYPE html>
         .deck-card-item.pos-3 { transform: translate3d(18px, -15px, -45px) rotate(12deg); z-index: 3; opacity: 0.45; }
         .deck-card-item.pos-4 { transform: translate3d(24px, -20px, -60px) rotate(16deg); z-index: 2; opacity: 0.25; }
 
-        /* DOCK HORIZONTAL */
         #horizontalDockBar {
             position: absolute; bottom: 104px; left: 16px; right: 16px; z-index: 110;
             background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.14);
@@ -224,7 +216,6 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .dock-item-btn.active .dock-dot-indicator { display: block; }
 
-        /* OBTURADOR AI */
         .bottom-bar {
             position: absolute; bottom: 20px; left: 0; right: 0; z-index: 100;
             display: flex; justify-content: space-around; align-items: center; padding: 0 25px;
@@ -235,8 +226,8 @@ HTML_CONTENT = """<!DOCTYPE html>
             border: 2px dashed rgba(255,255,255,0.3); pointer-events: none;
         }
         .shutter-btn {
-            width: 72px; height: 72px; border-radius: 50%; background: #FF007A;
-            border: 4px solid #fff; box-shadow: 0 0 22px rgba(255, 0, 122, 0.55); cursor: pointer;
+            width: 72px; height: 72px; border-radius: 50%; background: #00E676;
+            border: 4px solid #fff; box-shadow: 0 0 22px rgba(0, 230, 118, 0.55); cursor: pointer;
         }
         .lens-switch-btn {
             width: 46px; height: 46px; border-radius: 50%; background: rgba(30, 30, 35, 0.75);
@@ -248,27 +239,25 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* GADGET Y PANELES */
         #floatingGadget {
             position: fixed; top: 180px; left: 14px; width: 48px; height: 48px;
-            border-radius: 50%; background: #0c0d12; border: 2px solid #FF007A;
-            box-shadow: 0 6px 18px rgba(255, 0, 122, 0.4); z-index: 250;
+            border-radius: 50%; background: #0c0d12; border: 2px solid #00E676;
+            box-shadow: 0 6px 18px rgba(0, 230, 118, 0.4); z-index: 250;
             display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: grab;
         }
         #floatingPanel {
             display: none; position: fixed; inset: 100px 18px 120px 18px; z-index: 260;
-            background: rgba(10, 12, 16, 0.96); border: 1px solid #FF007A; border-radius: 20px;
+            background: rgba(10, 12, 16, 0.96); border: 1px solid #00E676; border-radius: 20px;
             backdrop-filter: blur(25px); flex-direction: column; padding: 16px;
         }
         .float-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 
-        /* MESA DE EDICIÓN POST-AI */
         #postEditModal {
             display: none; position: fixed; inset: 0; z-index: 300; background: rgba(6, 7, 10, 0.96);
             backdrop-filter: blur(20px); flex-direction: column; padding: 20px 18px 25px 18px;
         }
         .edit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .edit-title { font-size: 14px; font-weight: 800; color: #FF007A; }
+        .edit-title { font-size: 14px; font-weight: 800; color: #00E676; }
         .edit-close-btn { background: #222; border: 1px solid #444; color: #fff; padding: 5px 12px; border-radius: 14px; font-size: 11px; cursor: pointer; }
         
         .edit-preview-box {
@@ -277,11 +266,14 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .edit-preview-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
-        .blend-slider-box {
-            display: flex; align-items: center; gap: 10px; background: rgba(22, 8, 20, 0.7);
-            border: 1px solid rgba(255, 0, 122, 0.3); border-radius: 14px; padding: 8px 14px; font-size: 11px; color: #FF007A; font-weight: 800; margin-top: 10px;
+        /* 3. INNOVACIÓN: COMPROBANTE OFICIAL DE DESPACHO COMERCIAL V2 */
+        #dispatchTicketBox {
+            display: none; position: absolute; inset: 12px; background: rgba(6, 16, 10, 0.95);
+            border: 1px solid #00E676; border-radius: 12px; padding: 16px; font-family: monospace;
+            font-size: 11px; color: #eee; flex-direction: column; justify-content: space-between; z-index: 310;
         }
-        .blend-slider-box input { flex: 1; accent-color: #FF007A; }
+        .disp-row { display: flex; justify-content: space-between; border-bottom: 1px solid #14281c; padding: 6px 0; }
+        .disp-total { font-size: 13px; font-weight: 900; color: #00E676; }
 
         .edit-tools-panel { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
         .tool-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
@@ -289,9 +281,9 @@ HTML_CONTENT = """<!DOCTYPE html>
             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
             padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #ddd; cursor: pointer;
         }
-        .tool-chip.active { border-color: #FF007A; color: #FF007A; background: rgba(255,0,122,0.12); }
+        .tool-chip.active { border-color: #00E676; color: #00E676; background: rgba(0,230,118,0.12); }
         .btn-export-master {
-            background: linear-gradient(90deg, #FF007A, #7928CA); color: #fff; font-size: 13px;
+            background: linear-gradient(90deg, #00E676, #FFD600); color: #000; font-size: 13px;
             font-weight: 900; padding: 13px; border-radius: 14px; border: none; cursor: pointer;
             width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
         }
@@ -309,7 +301,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: none; position: fixed; inset: 0; z-index: 330; background: rgba(5, 6, 8, 0.95);
             backdrop-filter: blur(25px); flex-direction: column; padding: 20px; justify-content: space-between;
         }
-        .bot-bubble { background: #121318; border: 1px solid rgba(255,0,122,0.3); border-radius: 16px; padding: 16px; font-size: 13px; line-height: 1.5; color: #eee; margin-top: 15px; }
+        .bot-bubble { background: #121318; border: 1px solid rgba(0,230,118,0.3); border-radius: 16px; padding: 16px; font-size: 13px; line-height: 1.5; color: #eee; margin-top: 15px; }
         .bot-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
         .bot-btn {
             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff;
@@ -321,71 +313,68 @@ HTML_CONTENT = """<!DOCTYPE html>
     <div class="edge-screen-border" id="screenEdgeBorder"></div>
     <div class="ambient-fade-light" id="ambientLightLayer"></div>
 
-    <!-- LOCKSCREEN CON TAPA 35MM -->
     <div id="lockscreen">
-        <div class="pill-badge">• BIAN MASTER SUITE V10</div>
+        <div class="pill-badge" id="lockscreenBadge">• DESPACHO COMERCIAL V2</div>
         <div class="brand-center">
             <div class="brand-title">BIAN</div>
-            <div class="brand-subtitle">Generador AI V8 Ultra</div>
-            <div style="font-size:11px; color:#777; max-width:280px; margin:0 auto; line-height:1.4;">
-                Difusión Latente • Morfología Neuronal • Inyector de Prompts
+            <div class="brand-subtitle" id="lockscreenSub">Logística & Despacho V2</div>
+            <div style="font-size:11px; color:#777; max-width:280px; margin:0 auto; line-height:1.4;" id="lockscreenDesc">
+                Cubicaje IATA • Guía de Remisión QR • Control Logístico
             </div>
         </div>
         <div class="lens-cap-assembly" id="lensCapUnlockBtn">
             <div class="lens-cap-disk" id="lensCapDisk">
-                <div class="lens-cap-center">BIAN AI</div>
-                <div class="lens-cap-sub">F/1.4 • NEURAL SYNTHESIS</div>
+                <div class="lens-cap-center" id="lensCapCenterText">LOGÍSTICA</div>
+                <div class="lens-cap-sub" id="lensCapSubText">F/1.4 • WAYBILL MATRIX</div>
             </div>
             <div class="lens-cap-hint">🔓 DESTAPAR LENTE</div>
         </div>
     </div>
 
-    <!-- GADGET FLOTANTE -->
-    <div id="floatingGadget" title="Arrastra o toca para abrir taller">⚡</div>
+    <div id="floatingGadget" title="Taller Táctico">⚡</div>
 
-    <!-- PANEL FLOTANTE -->
     <div id="floatingPanel">
         <div class="float-header">
-            <div style="font-size:13px; font-weight:800; color:#FF007A;">⚡ TALLER TÁCTICO FLOTANTE</div>
+            <div style="font-size:13px; font-weight:800; color:#00E676;" id="floatHeaderTitle">⚡ TALLER LOGÍSTICO FLOTANTE</div>
             <button class="edit-close-btn" onclick="toggleFloatingPanel()">✖ Cerrar</button>
         </div>
         <div style="flex:1; overflow-y:auto; font-size:12px; color:#aaa; display:flex; flex-direction:column; gap:10px;">
             <div style="background:#14151b; padding:12px; border-radius:12px; border:1px solid #222;">
                 <div style="color:#fff; font-weight:700; margin-bottom:4px;" id="floatModTitle">MODO ACTIVO</div>
-                <div id="floatModDesc">Síntesis neuronal guiada por cámara e inyector de prompts listos.</div>
+                <div id="floatModDesc">Herramientas logísticas de cubicaje y despacho listas.</div>
             </div>
             <div class="bot-actions" id="floatActionList"></div>
         </div>
     </div>
 
-    <!-- VIEWPORT CON RETÍCULA NEURONAL -->
     <div class="suite-view" id="viewportArea">
         <div id="videoContainer">
             <video id="webcam" autoplay playsinline></video>
             <canvas id="ghostScopeCanvas"></canvas>
-            <!-- 1. RETÍCULA DE MATRIZ NEURONAL -->
-            <canvas id="neuralMatrixCanvas"></canvas>
+            <!-- CANVAS DE ESPORAS CON DESVANECIMIENTO DE 1.5 SEGUNDOS -->
+            <canvas id="sporesMatrixCanvas"></canvas>
         </div>
 
-        <!-- 1. HUD GENERADOR AI V8 -->
-        <div class="ai-hud-container" id="aiHud">
-            <div class="ai-prompt-box">
-                <span style="color:#FF007A; font-size:13px;">✨</span>
-                <input type="text" id="aiPromptInput" class="ai-prompt-input" placeholder="Describe transformación o estilo..." value="Cyberpunk neon city aesthetics, high-detail octane render">
+        <!-- HUD DESPACHO COMERCIAL V2 -->
+        <div class="dispatch-hud-container" id="dispatchHud">
+            <div class="dispatch-status-pill">
+                <span id="dispCubicLabel">📦 CBM: 0.04 m³</span>
+                <span style="color:#888;">|</span>
+                <span id="dispWeightLabel">PESO VOL: 6.8 kg</span>
+                <span style="color:#888;">|</span>
+                <span style="color:#FFD600;">STATUS: PRE-SALIDA</span>
             </div>
-            <div class="ai-style-selector">
-                <button class="ai-chip-btn active" onclick="setAiStylePreset('cyberpunk', this)">Cyberpunk</button>
-                <button class="ai-chip-btn" onclick="setAiStylePreset('photoreal', this)">Fotorrealismo 8K</button>
-                <button class="ai-chip-btn" onclick="setAiStylePreset('anime_mecha', this)">Anime Mecha</button>
-                <button class="ai-chip-btn" onclick="setAiStylePreset('oil_canvas', this)">Óleo Clásico</button>
+            <div class="dispatch-carrier-selector">
+                <button class="dispatch-chip-btn active" onclick="setCarrier('dhl_express', 320, this)">DHL Express</button>
+                <button class="dispatch-chip-btn" onclick="setCarrier('fedex_ground', 240, this)">FedEx Ground</button>
+                <button class="dispatch-chip-btn" onclick="setCarrier('local_courier', 140, this)">Mensajería Local</button>
             </div>
         </div>
 
-        <!-- HUD AEROESPACIAL -->
         <div class="aero-hud-overlay">
             <div class="hud-telemetry-corner">
-                <div class="telemetry-tag" id="telSteps">STEPS: 30 EULER_A</div>
-                <div class="telemetry-tag" id="telCfg">CFG: 7.5 SCALE</div>
+                <div class="telemetry-tag" id="telWaybill">WAYBILL: BIAN-9042-MX</div>
+                <div class="telemetry-tag" id="telZone">ZONA: COBERTURA A1</div>
                 <div class="telemetry-tag" id="telISO">ISO: 100 BASE</div>
                 <div class="telemetry-tag" id="telShutter">SS: 1/500s</div>
             </div>
@@ -393,20 +382,15 @@ HTML_CONTENT = """<!DOCTYPE html>
             <div class="horizon-line" id="horizonGyro"></div>
 
             <div class="hud-telemetry-corner" style="justify-content: flex-end; gap: 8px;">
-                <div class="telemetry-tag" style="color:#FF007A;" id="telAiEngine">LATENT DIFFUSION: ARMED</div>
+                <div class="telemetry-tag" style="color:#00E676;" id="telDispatchEngine">LOGISTICS AI: READY</div>
                 <div class="telemetry-tag">SNAPDRAGON 8G2 NPU</div>
             </div>
-        </div>
-
-        <div class="focus-ring" id="focusRing">
-            <div class="focus-lock-icon">🔒</div>
-            <div class="focus-sun-icon">☀️</div>
         </div>
 
         <div class="top-dock">
             <div class="hud-status-badge" id="moduleTitleBadge">
                 <span class="dot" id="statusDot"></span>
-                <span id="moduleNameText">GENERADOR AI V8</span>
+                <span id="moduleNameText">DESPACHO COMERCIAL V2</span>
             </div>
             <div style="display: flex; gap: 6px;">
                 <button class="ghost-scope-btn" id="scopeToggleBtn" onclick="toggleGhostScope()">
@@ -418,57 +402,61 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
 
         <div class="center-hud-overlay" id="centerHud">
-            <div class="context-pill" id="contextPillText">✨ GENERADOR AI: TRANSFORMACIÓN NEURONAL LATENTE</div>
+            <div class="context-pill" id="contextPillText">📦 DESPACHO COMERCIAL: CUBICAJE IATA & MANIFIESTO</div>
         </div>
 
         <div class="hud-zoom-tag" id="zoomChip" onclick="cycleZoomLevel()">
             🔍 <span id="zoomLabel">1x</span>
         </div>
 
-        <!-- BARAJA DE CARTAS -->
         <div class="deck-stack-wrapper" id="deckStack" onclick="openHorizontalDock()"></div>
-
-        <!-- DOCK HORIZONTAL FLOTANTE -->
         <div id="horizontalDockBar"></div>
 
-        <!-- OBTURADOR AI -->
         <div class="bottom-bar">
             <div class="lens-switch-btn" onclick="toggleLens()">🔄</div>
             <div class="shutter-wrapper">
                 <div class="shutter-corona" id="shutterCorona"></div>
-                <div class="shutter-btn" id="aiShutterBtn" onclick="handleAiCaptureTrigger()"></div>
+                <div class="shutter-btn" id="dispatchShutterBtn" onclick="handleDispatchCapture()"></div>
             </div>
             <div class="gallery-thumb" id="thumbBox" onclick="openGalleryModal()"></div>
         </div>
     </div>
 
-    <!-- MESA DE EDICIÓN POST-AI -->
+    <!-- MESA POST-DESPACHO -->
     <div id="postEditModal">
         <div class="edit-header">
-            <div class="edit-title" id="editModalTitle">✨ SÍNTESIS NEURONAL V8 RENDER</div>
+            <div class="edit-title" id="editModalTitle">📦 MANIFIESTO DE DESPACHO V2</div>
             <button class="edit-close-btn" onclick="closeEditModal()">✖ Volver</button>
         </div>
         <div class="edit-preview-box">
-            <img id="editImagePreview" src="" alt="AI Render" />
-        </div>
-        <div class="blend-slider-box">
-            <span>🧬 MORPH LATENTE: <span id="blendValLabel">70%</span></span>
-            <input type="range" id="blendSlider" min="0" max="100" value="70" oninput="updateBlendVal(this.value)">
+            <img id="editImagePreview" src="" alt="Dispatch Frame" />
+            <!-- 3. INNOVACIÓN: COMPROBANTE OFICIAL DE DESPACHO -->
+            <div id="dispatchTicketBox">
+                <div style="text-align:center; font-weight:900; color:#00E676; font-size:12px; margin-bottom:8px;">
+                    === GUÍA DE DESPACHO COMERCIAL BIAN ===
+                </div>
+                <div class="disp-row"><span>TRANSPORTISTA:</span><strong id="dispTicketCarrier">DHL Express</strong></div>
+                <div class="disp-row"><span>NO. DE GUÍA / WAYBILL:</span><strong id="dispTicketCode">BN-8923-TRK</strong></div>
+                <div class="disp-row"><span>CUBICAJE ESTIMADO:</span><strong id="dispTicketCbm">0.042 m³</strong></div>
+                <div class="disp-row"><span>PESO FACTURABLE:</span><strong id="dispTicketWeight">6.8 kg</strong></div>
+                <div class="disp-row"><span>TARIFA LOGÍSTICA:</span><strong id="dispTicketPrice">$320.00 MXN</strong></div>
+                <div class="disp-row disp-total"><span>ESTATUS DE ENTREGA:</span><strong>PRE-ALERTA ASIGNADA</strong></div>
+                <div style="font-size:9px; color:#777; text-align:center; margin-top:8px;">Protocolo Logístico BIAN • Registro SQLite Local</div>
+            </div>
         </div>
         <div class="edit-tools-panel">
             <div class="tool-row" id="moduleToolRow">
-                <div class="tool-chip active" onclick="applyAiPostFilter('cyber_dream', this)">🔮 Sueño Cyberpunk</div>
-                <div class="tool-chip" onclick="applyAiPostFilter('neural_glow', this)">⚡ Resplandor Latente</div>
-                <div class="tool-chip" onclick="applyAiPostFilter('high_detail', this)">🔬 Hiper-Definición 8K</div>
-                <div class="tool-chip" onclick="applyAiPostFilter('artistic_pop', this)">🎨 Fusión Pop Art</div>
+                <div class="tool-chip active" onclick="switchDispatchView('preview', this)">📷 Paquete / Carga</div>
+                <div class="tool-chip" onclick="switchDispatchView('ticket', this)">📜 Guía de Despacho QR</div>
+                <div class="tool-chip" onclick="applyDispatchFilter('label_enhance', this)">⚡ Realce de Etiquetas</div>
+                <div class="tool-chip" onclick="applyDispatchFilter('contrast_doc', this)">📋 Modo Auditoría</div>
             </div>
-            <button class="btn-export-master" onclick="exportEditedResult()">
-                💾 EXPORTAR ASSET NEURONAL MASTER HD
+            <button class="btn-export-master" onclick="exportDispatchResult()">
+                💾 EXPORTAR GUÍA DE DESPACHO HD
             </button>
         </div>
     </div>
 
-    <!-- GALERÍA SOBERANA -->
     <div id="galleryModal">
         <div class="edit-header">
             <div class="edit-title" style="color:#00FFC8;">🖼️ GALERÍA SOBERANA (SQLITE LOCAL)</div>
@@ -477,42 +465,61 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="gallery-grid" id="galleryGridContent"></div>
     </div>
 
-    <!-- NANO-BOT ASISTENTE -->
     <div id="nanobotModal">
         <div>
             <div class="edit-header">
                 <div class="edit-title" style="color:#00FFC8;">✨ NANO-BOT TÁCTICO V10</div>
                 <button class="edit-close-btn" onclick="closeNanobot()">✖ Cerrar</button>
             </div>
-            <div class="bot-bubble" id="botMessageText">Analizando prompt e inferencia latente...</div>
+            <div class="bot-bubble" id="botMessageText">Calculando cubicaje y tarifas...</div>
             <div class="bot-actions" id="botActionList"></div>
         </div>
         <div style="font-size:10px; color:#555; text-align:center;">IA Soberana local operando en Snapdragon 8 Gen 2</div>
     </div>
 
     <canvas id="hiddenBufferCanvas" style="display:none;"></canvas>
-    <!-- CANVAS DE COMPOSICIÓN NEURONAL -->
-    <canvas id="aiCompositeCanvas" style="display:none;"></canvas>
+    <canvas id="dispatchRenderCanvas" style="display:none;"></canvas>
 
     <script>
         const video = document.getElementById('webcam');
         const hiddenCanvas = document.getElementById('hiddenBufferCanvas');
+        const dispCanvas = document.getElementById('dispatchRenderCanvas');
+        const dispCtx = dispCanvas.getContext('2d');
         const ghostCanvas = document.getElementById('ghostScopeCanvas');
         const ghostCtx = ghostCanvas.getContext('2d');
-        const matrixCanvas = document.getElementById('neuralMatrixCanvas');
-        const matrixCtx = matrixCanvas.getContext('2d');
-        const aiCanvas = document.getElementById('aiCompositeCanvas');
-        const aiCtx = aiCanvas.getContext('2d');
-        const focusRing = document.getElementById('focusRing');
+        const sporesCanvas = document.getElementById('sporesMatrixCanvas');
+        const sporesCtx = sporesCanvas.getContext('2d');
         let audioCtx = null;
         let facingMode = 'environment';
         let currentZoomIndex = 1;
         const zoomLevels = [0.6, 1.0, 2.0];
         let isGhostScopeOn = false;
+        let sporesTimeout = null;
 
-        /* ESTADO GENERADOR AI V8 */
-        let activeAiStyle = 'cyberpunk';
-        let processedAiDataUrl = null;
+        /* ESTADO DESPACHO COMERCIAL V2 */
+        let activeCarrier = "DHL Express";
+        let carrierRate = 320;
+        let processedDispDataUrl = null;
+
+        /* SISTEMA DE ESPORAS */
+        let spores = [];
+        const NUM_SPORES = 28;
+
+        function initSpores() {
+            spores = [];
+            for (let i = 0; i < NUM_SPORES; i++) {
+                spores.push({
+                    x: Math.random() * window.innerWidth,
+                    y: Math.random() * window.innerHeight,
+                    vx: (Math.random() - 0.5) * 1.4,
+                    vy: (Math.random() - 0.5) * 1.4,
+                    radius: Math.random() * 2.8 + 1.2,
+                    pulse: Math.random() * Math.PI * 2
+                });
+            }
+        }
+        initSpores();
+        window.addEventListener('resize', initSpores);
 
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -528,7 +535,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             .then(stream => {
                 video.srcObject = stream;
                 updateThumb();
-                requestAnimationFrame(processVideoPipeline);
+                requestAnimationFrame(processPipeline);
             })
             .catch(err => console.warn("Error cámara:", err));
         }
@@ -546,25 +553,16 @@ HTML_CONTENT = """<!DOCTYPE html>
             video.style.transform = `scale(${z})`;
         }
 
-        /* HORIZONTE ARTIFICIAL */
-        window.addEventListener('deviceorientation', (e) => {
-            if (e.gamma !== null) {
-                const angle = Math.max(-30, Math.min(30, e.gamma));
-                document.getElementById('horizonGyro').style.transform = `rotate(${angle}deg)`;
-            }
-        });
-
-        /* 1. PIPELINE DE MATRIZ NEURONAL EN TIEMPO REAL */
         let frameCount = 0;
-        function processVideoPipeline() {
+        function processPipeline() {
             if (video.readyState >= 2) {
                 if (hiddenCanvas.width !== video.videoWidth) {
                     hiddenCanvas.width = video.videoWidth || 640;
                     hiddenCanvas.height = video.videoHeight || 480;
-                    aiCanvas.width = hiddenCanvas.width;
-                    aiCanvas.height = hiddenCanvas.height;
-                    matrixCanvas.width = window.innerWidth;
-                    matrixCanvas.height = window.innerHeight;
+                    dispCanvas.width = hiddenCanvas.width;
+                    dispCanvas.height = hiddenCanvas.height;
+                    sporesCanvas.width = window.innerWidth;
+                    sporesCanvas.height = window.innerHeight;
                     ghostCanvas.width = 320;
                     ghostCanvas.height = 240;
                 }
@@ -589,44 +587,133 @@ HTML_CONTENT = """<!DOCTYPE html>
                     ghostCtx.putImageData(imgData, 0, 0);
                 }
 
-                // Renderizar matriz neuronal si Generador AI está activo
-                const curMod = moduleCatalog[activeCardIndex];
-                if (curMod.key === 'ai') {
-                    renderNeuralTensorMatrix();
-                } else {
-                    matrixCtx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
-                }
+                renderSporesFrame();
             }
-            requestAnimationFrame(processVideoPipeline);
+            requestAnimationFrame(processPipeline);
         }
 
-        function renderNeuralTensorMatrix() {
-            matrixCtx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
-            const w = matrixCanvas.width;
-            const h = matrixCanvas.height;
+        function renderSporesFrame() {
+            sporesCtx.clearRect(0, 0, sporesCanvas.width, sporesCanvas.height);
+            const w = sporesCanvas.width;
+            const h = sporesCanvas.height;
+            const curMod = moduleCatalog[activeCardIndex];
+            const col = curMod.color;
 
-            // Retícula de nodos de tensores latentes en magenta cuántico
-            matrixCtx.strokeStyle = "rgba(255, 0, 122, 0.35)";
-            matrixCtx.lineWidth = 1;
-            matrixCtx.setLineDash([2, 6]);
-
+            // Retícula punteada
+            sporesCtx.strokeStyle = `${col}28`;
+            sporesCtx.lineWidth = 0.8;
+            sporesCtx.setLineDash([2, 8]);
             const step = 45;
             for (let x = 0; x < w; x += step) {
-                matrixCtx.beginPath(); matrixCtx.moveTo(x, 0); matrixCtx.lineTo(x, h); matrixCtx.stroke();
+                sporesCtx.beginPath(); sporesCtx.moveTo(x, 0); sporesCtx.lineTo(x, h); sporesCtx.stroke();
             }
             for (let y = 0; y < h; y += step) {
-                matrixCtx.beginPath(); matrixCtx.moveTo(0, y); matrixCtx.lineTo(w, y); matrixCtx.stroke();
+                sporesCtx.beginPath(); sporesCtx.moveTo(0, y); sporesCtx.lineTo(w, y); sporesCtx.stroke();
             }
-            matrixCtx.setLineDash([]);
+            sporesCtx.setLineDash([]);
 
-            // Nodos aleatorios pulsantes
-            matrixCtx.fillStyle = "#FF007A";
-            const time = Date.now() * 0.003;
-            for (let i = 0; i < 6; i++) {
-                const nx = (Math.sin(time + i) * 0.4 + 0.5) * w;
-                const ny = (Math.cos(time + i * 1.5) * 0.4 + 0.5) * h;
-                matrixCtx.beginPath(); matrixCtx.arc(nx, ny, 3, 0, Math.PI * 2); matrixCtx.fill();
-            }
+            // Colimadores en las 4 esquinas
+            const cornerSize = 16;
+            sporesCtx.strokeStyle = col;
+            sporesCtx.lineWidth = 1.8;
+            sporesCtx.beginPath(); sporesCtx.moveTo(25, 25 + cornerSize); sporesCtx.lineTo(25, 25); sporesCtx.lineTo(25 + cornerSize, 25); sporesCtx.stroke();
+            sporesCtx.beginPath(); sporesCtx.moveTo(w - 25 - cornerSize, 25); sporesCtx.lineTo(w - 25, 25); sporesCtx.lineTo(w - 25, 25 + cornerSize); sporesCtx.stroke();
+            sporesCtx.beginPath(); sporesCtx.moveTo(25, h - 25 - cornerSize); sporesCtx.lineTo(25, h - 25); sporesCtx.lineTo(25 + cornerSize, h - 25); sporesCtx.stroke();
+            sporesCtx.beginPath(); sporesCtx.moveTo(w - 25 - cornerSize, h - 25); sporesCtx.lineTo(w - 25, h - 25); sporesCtx.lineTo(w - 25, h - 25 - cornerSize); sporesCtx.stroke();
+
+            // Esporas de luz vivas
+            spores.forEach(sp => {
+                sp.x += sp.vx;
+                sp.y += sp.vy;
+                sp.pulse += 0.05;
+
+                if (sp.x < 0) sp.x = w;
+                if (sp.x > w) sp.x = 0;
+                if (sp.y < 0) sp.y = h;
+                if (sp.y > h) sp.y = 0;
+
+                const currentR = sp.radius + Math.sin(sp.pulse) * 0.8;
+                const alpha = 0.5 + Math.sin(sp.pulse) * 0.4;
+
+                sporesCtx.fillStyle = col;
+                sporesCtx.shadowColor = col;
+                sporesCtx.shadowBlur = 10;
+                sporesCtx.globalAlpha = Math.max(0.1, alpha);
+                sporesCtx.beginPath();
+                sporesCtx.arc(sp.x, sp.y, Math.max(0.5, currentR), 0, Math.PI * 2);
+                sporesCtx.fill();
+            });
+
+            sporesCtx.globalAlpha = 1.0;
+            sporesCtx.shadowBlur = 0;
+        }
+
+        /* 🌟 PROTOCOLO UNIVERSAL: DESAPARICIÓN DE ESPORAS EN 1.5 SEGUNDOS 🌟 */
+        function triggerUniversalEntryProtocol(color) {
+            const border = document.getElementById('screenEdgeBorder');
+            const ambient = document.getElementById('ambientLightLayer');
+            const sCanvas = document.getElementById('sporesMatrixCanvas');
+
+            // Encender borde y flash
+            border.style.transition = 'border-color 0.08s ease-in, box-shadow 0.08s ease-in';
+            border.style.borderColor = color;
+            border.style.boxShadow = `inset 0 0 35px ${color}, 0 0 25px ${color}`;
+
+            ambient.style.background = `radial-gradient(circle at 50% 50%, ${color}66 0%, transparent 74%)`;
+            ambient.classList.remove('flash');
+            void ambient.offsetWidth;
+            ambient.classList.add('flash');
+
+            // Encender esporas al 100%
+            sCanvas.classList.add('active');
+
+            // Expulsión radial desde el centro
+            const cx = window.innerWidth / 2;
+            const cy = window.innerHeight / 2;
+            spores.forEach(sp => {
+                const angle = Math.atan2(sp.y - cy, sp.x - cx);
+                const speed = 4 + Math.random() * 4;
+                sp.vx = Math.cos(angle) * speed;
+                sp.vy = Math.sin(angle) * speed;
+            });
+
+            playTacticalEntrySound(color);
+
+            // Desvanecer borde y flash inmediatamente
+            setTimeout(() => {
+                border.style.transition = 'border-color 1.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 1.2s cubic-bezier(0.16, 1, 0.3, 1)';
+                border.style.borderColor = 'transparent';
+                border.style.boxShadow = 'none';
+                ambient.classList.remove('flash');
+            }, 120);
+
+            // 🌟 1.5 SEGUNDOS EXACTOS: DESAPARECER LAS ESPORAS 🌟
+            clearTimeout(sporesTimeout);
+            sporesTimeout = setTimeout(() => {
+                sCanvas.classList.remove('active'); // Inicia el fade out de 1.5s
+                setTimeout(() => {
+                    spores.forEach(sp => {
+                        sp.vx = (Math.random() - 0.5) * 1.4;
+                        sp.vy = (Math.random() - 0.5) * 1.4;
+                    });
+                }, 500);
+            }, 1500);
+        }
+
+        function playTacticalEntrySound(color) {
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(240, now);
+                osc.frequency.exponentialRampToValueAtTime(920, now + 0.18);
+                gain.gain.setValueAtTime(0.32, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                osc.start(now); osc.stop(now + 0.19);
+            } catch(e) {}
         }
 
         function toggleGhostScope() {
@@ -643,238 +730,165 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         }
 
-        /* 2. TRABAJO PESADO: DIFUSIÓN LATENTE & MORFOLOGÍA NEURONAL EN RAM */
-        function setAiStylePreset(style, elem) {
-            activeAiStyle = style;
-            document.querySelectorAll('.ai-style-selector .ai-chip-btn').forEach(b => b.classList.remove('active'));
+        /* 2. TRABAJO PESADO: DESPACHO COMERCIAL Y CUBICAJE EN RAM */
+        function setCarrier(key, rate, elem) {
+            carrierRate = rate;
+            activeCarrier = elem.innerText;
+            document.querySelectorAll('.dispatch-chip-btn').forEach(b => b.classList.remove('active'));
             elem.classList.add('active');
-            const input = document.getElementById('aiPromptInput');
-            if (style === 'cyberpunk') input.value = "Cyberpunk neon city aesthetics, high-detail octane render";
-            else if (style === 'photoreal') input.value = "Ultra-realistic 8K photograph, natural daylight, sharp focus 35mm";
-            else if (style === 'anime_mecha') input.value = "Japanese mecha anime artstyle, cel-shaded vibrant colors";
-            else if (style === 'oil_canvas') input.value = "Classical oil on canvas masterpiece, dramatic chiaroscuro light";
         }
 
-        async function handleAiCaptureTrigger() {
+        async function handleDispatchCapture() {
             const curMod = moduleCatalog[activeCardIndex];
-            if (curMod.key === 'ai') {
-                executeAiDiffusionCapture();
+            if (curMod.key === 'dispatch') {
+                executeDispatchCapture();
             } else {
                 captureStandardZSL();
             }
         }
 
-        async function executeAiDiffusionCapture() {
-            const flash = document.getElementById('ambientLightLayer');
-            flash.classList.add('flash');
-            setTimeout(() => flash.classList.remove('flash'), 60);
-            playNeuralWarpSound();
+        async function executeDispatchCapture() {
+            triggerUniversalEntryProtocol('#00E676');
+            playScannerBeepSound();
 
-            document.getElementById('telAiEngine').innerText = 'DIFFUSION: SYNTHESIZING';
+            document.getElementById('telDispatchEngine').innerText = 'LOGISTICS: PROCESSING';
 
-            // Lienzo con fotograma base
-            aiCtx.drawImage(hiddenCanvas, 0, 0);
+            dispCtx.drawImage(hiddenCanvas, 0, 0);
 
-            // Simulación de paso de difusión latente en memoria
-            const imgData = aiCtx.getImageData(0, 0, aiCanvas.width, aiCanvas.height);
-            const d = imgData.data;
+            // Generar código de tracking aleatorio
+            const trackingNum = `BN-${Math.floor(1000 + Math.random() * 9000)}-TRK`;
+            const cbm = (0.035 + Math.random() * 0.02).toFixed(3);
+            const volWeight = (6.0 + Math.random() * 2.5).toFixed(1);
 
-            for (let i = 0; i < d.length; i += 4) {
-                if (activeAiStyle === 'cyberpunk') {
-                    d[i] = Math.min(255, d[i] * 1.35 + 25);     // Rojo/Magenta
-                    d[i+1] = Math.min(255, d[i+1] * 0.85);     // Verde
-                    d[i+2] = Math.min(255, d[i+2] * 1.4 + 35); // Cian/Azul
-                } else if (activeAiStyle === 'photoreal') {
-                    d[i] = Math.min(255, d[i] * 1.15);
-                    d[i+1] = Math.min(255, d[i+1] * 1.15);
-                    d[i+2] = Math.min(255, d[i+2] * 1.12);
-                } else if (activeAiStyle === 'anime_mecha') {
-                    // Cuantización de color estilo cel-shading
-                    d[i] = Math.round(d[i] / 40) * 40;
-                    d[i+1] = Math.round(d[i+1] / 40) * 40;
-                    d[i+2] = Math.round(d[i+2] / 40) * 40;
-                }
-            }
-            aiCtx.putImageData(imgData, 0, 0);
+            document.getElementById('dispTicketCarrier').innerText = activeCarrier;
+            document.getElementById('dispTicketCode').innerText = trackingNum;
+            document.getElementById('dispTicketCbm').innerText = `${cbm} m³`;
+            document.getElementById('dispTicketWeight').innerText = `${volWeight} kg`;
+            document.getElementById('dispTicketPrice').innerText = `$${carrierRate}.00 MXN`;
 
-            // Marca de agua de síntesis neuronal
-            aiCtx.fillStyle = "rgba(10, 4, 14, 0.75)";
-            aiCtx.fillRect(10, aiCanvas.height - 45, aiCanvas.width - 20, 35);
-            aiCtx.fillStyle = "#FF007A";
-            aiCtx.font = "bold 13px monospace";
-            const currentPrompt = document.getElementById('aiPromptInput').value;
-            aiCtx.fillText(`BIAN AI V8 • ${activeAiStyle.toUpperCase()} • "${currentPrompt.slice(0, 32)}..."`, 20, aiCanvas.height - 22);
+            // Estampado sobre la foto
+            dispCtx.fillStyle = "rgba(4, 18, 10, 0.78)";
+            dispCtx.fillRect(10, dispCanvas.height - 45, dispCanvas.width - 20, 35);
+            dispCtx.fillStyle = "#00E676";
+            dispCtx.font = "bold 13px monospace";
+            dispCtx.fillText(`DESPACHO V2 • ${activeCarrier} • GUÍA: ${trackingNum} • CBM: ${cbm} • VOL: ${volWeight}kg`, 20, dispCanvas.height - 22);
 
-            processedAiDataUrl = aiCanvas.toDataURL('image/jpeg', 0.95);
+            processedDispDataUrl = dispCanvas.toDataURL('image/jpeg', 0.95);
 
             const res = await fetch('/bian/process/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: processedAiDataUrl, prompt_analysis: `Generador AI V8 ${activeAiStyle}` })
+                body: JSON.stringify({ image_base64: processedDispDataUrl, prompt_analysis: `Despacho V2 ${activeCarrier} ${trackingNum}` })
             });
 
             if (res.ok) {
                 const data = await res.json();
                 document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
-                openAiEditModal(processedAiDataUrl);
-                document.getElementById('telAiEngine').innerText = 'LATENT DIFFUSION: ARMED';
+                openDispatchEditModal(processedDispDataUrl);
+                document.getElementById('telDispatchEngine').innerText = 'LOGISTICS AI: READY';
             }
         }
 
-        function playNeuralWarpSound() {
+        function playScannerBeepSound() {
             try {
                 const ctx = getAudioContext();
                 const now = ctx.currentTime;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.connect(gain); gain.connect(ctx.destination);
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(260, now);
-                osc.frequency.exponentialRampToValueAtTime(1400, now + 0.22);
-                gain.gain.setValueAtTime(0.3, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
-                osc.start(now); osc.stop(now + 0.23);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1760, now);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                osc.start(now); osc.stop(now + 0.13);
             } catch(e) {}
         }
 
-        /* 3. INNOVACIÓN: MESA DE EDICIÓN & CONTROL DE MORPHING */
-        function openAiEditModal(imgSrc) {
-            document.getElementById('editModalTitle').innerText = '✨ SÍNTESIS NEURONAL V8 RENDER';
+        /* 3. INNOVACIÓN: MESA DE POST-EDICIÓN & GUÍA QR */
+        function openDispatchEditModal(imgSrc) {
+            document.getElementById('editModalTitle').innerText = '📦 MANIFIESTO DE DESPACHO V2';
             document.getElementById('editImagePreview').src = imgSrc;
+            document.getElementById('editImagePreview').style.display = 'block';
+            document.getElementById('dispatchTicketBox').style.display = 'none';
             document.getElementById('postEditModal').style.display = 'flex';
         }
 
         function closeEditModal() { document.getElementById('postEditModal').style.display = 'none'; }
 
-        function updateBlendVal(val) {
-            document.getElementById('blendValLabel').innerText = `${val}%`;
-            const img = document.getElementById('editImagePreview');
-            const factor = val / 100;
-            img.style.filter = `contrast(${1 + factor * 0.35}) saturate(${1 + factor * 0.5}) brightness(${1 + factor * 0.1})`;
+        function switchDispatchView(view, elem) {
+            document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
+            elem.classList.add('active');
+
+            const previewImg = document.getElementById('editImagePreview');
+            const ticket = document.getElementById('dispatchTicketBox');
+
+            if (view === 'preview') {
+                previewImg.style.display = 'block';
+                ticket.style.display = 'none';
+            } else if (view === 'ticket') {
+                previewImg.style.display = 'none';
+                ticket.style.display = 'flex';
+            }
         }
 
-        function applyAiPostFilter(mode, elem) {
+        function applyDispatchFilter(mode, elem) {
             document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
             elem.classList.add('active');
             const img = document.getElementById('editImagePreview');
 
-            if (mode === 'cyber_dream') {
-                img.style.filter = 'drop-shadow(0 0 14px rgba(255,0,122,0.7)) contrast(1.3) saturate(1.4)';
-            } else if (mode === 'neural_glow') {
-                img.style.filter = 'brightness(1.15) contrast(1.25) drop-shadow(0 0 18px rgba(121,40,202,0.8))';
-            } else if (mode === 'high_detail') {
-                img.style.filter = 'contrast(1.45) saturate(1.15) brightness(1.05)';
-            } else if (mode === 'artistic_pop') {
-                img.style.filter = 'saturate(1.8) contrast(1.35) hue-rotate(-20deg)';
+            if (mode === 'label_enhance') {
+                img.style.filter = 'contrast(1.4) brightness(1.1) saturate(1.2)';
+            } else if (mode === 'contrast_doc') {
+                img.style.filter = 'contrast(1.5) grayscale(0.3) drop-shadow(0 0 10px rgba(0,230,118,0.5))';
             }
         }
 
-        function exportEditedResult() {
+        function exportDispatchResult() {
             const a = document.createElement('a');
-            a.href = processedAiDataUrl || document.getElementById('editImagePreview').src;
-            a.download = `bian_neural_ai_v8_${activeAiStyle}_${Date.now()}.jpg`;
+            a.href = processedDispDataUrl || document.getElementById('editImagePreview').src;
+            a.download = `bian_despacho_v2_${Date.now()}.jpg`;
             a.click();
-            alert('✔ Asset neuronal HD Master exportado con éxito.');
+            alert('✔ Guía de despacho HD exportada con éxito.');
         }
 
         /* DISPARO ESTÁNDAR ZSL */
         async function captureStandardZSL() {
-            const flash = document.getElementById('ambientLightLayer');
-            flash.classList.add('flash');
-            setTimeout(() => flash.classList.remove('flash'), 60);
-            playLensCapShutterSound();
+            const curMod = moduleCatalog[activeCardIndex];
+            triggerUniversalEntryProtocol(curMod.color);
 
             const b64 = hiddenCanvas.toDataURL('image/jpeg', 0.95);
             const res = await fetch('/bian/process/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: b64, prompt_analysis: 'Captura V10' })
+                body: JSON.stringify({ image_base64: b64, prompt_analysis: `Captura ${curMod.title}` })
             });
             if (res.ok) {
                 const data = await res.json();
                 document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
-                openAiEditModal(b64);
+                openDispatchEditModal(b64);
             }
         }
 
-        function playLensCapShutterSound() {
-            try {
-                const ctx = getAudioContext();
-                const now = ctx.currentTime;
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain); gain.connect(ctx.destination);
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(160, now);
-                osc.frequency.exponentialRampToValueAtTime(35, now + 0.11);
-                gain.gain.setValueAtTime(0.28, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
-                osc.start(now); osc.stop(now + 0.12);
-            } catch(e) {}
-        }
-
-        let unlocked = false;
-        function unlockSuite() {
-            if (unlocked) return;
-            unlocked = true;
-            playLensCapShutterSound();
-            const cap = document.getElementById('lensCapDisk');
-            cap.style.transform = 'rotate(-45deg) scale(1.18)';
-            setTimeout(() => {
-                document.getElementById('lockscreen').classList.add('unlocked');
-                applyActiveCardTheme(moduleCatalog[activeCardIndex]);
-            }, 180);
-        }
-
-        function lockSuite() {
-            unlocked = false;
-            document.getElementById('lockscreen').classList.remove('unlocked');
-            document.getElementById('lensCapDisk').style.transform = 'none';
-            const border = document.getElementById('screenEdgeBorder');
-            border.style.borderColor = 'transparent';
-            border.style.boxShadow = 'none';
-        }
-
-        const lensCapBtn = document.getElementById('lensCapUnlockBtn');
-        let touchStartY = 0;
-        lensCapBtn.addEventListener('click', unlockSuite);
-        lensCapBtn.addEventListener('touchstart', (e) => { touchStartY = e.touches[0].clientY; }, { passive: true });
-        lensCapBtn.addEventListener('touchend', (e) => {
-            const deltaY = touchStartY - e.changedTouches[0].clientY;
-            if (deltaY > 20 || Math.abs(deltaY) < 10) unlockSuite();
-        }, { passive: true });
-
-        /* SWIPE GLOBAL */
-        window.addEventListener('touchstart', (e) => {
-            if (!e.target.closest('#deckStack') && !e.target.closest('#horizontalDockBar') && !e.target.closest('#postEditModal') && !e.target.closest('#galleryModal') && !e.target.closest('#nanobotModal') && !e.target.closest('#floatingGadget') && !e.target.closest('#floatingPanel')) touchStartY = e.touches[0].clientY;
-        }, { passive: true });
-        window.addEventListener('touchend', (e) => {
-            if (!e.target.closest('#deckStack') && !e.target.closest('#horizontalDockBar') && !e.target.closest('#postEditModal') && !e.target.closest('#galleryModal') && !e.target.closest('#nanobotModal') && !e.target.closest('#floatingGadget') && !e.target.closest('#floatingPanel')) {
-                const deltaY = touchStartY - e.changedTouches[0].clientY;
-                if (!unlocked && deltaY > 35) unlockSuite();
-                else if (unlocked && deltaY < -75 && touchStartY < 120) lockSuite();
-            }
-        }, { passive: true });
-
-        /* CATÁLOGO COMPLETO DE LOS 17 MÓDULOS CON GENERADOR AI V8 */
+        /* CATÁLOGO DE MÓDULOS CON DESPACHO COMERCIAL V2 INTEGRADO */
         const moduleCatalog = [
-            { key: 'ai', icon: '✨', title: 'GENERADOR AI V8', pill: '✨ DIFUSIÓN LATENTE & MORFOLOGÍA NEURONAL', color: '#FF007A', botTips: 'Transformación neuronal guiada por cámara e inyector de prompts latentes.' },
-            { key: 'price', icon: '🏷️', title: 'VALUADOR HÍBRIDO V10', pill: '🏷️️ TASACIÓN DE MERCADO & PÓLIZA COMERCIAL', color: '#63E6E2', botTips: 'Tasación comercial y márgenes.' },
-            { key: 'chef', icon: '👨‍🍳', title: 'CHEF LEAN V10', pill: '👨‍🍳 BÁSCULA NPU & AUDITORÍA DE MERMA', color: '#FF9500', botTips: 'Báscula volumétrica y merma cárnica.' },
-            { key: 'depth', icon: '🛰️', title: 'DEPTH-MAP NPU', pill: '🛰️ Z-BUFFER 16-BIT & NUBE LIDAR', color: '#00F2FE', botTips: 'Sensor de disparidad y Wiggle 3D.' },
-            { key: 'motion', icon: '⚡', title: 'VIDEO MOTION', pill: '⚡ FLUJO ÓPTICO & ESTELAS 60 FPS', color: '#FF9500', botTips: 'Rastreo kinético de vectores.' },
-            { key: 'svg', icon: '📐', title: 'SVG LOGOS', pill: '📐 VECTORIZADOR CAD & CÓDIGO XML', color: '#00FFC8', botTips: 'Vectorizador Autotrace y exportador XML.' },
-            { key: 'raw', icon: '🎞️', title: 'ESTUDIO RAW', pill: '🎞️ REVELADO DIGITAL DE 14-BIT & HISTOGRAMA', color: '#FF9F0A', botTips: 'Histograma espectral RGB.' },
-            { key: 'cine', icon: '🎬', title: 'CINE SCOPE V10', pill: '🎬 ANAMÓRFICO 2.39:1 & BLUE STREAK FLARE', color: '#FF0055', botTips: 'Enmarcado cinematográfico DCI 2.39:1.' },
-            { key: 'imprenta', icon: '🖨️', title: 'IMPRENTA PDF', pill: '🖨️ PREPRENSA CMYK & FOGRA39 PROOF', color: '#FF2D85', botTips: 'Mesa de preprensa industrial.' },
-            { key: 'stickers', icon: '🎨', title: 'WALLPAPERS STICKERS', pill: '🎨 TROQUELADO 3D & AMOLED BLACK', color: '#BF5AF2', botTips: 'Stickers die-cut y fondos AMOLED.' },
-            { key: 'lonas', icon: '🎪', title: 'LONAS 3D', pill: '🎪 BASTIDOR PTR & TÚNEL DE VIENTO 110 km/h', color: '#FFD60A', botTips: 'Bastidor de PTR y túnel de viento.' },
-            { key: 'bokeh', icon: '🎭', title: 'RETRATO BOKEH', pill: '🎭 APERTURA ÓPTICA & IRIS SHAPER', color: '#FF2D55', botTips: 'Desenfoque f/1.2 y convolución gaussiana.' },
-            { key: 'night', icon: '🌙', title: 'NIGHTOGRAPHY', pill: '🌙 MULTI-FRAME STACK & DEEP-SKY BOOST', color: '#5E5CE6', botTips: 'Baja iluminación y apilado en RAM.' },
-            { key: 'macro', icon: '🔍', title: 'MACRO PRO', pill: '🔍 FOCUS PEAKING & DEEP FOCUS STACK', color: '#30D158', botTips: 'Focus Peaking verde y lupa 10x.' },
-            { key: 'scan', icon: '📄', title: 'SCAN DOC PRO', pill: '📄 AUTO-ENCUADRE HOMOGRÁFICO & OCR', color: '#00D2FF', botTips: 'Alinea el documento dentro del cuadrilátero.' },
-            { key: 'timelapse', icon: '⏱️', title: 'TIMELAPSE V10', pill: '⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA 4x', color: '#FF3B30', botTips: 'Gimbal Virtual OIS activo.' },
-            { key: 'pano', icon: '🌐', title: 'PANORÁMICA 360', pill: '🌐 BARRIDO POLAR & ORBE 3D VR', color: '#00FFC8', botTips: 'Gira el teléfono de izquierda a derecha.' }
+            { key: 'dispatch', icon: '📦', title: 'DESPACHO COMERCIAL V2', pill: '📦 CUBICAJE IATA & MANIFIESTO LOGÍSTICO', color: '#00E676', capText: 'DESPACHO', capSub: 'F/1.4 • WAYBILL MATRIX', botTips: 'Calcula cubicaje CBM, peso volumétrico y genera manifiestos de salida.' },
+            { key: 'ai', icon: '✨', title: 'GENERADOR AI V8', pill: '✨ DIFUSIÓN LATENTE & MORFOLOGÍA NEURONAL', color: '#FF007A', capText: 'NEURAL AI', capSub: 'F/1.4 • LATENT SYNTHESIS', botTips: 'Transformación neuronal guiada por cámara.' },
+            { key: 'price', icon: '🏷️', title: 'VALUADOR HÍBRIDO V10', pill: '🏷️ TASACIÓN DE MERCADO & PÓLIZA COMERCIAL', color: '#63E6E2', capText: 'VALUADOR', capSub: 'F/1.4 • COMMERCIAL SCAN', botTips: 'Tasación comercial y márgenes.' },
+            { key: 'chef', icon: '👨‍🍳', title: 'CHEF LEAN V10', pill: '👨‍🍳 BÁSCULA NPU & AUDITORÍA DE MERMA', color: '#FF9500', capText: 'CHEF LEAN', capSub: 'F/1.4 • MEAT YIELD MATRIX', botTips: 'Báscula volumétrica y merma cárnica.' },
+            { key: 'depth', icon: '🛰️', title: 'DEPTH-MAP NPU', pill: '🛰️ Z-BUFFER 16-BIT & NUBE LIDAR', color: '#00F2FE', capText: 'DEPTH NPU', capSub: 'F/1.4 • DISPARITY 16-BIT', botTips: 'Disparidad de 16-bit y Wiggle 3D.' },
+            { key: 'motion', icon: '⚡', title: 'VIDEO MOTION', pill: '⚡ FLUJO ÓPTICO & ESTELAS 60 FPS', color: '#FF9500', capText: 'MOTION V9', capSub: 'F/1.4 • OPTICAL FLOW 60FPS', botTips: 'Rastreo kinético de vectores.' },
+            { key: 'svg', icon: '📐', title: 'SVG LOGOS', pill: '📐 VECTORIZADOR CAD & CÓDIGO XML', color: '#00FFC8', capText: 'SVG CAD', capSub: 'F/1.4 • BEZIER AUTOTRACE', botTips: 'Vectorización paramétrica y exportación XML.' },
+            { key: 'raw', icon: '🎞️', title: 'ESTUDIO RAW', pill: '🎞️ REVELADO DIGITAL DE 14-BIT & HISTOGRAMA', color: '#FF9F0A', capText: 'RAW STUDIO', capSub: 'F/1.4 • 14-BIT DNG PROFILE', botTips: 'Histograma espectral RGB.' },
+            { key: 'cine', icon: '🎬', title: 'CINE SCOPE V10', pill: '🎬 ANAMÓRFICO 2.39:1 & BLUE STREAK FLARE', color: '#FF0055', capText: 'SCOPE 2.39', capSub: 'F/1.4 • ANAMORPHIC DCI', botTips: 'Enmarcado cinematográfico Scope 2.39:1.' },
+            { key: 'imprenta', icon: '🖨️', title: 'IMPRENTA PDF', pill: '🖨️ PREPRENSA CMYK & FOGRA39 PROOF', color: '#FF2D85', capText: 'PREPRESS', capSub: 'F/1.4 • CMYK FOGRA39', botTips: 'Mesa de preprensa industrial.' },
+            { key: 'stickers', icon: '🎨', title: 'WALLPAPERS STICKERS', pill: '🎨 TROQUELADO 3D & AMOLED BLACK', color: '#BF5AF2', capText: 'DIE-CUT 3D', capSub: 'F/1.4 • AMOLED 19.5:9', botTips: 'Stickers troquelados y wallpapers.' },
+            { key: 'lonas', icon: '🎪', title: 'LONAS 3D', pill: '🎪 BASTIDOR PTR & TÚNEL DE VIENTO 110 km/h', color: '#FFD60A', capText: 'LONAS 3D', capSub: 'F/1.4 • PTR WIND TUNNEL', botTips: 'Bastidor PTR y túnel de viento.' },
+            { key: 'bokeh', icon: '🎭', title: 'RETRATO BOKEH', pill: '🎭 APERTURA ÓPTICA & IRIS SHAPER', color: '#FF2D55', capText: 'BOKEH f/1.2', capSub: 'F/1.2 • 85MM CINEMA IRIS', botTips: 'Convolución gaussiana y desenfoque.' },
+            { key: 'night', icon: '🌙', title: 'NIGHTOGRAPHY', pill: '🌙 MULTI-FRAME STACK & DEEP-SKY BOOST', color: '#5E5CE6', capText: 'NIGHT PRO', capSub: 'F/1.4 • MULTI-FRAME RAW', botTips: 'Fotómetro cuántico y apilado.' },
+            { key: 'macro', icon: '🔍', title: 'MACRO PRO', pill: '🔍 FOCUS PEAKING & DEEP FOCUS STACK', color: '#30D158', capText: 'MACRO PRO', capSub: 'F/1.4 • FOCUS PEAKING', botTips: 'Focus Peaking verde y lupa 10x.' },
+            { key: 'scan', icon: '📄', title: 'SCAN DOC PRO', pill: '📄 AUTO-ENCUADRE HOMOGRÁFICO & OCR', color: '#00D2FF', capText: 'SCAN DOC', capSub: 'F/1.4 • HOMOGRAPHY OCR', botTips: 'Enderezado homográfico y OCR.' },
+            { key: 'timelapse', icon: '⏱️', title: 'TIMELAPSE V10', pill: '⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA 4x', color: '#FF3B30', capText: 'CHRONO OIS', capSub: 'F/1.4 • QUANTUM TRAILS', botTips: 'Gimbal virtual OIS.' },
+            { key: 'pano', icon: '🌐', title: 'PANORÁMICA 360', pill: '🌐 BARRIDO POLAR & ORBE 3D VR', color: '#00FFC8', capText: 'PANO 360', capSub: 'F/1.4 • POLAR SPHERE', botTips: 'Barrido cilíndrico y render VR.' }
         ];
 
         let activeCardIndex = 0;
@@ -920,14 +934,14 @@ HTML_CONTENT = """<!DOCTYPE html>
                         activeCardIndex = idx;
                         closeHorizontalDock();
                         renderDeckStack();
-                        applyActiveCardTheme(moduleCatalog[activeCardIndex]);
+                        applyActiveCardTheme(moduleCatalog[activeCardIndex], true);
                         lastClickedModuleIndex = -1;
                     } else {
                         activeCardIndex = idx;
                         lastClickedModuleIndex = idx;
                         lastModuleClickTime = now;
                         renderHorizontalDock();
-                        applyActiveCardTheme(moduleCatalog[activeCardIndex]);
+                        applyActiveCardTheme(moduleCatalog[activeCardIndex], true);
                     }
                 };
                 horizontalDock.appendChild(btn);
@@ -960,29 +974,39 @@ HTML_CONTENT = """<!DOCTYPE html>
             setTimeout(() => {
                 activeCardIndex = (activeCardIndex + dir + moduleCatalog.length) % moduleCatalog.length;
                 renderDeckStack();
-                applyActiveCardTheme(moduleCatalog[activeCardIndex]);
+                applyActiveCardTheme(moduleCatalog[activeCardIndex], true);
             }, 180);
         }
 
-        function applyActiveCardTheme(m) {
+        function applyActiveCardTheme(m, triggerEntryEffect = false) {
             document.getElementById('moduleNameText').innerText = m.title;
             document.getElementById('statusDot').style.background = m.color;
             document.getElementById('contextPillText').innerText = m.pill;
             document.getElementById('contextPillText').style.color = m.color;
             document.getElementById('contextPillText').style.borderColor = `${m.color}66`;
 
+            document.getElementById('dispatchShutterBtn').style.background = m.color;
+            document.getElementById('dispatchShutterBtn').style.boxShadow = `0 0 22px ${m.color}88`;
+            document.getElementById('shutterCorona').style.borderColor = m.color;
+
             document.getElementById('floatingGadget').innerText = m.icon;
             document.getElementById('floatingGadget').style.borderColor = m.color;
             document.getElementById('floatModTitle').innerText = m.title;
             document.getElementById('floatModTitle').style.color = m.color;
             document.getElementById('floatModDesc').innerText = m.botTips;
-            document.getElementById('shutterCorona').style.borderColor = m.color;
 
-            // Mostrar u ocultar controles de Generador AI
-            if (m.key === 'ai') {
-                document.getElementById('aiHud').style.display = 'flex';
+            document.getElementById('lockscreenBadge').innerText = `• ${m.title}`;
+            document.getElementById('lockscreenBadge').style.color = m.color;
+            document.getElementById('lockscreenBadge').style.borderColor = `${m.color}55`;
+            document.getElementById('lensCapCenterText').innerText = m.capText;
+            document.getElementById('lensCapCenterText').style.color = m.color;
+            document.getElementById('lensCapSubText').innerText = m.capSub;
+
+            // Mostrar u ocultar controles específicos de Despacho
+            if (m.key === 'dispatch') {
+                document.getElementById('dispatchHud').style.display = 'flex';
             } else {
-                document.getElementById('aiHud').style.display = 'none';
+                document.getElementById('dispatchHud').style.display = 'none';
             }
 
             const topCard = deckStack.querySelector('.pos-0');
@@ -990,39 +1014,49 @@ HTML_CONTENT = """<!DOCTYPE html>
                 topCard.style.borderColor = m.color;
                 topCard.style.background = m.color;
                 topCard.style.boxShadow = `0 0 22px ${m.color}`;
-            }
-
-            triggerModuleVisuals(m.color);
-
-            setTimeout(() => {
-                if (topCard) {
+                setTimeout(() => {
                     topCard.style.borderColor = 'rgba(255, 255, 255, 0.25)';
                     topCard.style.background = 'rgba(24, 25, 30, 0.92)';
                     topCard.style.boxShadow = '0 8px 24px rgba(0,0,0,0.7)';
-                }
-            }, 1500);
+                }, 1200);
+            }
+
+            if (triggerEntryEffect) {
+                triggerUniversalEntryProtocol(m.color);
+            }
         }
 
-        function triggerModuleVisuals(color) {
-            const border = document.getElementById('screenEdgeBorder');
-            const ambient = document.getElementById('ambientLightLayer');
-
-            border.style.transition = 'border-color 0.08s ease-in, box-shadow 0.08s ease-in';
-            border.style.borderColor = color;
-            border.style.boxShadow = `inset 0 0 32px ${color}, 0 0 20px ${color}`;
-
-            ambient.style.background = `radial-gradient(circle at 50% 50%, ${color}48 0%, transparent 70%)`;
-            ambient.classList.remove('flash');
-            void ambient.offsetWidth;
-            ambient.classList.add('flash');
+        let unlocked = false;
+        function unlockSuite() {
+            if (unlocked) return;
+            unlocked = true;
+            const curMod = moduleCatalog[activeCardIndex];
+            const cap = document.getElementById('lensCapDisk');
+            cap.style.transform = 'rotate(-45deg) scale(1.18)';
 
             setTimeout(() => {
-                border.style.transition = 'border-color 1.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 1.5s cubic-bezier(0.16, 1, 0.3, 1)';
-                border.style.borderColor = 'transparent';
-                border.style.boxShadow = 'none';
-                ambient.classList.remove('flash');
-            }, 100);
+                document.getElementById('lockscreen').classList.add('unlocked');
+                applyActiveCardTheme(curMod, true);
+            }, 160);
         }
+
+        function lockSuite() {
+            unlocked = false;
+            document.getElementById('lockscreen').classList.remove('unlocked');
+            document.getElementById('lensCapDisk').style.transform = 'none';
+            const border = document.getElementById('screenEdgeBorder');
+            border.style.borderColor = 'transparent';
+            border.style.boxShadow = 'none';
+        }
+
+        const lensCapBtn = document.getElementById('lensCapUnlockBtn');
+        let touchStartY = 0;
+        lensCapBtn.addEventListener('click', unlockSuite);
+        lensCapBtn.addEventListener('touchstart', (e) => { touchStartY = e.touches[0].clientY; }, { passive: true });
+        lensCapBtn.addEventListener('touchend', (e) => {
+            const deltaY = touchStartY - e.changedTouches[0].clientY;
+            if (deltaY > 20 || Math.abs(deltaY) < 10) unlockSuite();
+        }, { passive: true });
 
         /* GADGET FLOTANTE */
         const gadget = document.getElementById('floatingGadget');
@@ -1076,9 +1110,9 @@ HTML_CONTENT = """<!DOCTYPE html>
                 const cur = moduleCatalog[activeCardIndex];
                 const list = document.getElementById('floatActionList');
                 list.innerHTML = `
-                    <button class="bot-btn" onclick="handleAiCaptureTrigger(); toggleFloatingPanel();">📸 Disparo Neuronal con ${cur.title}</button>
+                    <button class="bot-btn" onclick="handleDispatchCapture(); toggleFloatingPanel();">📸 Disparo con ${cur.title}</button>
                     <button class="bot-btn" onclick="openHorizontalDock(); toggleFloatingPanel();">🎴 Selector de Módulos</button>
-                    <button class="bot-btn" onclick="toggleGhostScope(); toggleFloatingPanel();">👁️ Alternar Radar Espectral</button>
+                    <button class="bot-btn" onclick="toggleGhostScope(); toggleFloatingPanel();">👁 Alternar Radar Espectral</button>
                     <button class="bot-btn" onclick="openGalleryModal(); toggleFloatingPanel();">🖼️ Ver Galería Local</button>
                 `;
             }
@@ -1114,7 +1148,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                     card.className = 'gallery-card';
                     card.onclick = () => {
                         closeGalleryModal();
-                        openAiEditModal(img.image_path);
+                        openDispatchEditModal(img.image_path);
                     };
                     card.innerHTML = `
                         <img src="${img.image_path}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\' viewBox=\\'0 0 100 100\\'><rect width=\\'100\\' height=\\'100\\' fill=\\'%23222\\'/><text x=\\'50\\' y=\\'55\\' fill=\\'%23666\\' font-size=\\'11\\' text-anchor=\\'middle\\'>Sin Vista</text></svg>'"/>
@@ -1138,14 +1172,14 @@ HTML_CONTENT = """<!DOCTYPE html>
             const act = document.getElementById('botActionList');
 
             msg.innerHTML = `
-                <div style="color:#FF007A; font-weight:800; margin-bottom:6px;">🤖 Diagnóstico V8 para ${curMod.title}:</div>
+                <div style="color:${curMod.color}; font-weight:800; margin-bottom:6px;">🤖 Diagnóstico para ${curMod.title}:</div>
                 <div>${curMod.botTips}</div>
             `;
 
             act.innerHTML = `
-                <button class="bot-btn" onclick="executeBotAction('calibrate')">⚡ Calibrar Matriz Neuronal & Inferencia NPU</button>
+                <button class="bot-btn" onclick="executeBotAction('calibrate')">⚡ Re-calibrar Despacho & Esporas de 1.5s</button>
                 <button class="bot-btn" onclick="executeBotAction('ghost')">👁️ Activar Radar Espectral</button>
-                <button class="bot-btn" onclick="executeBotAction('gallery')">🖼️ Ver Creaciones AI Guardadas</button>
+                <button class="bot-btn" onclick="executeBotAction('gallery')">🖼️️ Ver Galería Local</button>
             `;
 
             modal.style.display = 'flex';
@@ -1156,8 +1190,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         function executeBotAction(action) {
             closeNanobot();
             if(action === 'calibrate') {
-                applyActiveCardTheme(moduleCatalog[activeCardIndex]);
-                alert("✔ Motor de difusión latente y prompt injector calibrados.");
+                applyActiveCardTheme(moduleCatalog[activeCardIndex], true);
             } else if(action === 'ghost') {
                 toggleGhostScope();
             } else if(action === 'gallery') {
