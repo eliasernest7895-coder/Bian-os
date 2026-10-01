@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from sqlmodel import Session, select
@@ -16,14 +16,14 @@ router.mount("/storage", StaticFiles(directory="storage"), name="storage")
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Captura Nano-Bot V2"
+    prompt_analysis: str = "Captura Master Suite V10"
 
 HTML_CONTENT = """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>BIAN MASTER SUITE V10 - NANO-BOT V2</title>
+    <title>BIAN MASTER SUITE V10 - ALMACÉN V3</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', Roboto, monospace; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; width: 100vw; overflow: hidden; position: fixed; }
@@ -49,8 +49,8 @@ HTML_CONTENT = """<!DOCTYPE html>
         #lockscreen.unlocked { transform: translateY(-100%); opacity: 0; pointer-events: none; }
 
         .pill-badge {
-            background: rgba(0, 255, 200, 0.08); border: 1px solid rgba(0, 255, 200, 0.3);
-            color: #00FFC8; font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+            background: rgba(0, 229, 255, 0.08); border: 1px solid rgba(0, 229, 255, 0.3);
+            color: #00E5FF; font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
             padding: 6px 14px; border-radius: 20px; text-transform: uppercase;
         }
         .brand-center { text-align: center; margin-top: auto; margin-bottom: auto; }
@@ -70,7 +70,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             position: relative; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s;
         }
-        .lens-cap-center { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #00FFC8; transition: color 0.3s; }
+        .lens-cap-center { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #00E5FF; transition: color 0.3s; }
         .lens-cap-sub { font-size: 7.5px; color: #888; margin-top: 2px; }
         .lens-cap-hint { font-size: 10px; font-weight: 800; color: #aaa; margin-top: 10px; letter-spacing: 1px; }
 
@@ -84,10 +84,10 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         #ghostScopeCanvas.active { opacity: 0.75; }
 
-        /* CANVAS DE ESPORAS CON DESVANECIMIENTO EXACTO DE 1.0 SEGUNDO */
+        /* 🌟 CANVAS DE ESPORAS CON DESVANECIMIENTO EXACTO DE 0.8s 🌟 */
         #sporesMatrixCanvas {
             position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 52;
-            opacity: 0; transition: opacity 1.0s cubic-bezier(0.16, 1, 0.3, 1);
+            opacity: 0; transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
         #sporesMatrixCanvas.active { opacity: 1; transition: opacity 0.05s ease-in; }
 
@@ -100,30 +100,20 @@ HTML_CONTENT = """<!DOCTYPE html>
             color: #fff; font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 20px;
             backdrop-filter: blur(10px); display: flex; align-items: center; gap: 6px;
         }
-        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #00FFC8; display: inline-block; }
+        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #00E5FF; display: inline-block; }
         .top-action-btn {
             background: rgba(18, 18, 22, 0.72); border: 1px solid rgba(255, 255, 255, 0.15);
             color: #fff; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 20px;
             backdrop-filter: blur(10px); cursor: pointer; display: flex; align-items: center; gap: 4px;
         }
-        #botToggleBtn {
-            border-color: rgba(0, 255, 200, 0.4); color: #00FFC8; transition: all 0.4s ease; min-width: 155px; justify-content: center;
-        }
-
-        .ghost-scope-btn {
-            background: rgba(18, 18, 22, 0.75); border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #fff; font-size: 10px; font-weight: 800; padding: 6px 11px; border-radius: 18px;
-            cursor: pointer; backdrop-filter: blur(8px);
-        }
-        .ghost-scope-btn.active { background: #00FFC8; color: #000; box-shadow: 0 0 14px rgba(0,255,200,0.6); }
 
         .center-hud-overlay {
             position: absolute; top: 68px; left: 0; right: 0; z-index: 95;
             display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none;
         }
         .context-pill {
-            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(0, 255, 200, 0.4);
-            color: #00FFC8; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
+            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(0, 229, 255, 0.4);
+            color: #00E5FF; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
             padding: 4px 14px; border-radius: 20px; backdrop-filter: blur(10px); text-transform: uppercase;
         }
 
@@ -172,33 +162,80 @@ HTML_CONTENT = """<!DOCTYPE html>
             border: 2px dashed rgba(255,255,255,0.3); pointer-events: none;
         }
         .shutter-btn {
-            width: 72px; height: 72px; border-radius: 50%; background: #00FFC8;
-            border: 4px solid #fff; box-shadow: 0 0 22px rgba(0, 255, 200, 0.55); cursor: pointer;
+            width: 72px; height: 72px; border-radius: 50%; background: #00E5FF;
+            border: 4px solid #fff; box-shadow: 0 0 22px rgba(0, 229, 255, 0.55); cursor: pointer;
         }
         .lens-switch-btn {
             width: 46px; height: 46px; border-radius: 50%; background: rgba(30, 30, 35, 0.75);
             border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; font-size: 19px; cursor: pointer;
         }
         .gallery-thumb {
-            width: 46px; height: 46px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.3);
-            background: #111; overflow: hidden; cursor: pointer;
+            width: 46px; height: 46px; border-radius: 50%; border: 2px solid rgba(0, 229, 255, 0.5);
+            background: #111; overflow: hidden; cursor: pointer; box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
         }
         .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
         #floatingGadget {
             position: fixed; top: 180px; left: 14px; width: 48px; height: 48px;
-            border-radius: 50%; background: #0c0d12; border: 2px solid #00FFC8;
-            box-shadow: 0 6px 18px rgba(0, 255, 200, 0.4); z-index: 250;
+            border-radius: 50%; background: #0c0d12; border: 2px solid #00E5FF;
+            box-shadow: 0 6px 18px rgba(0, 229, 255, 0.4); z-index: 250;
             display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: grab;
         }
         #floatingPanel {
             display: none; position: fixed; inset: 100px 18px 120px 18px; z-index: 260;
-            background: rgba(10, 12, 16, 0.96); border: 1px solid #00FFC8; border-radius: 20px;
+            background: rgba(10, 12, 16, 0.96); border: 1px solid #00E5FF; border-radius: 20px;
             backdrop-filter: blur(25px); flex-direction: column; padding: 16px;
         }
         .float-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 
-        /* 🌟 NANO-BOT TÁCTICO V2 MODAL 🌟 */
+        /* 🌟 ALMACÉN & GALERÍA SOBERANA V3 ULTRA 🌟 */
+        #galleryModal {
+            display: none; position: fixed; inset: 0; z-index: 320; background: rgba(5, 7, 10, 0.98);
+            backdrop-filter: blur(25px); flex-direction: column; padding: 18px;
+        }
+        .vault-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .vault-telemetry {
+            display: flex; gap: 8px; font-family: monospace; font-size: 10px; color: #888;
+            background: #090c10; padding: 6px 12px; border-radius: 12px; border: 1px solid #1c2430; margin-bottom: 12px;
+        }
+        .vault-filter-bar {
+            display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-bottom: 12px;
+        }
+        .vault-chip {
+            padding: 4px 10px; font-size: 10px; font-weight: 800; border-radius: 14px;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
+            color: #ccc; cursor: pointer; white-space: nowrap;
+        }
+        .vault-chip.active { background: #00E5FF; color: #000; border-color: #00E5FF; box-shadow: 0 0 8px rgba(0,229,255,0.5); }
+        .gallery-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; overflow-y: auto; flex: 1;
+        }
+        .gallery-card {
+            background: #0f1218; border: 1px solid #1a2230; border-radius: 12px; overflow: hidden;
+            cursor: pointer; position: relative; display: flex; flex-direction: column;
+        }
+        .gallery-card img { width: 100%; height: 110px; object-fit: cover; }
+        .gallery-card-info { padding: 6px 8px; font-size: 9.5px; color: #888; background: #0b0e14; display: flex; justify-content: space-between; align-items: center; }
+
+        /* VISOR FORENSE INDIVIDUAL */
+        #assetDetailModal {
+            display: none; position: fixed; inset: 0; z-index: 340; background: rgba(3, 5, 8, 0.98);
+            backdrop-filter: blur(25px); flex-direction: column; padding: 18px;
+        }
+        .asset-preview-box {
+            flex: 1; border-radius: 14px; overflow: hidden; background: #000; border: 1px solid #222;
+            display: flex; align-items: center; justify-content: center; position: relative; margin: 10px 0;
+        }
+        .asset-preview-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .asset-metadata-card {
+            background: #0c1017; border: 1px solid #1f2a38; border-radius: 12px; padding: 12px;
+            font-family: monospace; font-size: 11px; color: #00E5FF; display: flex; flex-direction: column; gap: 4px;
+        }
+        .asset-action-row { display: flex; gap: 8px; margin-top: 10px; }
+        .btn-asset-action {
+            flex: 1; padding: 11px; border-radius: 12px; font-size: 11px; font-weight: 800; border: none; cursor: pointer;
+        }
+
         #nanobotModal {
             display: none; position: fixed; inset: 0; z-index: 330; background: rgba(5, 7, 10, 0.96);
             backdrop-filter: blur(25px); flex-direction: column; padding: 22px 18px; justify-content: space-between;
@@ -207,64 +244,11 @@ HTML_CONTENT = """<!DOCTYPE html>
             background: #080c10; border: 1px solid rgba(0, 255, 200, 0.35); border-radius: 16px;
             padding: 14px; font-family: monospace; font-size: 11px; color: #00FFC8; margin-top: 10px;
         }
-        .bot-telemetry-grid {
-            display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px;
-        }
-        .bot-telemetry-item {
-            background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 10px; padding: 8px; font-size: 10px; color: #ccc;
-        }
-        .bot-input-box {
-            display: flex; gap: 8px; margin-top: 12px; background: rgba(0, 255, 200, 0.06);
-            border: 1px solid rgba(0, 255, 200, 0.3); border-radius: 12px; padding: 6px 12px;
-        }
-        .bot-input {
-            flex: 1; background: transparent; border: none; color: #fff; font-size: 11px;
-            font-family: inherit; outline: none;
-        }
-        .bot-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; overflow-y: auto; max-height: 220px; }
+        .bot-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
         .bot-btn {
             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff;
             padding: 10px 14px; border-radius: 12px; font-size: 11px; font-weight: 700; text-align: left; cursor: pointer;
-            display: flex; justify-content: space-between; align-items: center;
         }
-        .bot-btn:hover { border-color: #00FFC8; background: rgba(0, 255, 200, 0.1); }
-
-        #postEditModal {
-            display: none; position: fixed; inset: 0; z-index: 300; background: rgba(6, 7, 10, 0.96);
-            backdrop-filter: blur(20px); flex-direction: column; padding: 20px 18px 25px 18px;
-        }
-        .edit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .edit-title { font-size: 14px; font-weight: 800; color: #00FFC8; }
-        .edit-close-btn { background: #222; border: 1px solid #444; color: #fff; padding: 5px 12px; border-radius: 14px; font-size: 11px; cursor: pointer; }
-        
-        .edit-preview-box {
-            flex: 1; border-radius: 16px; overflow: hidden; background: #000; border: 1px solid #222;
-            display: flex; align-items: center; justify-content: center; position: relative;
-        }
-        .edit-preview-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
-
-        .edit-tools-panel { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
-        .tool-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
-        .tool-chip {
-            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
-            padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #ddd; cursor: pointer;
-        }
-        .tool-chip.active { border-color: #00FFC8; color: #00FFC8; background: rgba(0,255,200,0.12); }
-        .btn-export-master {
-            background: linear-gradient(90deg, #00FFC8, #00D2FF); color: #000; font-size: 13px;
-            font-weight: 900; padding: 13px; border-radius: 14px; border: none; cursor: pointer;
-            width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
-        }
-
-        #galleryModal {
-            display: none; position: fixed; inset: 0; z-index: 320; background: rgba(5, 6, 8, 0.98);
-            backdrop-filter: blur(25px); flex-direction: column; padding: 20px;
-        }
-        .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; overflow-y: auto; flex: 1; margin-top: 14px; }
-        .gallery-card { background: #111216; border: 1px solid #222; border-radius: 12px; overflow: hidden; cursor: pointer; min-height: 140px; }
-        .gallery-card img { width: 100%; height: 110px; object-fit: cover; }
-        .gallery-card-info { padding: 6px 8px; font-size: 10px; color: #888; background: #16171d; }
     </style>
 </head>
 <body>
@@ -272,18 +256,18 @@ HTML_CONTENT = """<!DOCTYPE html>
     <div class="ambient-fade-light" id="ambientLightLayer"></div>
 
     <div id="lockscreen">
-        <div class="pill-badge" id="lockscreenBadge">• NANO-BOT TÁCTICO V2</div>
+        <div class="pill-badge" id="lockscreenBadge">• ALMACÉN & GALERÍA V3</div>
         <div class="brand-center">
             <div class="brand-title">BIAN</div>
-            <div class="brand-subtitle" id="lockscreenSub">Asistente Neuronal V2</div>
+            <div class="brand-subtitle" id="lockscreenSub">Vault Storage V3 Ultra</div>
             <div style="font-size:11px; color:#777; max-width:280px; margin:0 auto; line-height:1.4;" id="lockscreenDesc">
-                Copiloto Táctico • Macros en RAM • Diagnóstico en Tiempo Real
+                Bóveda SQLite Local • Metadatos Forenses • Purgado Atómico
             </div>
         </div>
         <div class="lens-cap-assembly" id="lensCapUnlockBtn">
             <div class="lens-cap-disk" id="lensCapDisk">
-                <div class="lens-cap-center" id="lensCapCenterText">NANO-BOT</div>
-                <div class="lens-cap-sub" id="lensCapSubText">F/1.4 • TACTICAL AI</div>
+                <div class="lens-cap-center" id="lensCapCenterText">ALMACÉN</div>
+                <div class="lens-cap-sub" id="lensCapSubText">F/1.4 • VAULT STORAGE</div>
             </div>
             <div class="lens-cap-hint">🔓 DESTAPAR LENTE</div>
         </div>
@@ -293,7 +277,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 
     <div id="floatingPanel">
         <div class="float-header">
-            <div style="font-size:13px; font-weight:800; color:#00FFC8;" id="floatHeaderTitle">⚡ TALLER TÁCTICO FLOTANTE</div>
+            <div style="font-size:13px; font-weight:800; color:#00E5FF;" id="floatHeaderTitle">⚡ TALLER TÁCTICO FLOTANTE</div>
             <button class="edit-close-btn" onclick="toggleFloatingPanel()">✖ Cerrar</button>
         </div>
         <div style="flex:1; overflow-y:auto; font-size:12px; color:#aaa; display:flex; flex-direction:column; gap:10px;">
@@ -309,30 +293,27 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div id="videoContainer">
             <video id="webcam" autoplay playsinline></video>
             <canvas id="ghostScopeCanvas"></canvas>
-            <!-- 🌟 CANVAS DE ESPORAS CON DESVANECIMIENTO EXACTO DE 1.0 SEGUNDO 🌟 -->
+            <!-- 🌟 CANVAS DE ESPORAS: DESVANECIMIENTO EN 0.8 SEGUNDOS 🌟 -->
             <canvas id="sporesMatrixCanvas"></canvas>
         </div>
 
         <div class="top-dock">
             <div class="hud-status-badge" id="moduleTitleBadge">
                 <span class="dot" id="statusDot"></span>
-                <span id="moduleNameText">BIAN SUITE V10</span>
+                <span id="moduleNameText">ALMACÉN & GALERÍA V3</span>
             </div>
             <div style="display: flex; gap: 6px;">
                 <button class="ghost-scope-btn" id="scopeToggleBtn" onclick="toggleGhostScope()">
                     👁️ ESPECTRO
                 </button>
                 <button class="top-action-btn" onclick="lockSuite()">🔒</button>
-                <button class="top-action-btn" id="botToggleBtn" onclick="openNanobot()">✨ Nano-Bot V2</button>
+                <button class="top-action-btn" onclick="openGalleryModal()">🖼️ Almacén</button>
+                <button class="top-action-btn" id="botToggleBtn" onclick="openNanobot()">✨ Nano-Bot</button>
             </div>
         </div>
 
         <div class="center-hud-overlay" id="centerHud">
-            <div class="context-pill" id="contextPillText">BIAN SUITE V10 READY</div>
-        </div>
-
-        <div class="hud-zoom-tag" id="zoomChip" onclick="cycleZoomLevel()">
-            🔍 <span id="zoomLabel">1x</span>
+            <div class="context-pill" id="contextPillText">BÓVEDA DE ACTIVOS V3 READY</div>
         </div>
 
         <div class="deck-stack-wrapper" id="deckStack" onclick="openHorizontalDock()"></div>
@@ -348,85 +329,71 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- 🌟 NANO-BOT TÁCTICO V2 MODAL 🌟 -->
-    <div id="nanobotModal">
-        <div>
-            <div class="edit-header">
-                <div class="edit-title" style="color:#00FFC8;">✨ NANO-BOT TÁCTICO V2 ULTRA</div>
-                <button class="edit-close-btn" onclick="closeNanobot()">✖ Cerrar</button>
-            </div>
-
-            <div class="bot-terminal-card" id="botTerminalOutput">
-                > COPILOTO TÁCTICO INICIALIZADO...<br>
-                > MÓDULO ACTIVO: <span id="botActiveModLabel" style="color:#fff;">DESPACHO COMERCIAL</span><br>
-                > ESTADO DEL SISTEMA: 100% OPERATIVO EN RAM
-            </div>
-
-            <div class="bot-telemetry-grid">
-                <div class="bot-telemetry-item">
-                    <div style="color:#888;">NEURAL CORE</div>
-                    <strong style="color:#00FFC8;">ONLINE (NPU 8G2)</strong>
-                </div>
-                <div class="bot-telemetry-item">
-                    <div style="color:#888;">LATENCIA</div>
-                    <strong style="color:#30D158;">11.8 ms</strong>
-                </div>
-                <div class="bot-telemetry-item">
-                    <div style="color:#888;">BUFFER RAM</div>
-                    <strong style="color:#FFD600;">VOLÁTIL ZERO-LAG</strong>
-                </div>
-                <div class="bot-telemetry-item">
-                    <div style="color:#888;">SUITE MÓDULOS</div>
-                    <strong style="color:#FF007A;">19/19 INTEGRADOS</strong>
-                </div>
-            </div>
-
-            <div class="bot-input-box">
-                <input type="text" id="botCommandInput" class="bot-input" placeholder="Escribe un comando táctico o macro..." onkeydown="if(event.key==='Enter') executeCustomBotCommand()">
-                <button style="background:transparent; border:none; color:#00FFC8; cursor:pointer;" onclick="executeCustomBotCommand()">⚡</button>
-            </div>
-
-            <div class="bot-actions" id="botActionList"></div>
-        </div>
-        <div style="font-size:10px; color:#555; text-align:center;">IA Soberana local operando en Debian 13 Termux</div>
-    </div>
-
-    <!-- MESA POST-PROCESO -->
-    <div id="postEditModal">
-        <div class="edit-header">
-            <div class="edit-title" id="editModalTitle">RESULTADO MASTER V10</div>
-            <button class="edit-close-btn" onclick="closeEditModal()">✖ Volver</button>
-        </div>
-        <div class="edit-preview-box">
-            <img id="editImagePreview" src="" alt="Frame Render" />
-        </div>
-        <div class="edit-tools-panel">
-            <div class="tool-row" id="moduleToolRow">
-                <div class="tool-chip active" onclick="applyMasterFilter('standard', this)">💎 Grado Master V10</div>
-                <div class="tool-chip" onclick="applyMasterFilter('high_contrast', this)">⚡ Alto Contraste</div>
-                <div class="tool-chip" onclick="applyMasterFilter('vivid_tone', this)">🎨 Tono Vívido</div>
-            </div>
-            <button class="btn-export-master" onclick="exportMasterResult()">
-                💾 EXPORTAR ASSET HD MASTER
-            </button>
-        </div>
-    </div>
-
+    <!-- 🌟 MODAL ALMACÉN & GALERÍA SOBERANA V3 🌟 -->
     <div id="galleryModal">
-        <div class="edit-header">
-            <div class="edit-title" style="color:#00FFC8;">🖼️ GALERÍA SOBERANA (SQLITE LOCAL)</div>
-            <button class="edit-close-btn" onclick="closeGalleryModal()">✖ Cerrar</button>
+        <div class="vault-header">
+            <div style="font-size:14px; font-weight:900; color:#00E5FF;">🏛️ BÓVEDA & ALMACÉN SOBERANO V3</div>
+            <button class="top-action-btn" onclick="closeGalleryModal()">✖ Cerrar</button>
+        </div>
+        <div class="vault-telemetry">
+            <div>ASSETS: <strong id="vaultCountLabel" style="color:#fff;">0</strong></div>
+            <div>|</div>
+            <div>ALMACÉN: <strong id="vaultSizeLabel" style="color:#00E5FF;">SQLITE LOCAL</strong></div>
+            <div>|</div>
+            <div>STATUS: <strong style="color:#30D158;">ZERO-CLOUD</strong></div>
+        </div>
+        <div class="vault-filter-bar">
+            <button class="vault-chip active" onclick="filterGallery('todos', this)">Todos los Activos</button>
+            <button class="vault-chip" onclick="filterGallery('imprenta', this)">Imprenta PDF</button>
+            <button class="vault-chip" onclick="filterGallery('despacho', this)">Despacho Logístico</button>
+            <button class="vault-chip" onclick="filterGallery('chef', this)">Chef Lean</button>
+            <button class="vault-chip" onclick="filterGallery('valuador', this)">Valuador Comercial</button>
         </div>
         <div class="gallery-grid" id="galleryGridContent"></div>
     </div>
 
+    <!-- 🌟 MODAL VISOR FORENSE DETALLADO 🌟 -->
+    <div id="assetDetailModal">
+        <div class="vault-header">
+            <div style="font-size:13px; font-weight:800; color:#00E5FF;" id="assetDetailTitle">INSPECCIÓN FORENSE</div>
+            <button class="top-action-btn" onclick="closeAssetDetail()">✖ Volver</button>
+        </div>
+        <div class="asset-preview-box">
+            <img id="assetDetailImg" src="" alt="Asset Detail" />
+        </div>
+        <div class="asset-metadata-card" id="assetDetailMeta">
+            <div>ID ASSET: #104</div>
+            <div>TIPO: Captura Master Suite</div>
+            <div>ALMACENAMIENTO: storage/bian/photo_2026.jpg</div>
+        </div>
+        <div class="asset-action-row">
+            <button class="btn-asset-action" style="background:#00E5FF; color:#000;" onclick="downloadActiveAsset()">📥 Exportar HD</button>
+            <button class="btn-asset-action" style="background:#FF3B30; color:#fff;" onclick="deleteActiveAsset()">🗑️ Eliminar Registro</button>
+        </div>
+    </div>
+
+    <div id="nanobotModal">
+        <div>
+            <div class="vault-header">
+                <div style="color:#00FFC8; font-size:13px; font-weight:800;">✨ NANO-BOT TÁCTICO V2</div>
+                <button class="top-action-btn" onclick="closeNanobot()">✖ Cerrar</button>
+            </div>
+            <div class="bot-terminal-card" id="botTerminalOutput">
+                > BÓVEDA V3 INDEXADA EN TERMINAL...<br>
+                > BASE DE DATOS SQLITE LISTA EN TERMUX
+            </div>
+            <div class="bot-actions" id="botActionList">
+                <button class="bot-btn" onclick="closeNanobot(); openGalleryModal();">🏛️ Abrir Bóveda de Activos V3</button>
+                <button class="bot-btn" onclick="executeBotMacro('clear_ram')">🧹 Limpiar Búfer de RAM en Termux</button>
+            </div>
+        </div>
+    </div>
+
     <canvas id="hiddenBufferCanvas" style="display:none;"></canvas>
-    <canvas id="processBufferCanvas" style="display:none;"></canvas>
 
     <script>
         const video = document.getElementById('webcam');
         const hiddenCanvas = document.getElementById('hiddenBufferCanvas');
-        const procCanvas = document.getElementById('processBufferCanvas');
         const ghostCanvas = document.getElementById('ghostScopeCanvas');
         const ghostCtx = ghostCanvas.getContext('2d');
         const sporesCanvas = document.getElementById('sporesMatrixCanvas');
@@ -437,11 +404,12 @@ HTML_CONTENT = """<!DOCTYPE html>
         const zoomLevels = [0.6, 1.0, 2.0];
         let isGhostScopeOn = false;
         let sporesTimeout = null;
-        let lastCapturedUrl = null;
+        let allGalleryItems = [];
+        let activeAssetItem = null;
 
         /* SISTEMA DE ESPORAS */
         let spores = [];
-        const NUM_SPORES = 28;
+        const NUM_SPORES = 26;
 
         function initSpores() {
             spores = [];
@@ -449,8 +417,8 @@ HTML_CONTENT = """<!DOCTYPE html>
                 spores.push({
                     x: Math.random() * window.innerWidth,
                     y: Math.random() * window.innerHeight,
-                    vx: (Math.random() - 0.5) * 1.5,
-                    vy: (Math.random() - 0.5) * 1.5,
+                    vx: (Math.random() - 0.5) * 1.6,
+                    vy: (Math.random() - 0.5) * 1.6,
                     radius: Math.random() * 2.8 + 1.2,
                     pulse: Math.random() * Math.PI * 2
                 });
@@ -484,21 +452,12 @@ HTML_CONTENT = """<!DOCTYPE html>
             startCamera();
         }
 
-        function cycleZoomLevel() {
-            currentZoomIndex = (currentZoomIndex + 1) % zoomLevels.length;
-            const z = zoomLevels[currentZoomIndex];
-            document.getElementById('zoomLabel').innerText = `${z}x`;
-            video.style.transform = `scale(${z})`;
-        }
-
         let frameCount = 0;
         function processPipeline() {
             if (video.readyState >= 2) {
                 if (hiddenCanvas.width !== video.videoWidth) {
                     hiddenCanvas.width = video.videoWidth || 640;
                     hiddenCanvas.height = video.videoHeight || 480;
-                    procCanvas.width = hiddenCanvas.width;
-                    procCanvas.height = hiddenCanvas.height;
                     sporesCanvas.width = window.innerWidth;
                     sporesCanvas.height = window.innerHeight;
                     ghostCanvas.width = 320;
@@ -583,7 +542,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             sporesCtx.shadowBlur = 0;
         }
 
-        /* 🌟 PROTOCOLO UNIVERSAL: ESPORAS A 1.0 SEGUNDO EXACTO 🌟 */
+        /* 🌟 PROTOCOLO UNIVERSAL: ESPORAS A 0.8 SEGUNDOS EXACTOS 🌟 */
         function triggerUniversalEntryProtocol(color) {
             const border = document.getElementById('screenEdgeBorder');
             const ambient = document.getElementById('ambientLightLayer');
@@ -604,7 +563,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             const cy = window.innerHeight / 2;
             spores.forEach(sp => {
                 const angle = Math.atan2(sp.y - cy, sp.x - cx);
-                const speed = 4.5 + Math.random() * 4;
+                const speed = 4.8 + Math.random() * 4;
                 sp.vx = Math.cos(angle) * speed;
                 sp.vy = Math.sin(angle) * speed;
             });
@@ -612,23 +571,23 @@ HTML_CONTENT = """<!DOCTYPE html>
             playTacticalEntrySound(color);
 
             setTimeout(() => {
-                border.style.transition = 'border-color 1.0s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 1.0s cubic-bezier(0.16, 1, 0.3, 1)';
+                border.style.transition = 'border-color 0.8s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
                 border.style.borderColor = 'transparent';
                 border.style.boxShadow = 'none';
                 ambient.classList.remove('flash');
             }, 120);
 
-            // 🌟 1.0 SEGUNDO EXACTO: DESAPARECER LAS ESPORAS 🌟
+            // 🌟 0.8 SEGUNDOS: DESVANECIMIENTO AL INSTANTE 🌟
             clearTimeout(sporesTimeout);
             sporesTimeout = setTimeout(() => {
                 sCanvas.classList.remove('active');
                 setTimeout(() => {
                     spores.forEach(sp => {
-                        sp.vx = (Math.random() - 0.5) * 1.5;
-                        sp.vy = (Math.random() - 0.5) * 1.5;
+                        sp.vx = (Math.random() - 0.5) * 1.6;
+                        sp.vy = (Math.random() - 0.5) * 1.6;
                     });
-                }, 400);
-            }, 1000);
+                }, 300);
+            }, 800);
         }
 
         function playTacticalEntrySound(color) {
@@ -639,11 +598,11 @@ HTML_CONTENT = """<!DOCTYPE html>
                 const gain = ctx.createGain();
                 osc.connect(gain); gain.connect(ctx.destination);
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(240, now);
-                osc.frequency.exponentialRampToValueAtTime(920, now + 0.16);
+                osc.frequency.setValueAtTime(260, now);
+                osc.frequency.exponentialRampToValueAtTime(980, now + 0.15);
                 gain.gain.setValueAtTime(0.3, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
-                osc.start(now); osc.stop(now + 0.17);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                osc.start(now); osc.stop(now + 0.16);
             } catch(e) {}
         }
 
@@ -663,7 +622,8 @@ HTML_CONTENT = """<!DOCTYPE html>
 
         /* CATÁLOGO DE MÓDULOS DE LA MASTER SUITE */
         const moduleCatalog = [
-            { key: 'dispatch', icon: '📦', title: 'DESPACHO COMERCIAL V2', pill: '📦 CUBICAJE IATA & MANIFIESTO LOGÍSTICO', color: '#00E676', capText: 'DESPACHO', capSub: 'F/1.4 • WAYBILL MATRIX', botTips: 'Calcula cubicaje CBM, peso volumétrico y genera manifiestos de salida.' },
+            { key: 'vault', icon: '🏛️', title: 'ALMACÉN & GALERÍA V3', pill: '🏛️ BÓVEDA SQLITE LOCAL & METADATOS FORENSES', color: '#00E5FF', capText: 'ALMACÉN', capSub: 'F/1.4 • VAULT STORAGE V3', botTips: 'Bóveda local SQLite, metadatos forenses y purgado atómico.' },
+            { key: 'dispatch', icon: '📦', title: 'DESPACHO COMERCIAL V2', pill: '📦 CUBICAJE IATA & MANIFIESTO LOGÍSTICO', color: '#00E676', capText: 'DESPACHO', capSub: 'F/1.4 • WAYBILL MATRIX', botTips: 'Calcula cubicaje CBM y genera manifiestos de salida.' },
             { key: 'ai', icon: '✨', title: 'GENERADOR AI V8', pill: '✨ DIFUSIÓN LATENTE & MORFOLOGÍA NEURONAL', color: '#FF007A', capText: 'NEURAL AI', capSub: 'F/1.4 • LATENT SYNTHESIS', botTips: 'Transformación neuronal guiada por cámara.' },
             { key: 'price', icon: '🏷️', title: 'VALUADOR HÍBRIDO V10', pill: '🏷️ TASACIÓN DE MERCADO & PÓLIZA COMERCIAL', color: '#63E6E2', capText: 'VALUADOR', capSub: 'F/1.4 • COMMERCIAL SCAN', botTips: 'Tasación comercial y márgenes.' },
             { key: 'chef', icon: '👨‍🍳', title: 'CHEF LEAN V10', pill: '👨‍🍳 BÁSCULA NPU & AUDITORÍA DE MERMA', color: '#FF9500', capText: 'CHEF LEAN', capSub: 'F/1.4 • MEAT YIELD MATRIX', botTips: 'Báscula volumétrica y merma cárnica.' },
@@ -849,7 +809,6 @@ HTML_CONTENT = """<!DOCTYPE html>
             triggerUniversalEntryProtocol(curMod.color);
 
             const b64 = hiddenCanvas.toDataURL('image/jpeg', 0.95);
-            lastCapturedUrl = b64;
 
             const res = await fetch('/bian/process/', {
                 method: 'POST',
@@ -860,96 +819,11 @@ HTML_CONTENT = """<!DOCTYPE html>
             if (res.ok) {
                 const data = await res.json();
                 document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
-                openMasterEditModal(b64, curMod);
+                openAssetDetail(data);
             }
         }
 
-        function openMasterEditModal(imgSrc, curMod) {
-            document.getElementById('editModalTitle').innerText = `${curMod.icon} ${curMod.title} RENDER`;
-            document.getElementById('editImagePreview').src = imgSrc;
-            document.getElementById('postEditModal').style.display = 'flex';
-        }
-
-        function closeEditModal() { document.getElementById('postEditModal').style.display = 'none'; }
-
-        function applyMasterFilter(mode, elem) {
-            document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
-            elem.classList.add('active');
-            const img = document.getElementById('editImagePreview');
-            if (mode === 'standard') img.style.filter = 'contrast(1.1) saturate(1.1)';
-            else if (mode === 'high_contrast') img.style.filter = 'contrast(1.35) brightness(1.05)';
-            else if (mode === 'vivid_tone') img.style.filter = 'saturate(1.4) contrast(1.15)';
-        }
-
-        function exportMasterResult() {
-            const curMod = moduleCatalog[activeCardIndex];
-            const a = document.createElement('a');
-            a.href = lastCapturedUrl || document.getElementById('editImagePreview').src;
-            a.download = `bian_${curMod.key}_v10_${Date.now()}.jpg`;
-            a.click();
-            alert('✔ Asset exportado exitosamente a la memoria local.');
-        }
-
-        /* GADGET FLOTANTE */
-        const gadget = document.getElementById('floatingGadget');
-        let isDragging = false;
-        let dragStartX, dragStartY, gadgetStartX, gadgetStartY;
-        let hasMovedSignificantly = false;
-
-        gadget.addEventListener('touchstart', (e) => {
-            isDragging = true;
-            hasMovedSignificantly = false;
-            const touch = e.touches[0];
-            dragStartX = touch.clientX;
-            dragStartY = touch.clientY;
-            const rect = gadget.getBoundingClientRect();
-            gadgetStartX = rect.left;
-            gadgetStartY = rect.top;
-            gadget.style.transition = 'none';
-        }, { passive: true });
-
-        window.addEventListener('touchmove', (e) => {
-            if (!isDragging) return;
-            const touch = e.touches[0];
-            const deltaX = touch.clientX - dragStartX;
-            const deltaY = touch.clientY - dragStartY;
-            if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) hasMovedSignificantly = true;
-            const newX = Math.min(window.innerWidth - 52, Math.max(4, gadgetStartX + deltaX));
-            const newY = Math.min(window.innerHeight - 100, Math.max(60, gadgetStartY + deltaY));
-            gadget.style.left = `${newX}px`;
-            gadget.style.top = `${newY}px`;
-        }, { passive: true });
-
-        window.addEventListener('touchend', () => {
-            if (!isDragging) return;
-            isDragging = false;
-            gadget.style.transition = 'left 0.35s cubic-bezier(0.16, 1, 0.3, 1), top 0.35s ease';
-            if (!hasMovedSignificantly) {
-                toggleFloatingPanel();
-                return;
-            }
-            const rect = gadget.getBoundingClientRect();
-            const snapLeft = (rect.left + rect.width / 2 < window.innerWidth / 2) ? 14 : (window.innerWidth - 62);
-            gadget.style.left = `${snapLeft}px`;
-        });
-
-        function toggleFloatingPanel() {
-            const panel = document.getElementById('floatingPanel');
-            const isOpen = panel.style.display === 'flex';
-            panel.style.display = isOpen ? 'none' : 'flex';
-
-            if (!isOpen) {
-                const cur = moduleCatalog[activeCardIndex];
-                const list = document.getElementById('floatActionList');
-                list.innerHTML = `
-                    <button class="bot-btn" onclick="handleMasterCapture(); toggleFloatingPanel();">📸 Disparo con ${cur.title}</button>
-                    <button class="bot-btn" onclick="openHorizontalDock(); toggleFloatingPanel();">🎴 Selector de Módulos</button>
-                    <button class="bot-btn" onclick="toggleGhostScope(); toggleFloatingPanel();">👁 Alternar Radar Espectral</button>
-                    <button class="bot-btn" onclick="openGalleryModal(); toggleFloatingPanel();">🖼️ Ver Galería Local</button>
-                `;
-            }
-        }
-
+        /* 🌟 GESTIÓN FORENSE DE BÓVEDA & GALERÍA V3 🌟 */
         async function updateThumb() {
             try {
                 const res = await fetch('/bian/images/');
@@ -963,132 +837,121 @@ HTML_CONTENT = """<!DOCTYPE html>
 
         async function openGalleryModal() {
             const modal = document.getElementById('galleryModal');
-            const container = document.getElementById('galleryGridContent');
-            container.innerHTML = '<div style="color:#aaa; font-size:12px;">Cargando activos...</div>';
             modal.style.display = 'flex';
-
-            try {
-                const res = await fetch('/bian/images/');
-                const items = await res.json();
-                if(items.length === 0) {
-                    container.innerHTML = '<div style="color:#666; font-size:12px; grid-column:span 2;">No hay imágenes guardadas aún.</div>';
-                    return;
-                }
-                container.innerHTML = '';
-                items.slice().reverse().forEach(img => {
-                    const card = document.createElement('div');
-                    card.className = 'gallery-card';
-                    card.onclick = () => {
-                        closeGalleryModal();
-                        openMasterEditModal(img.image_path, moduleCatalog[activeCardIndex]);
-                    };
-                    card.innerHTML = `
-                        <img src="${img.image_path}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\' viewBox=\\'0 0 100 100\\'><rect width=\\'100\\' height=\\'100\\' fill=\\'%23222\\'/><text x=\\'50\\' y=\\'55\\' fill=\\'%23666\\' font-size=\\'11\\' text-anchor=\\'middle\\'>Sin Vista</text></svg>'"/>
-                        <div class="gallery-card-info">
-                            <div><strong>#${img.id}</strong> - ${img.prompt_analysis || 'Captura'}</div>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                });
-            } catch(e) {
-                container.innerHTML = '<div style="color:#FF3B30;">Error cargando galería local.</div>';
-            }
+            await loadVaultAssets();
         }
 
         function closeGalleryModal() { document.getElementById('galleryModal').style.display = 'none'; }
 
-        /* 🌟 NANO-BOT TÁCTICO V2 ULTRA: MÉTODOS Y MACROS 🌟 */
+        async function loadVaultAssets() {
+            const container = document.getElementById('galleryGridContent');
+            container.innerHTML = '<div style="color:#aaa; font-size:11px;">Indexando SQLite Local...</div>';
+
+            try {
+                const res = await fetch('/bian/images/');
+                allGalleryItems = await res.json();
+                document.getElementById('vaultCountLabel').innerText = allGalleryItems.length;
+
+                renderGalleryList(allGalleryItems);
+            } catch(e) {
+                container.innerHTML = '<div style="color:#FF3B30;">Error accediendo a la bóveda.</div>';
+            }
+        }
+
+        function renderGalleryList(items) {
+            const container = document.getElementById('galleryGridContent');
+            container.innerHTML = '';
+            if(items.length === 0) {
+                container.innerHTML = '<div style="color:#666; font-size:11px; grid-column:span 2; text-align:center; padding:30px 0;">Bóveda vacía. No hay activos guardados.</div>';
+                return;
+            }
+
+            items.slice().reverse().forEach(img => {
+                const card = document.createElement('div');
+                card.className = 'gallery-card';
+                card.onclick = () => openAssetDetail(img);
+                card.innerHTML = `
+                    <img src="${img.image_path}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\'><rect fill=\\'%23111\\'/></svg>'"/>
+                    <div class="gallery-card-info">
+                        <strong>#${img.id}</strong>
+                        <span>${(img.prompt_analysis || 'Asset').slice(0, 18)}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function filterGallery(category, elem) {
+            document.querySelectorAll('.vault-chip').forEach(c => c.classList.remove('active'));
+            elem.classList.add('active');
+
+            if(category === 'todos') {
+                renderGalleryList(allGalleryItems);
+            } else {
+                const filtered = allGalleryItems.filter(item => 
+                    (item.prompt_analysis || '').toLowerCase().includes(category.toLowerCase())
+                );
+                renderGalleryList(filtered);
+            }
+        }
+
+        function openAssetDetail(item) {
+            activeAssetItem = item;
+            document.getElementById('assetDetailTitle').innerText = `INSPECCIÓN ASSET #${item.id}`;
+            document.getElementById('assetDetailImg').src = item.image_path;
+            document.getElementById('assetDetailMeta').innerHTML = `
+                <div>ID EN REGISTRO: #${item.id}</div>
+                <div>ANÁLISIS: ${item.prompt_analysis || 'Captura Master Suite'}</div>
+                <div>RUTA FÍSICA: ${item.image_path}</div>
+                <div>CREADO: ${item.created_at || 'Registro Reciente'}</div>
+            `;
+            document.getElementById('assetDetailModal').style.display = 'flex';
+        }
+
+        function closeAssetDetail() { document.getElementById('assetDetailModal').style.display = 'none'; }
+
+        function downloadActiveAsset() {
+            if(!activeAssetItem) return;
+            const a = document.createElement('a');
+            a.href = activeAssetItem.image_path;
+            a.download = `bian_vault_asset_${activeAssetItem.id}.jpg`;
+            a.click();
+            alert(`✔ Asset #${activeAssetItem.id} descargado a memoria.`);
+        }
+
+        async function deleteActiveAsset() {
+            if(!activeAssetItem) return;
+            if(!confirm(`¿Deseas purgar permanentemente el Asset #${activeAssetItem.id}?`)) return;
+
+            try {
+                const res = await fetch(`/bian/images/${activeAssetItem.id}`, { method: 'DELETE' });
+                if(res.ok) {
+                    alert(`✔ Asset #${activeAssetItem.id} purgado de SQLite y almacenamiento físico.`);
+                    closeAssetDetail();
+                    await loadVaultAssets();
+                    updateThumb();
+                } else {
+                    alert('Error al intentar eliminar el activo.');
+                }
+            } catch(e) {
+                alert('Fallo de conexión al purgar registro.');
+            }
+        }
+
         function openNanobot() {
-            const curMod = moduleCatalog[activeCardIndex];
-            const modal = document.getElementById('nanobotModal');
-            const term = document.getElementById('botTerminalOutput');
-            const act = document.getElementById('botActionList');
-
-            document.getElementById('botActiveModLabel').innerText = curMod.title;
-            term.innerHTML = `
-                > INICIALIZANDO COPILOTO TÁCTICO V2...<br>
-                > MÓDULO AUDITADO: <span style="color:${curMod.color}; font-weight:800;">${curMod.title}</span><br>
-                > ESTADO: ${curMod.botTips}<br>
-                > LATENCIA EN MEMORIA RAM: 11.4 ms | INFERENCIA LISTA
-            `;
-
-            act.innerHTML = `
-                <button class="bot-btn" onclick="executeBotMacro('calibrate')">
-                    <span>⚡ Calibración Óptima del Módulo</span>
-                    <span style="color:#888;">MACRO</span>
-                </button>
-                <button class="bot-btn" onclick="executeBotMacro('clear_ram')">
-                    <span>🧹 Purgar Búfer de RAM en Termux</span>
-                    <span style="color:#888;">CACHE</span>
-                </button>
-                <button class="bot-btn" onclick="executeBotMacro('ghost')">
-                    <span>👁 Alternar Radar de Frecuencia Espectral</span>
-                    <span style="color:#888;">VISOR</span>
-                </button>
-                <button class="bot-btn" onclick="executeBotMacro('gallery')">
-                    <span>🖼 Inspeccionar Almacén SQLite Local</span>
-                    <span style="color:#888;">BASE DE DATOS</span>
-                </button>
-            `;
-
-            playBotVoiceChirp();
-            modal.style.display = 'flex';
+            document.getElementById('nanobotModal').style.display = 'flex';
         }
 
         function closeNanobot() { document.getElementById('nanobotModal').style.display = 'none'; }
 
-        function playBotVoiceChirp() {
-            try {
-                const ctx = getAudioContext();
-                const now = ctx.currentTime;
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain); gain.connect(ctx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(600, now);
-                osc.frequency.setValueAtTime(1200, now + 0.08);
-                osc.frequency.setValueAtTime(1800, now + 0.14);
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
-                osc.start(now); osc.stop(now + 0.23);
-            } catch(e) {}
-        }
-
         function executeBotMacro(macro) {
-            const curMod = moduleCatalog[activeCardIndex];
             closeNanobot();
-
-            if (macro === 'calibrate') {
-                applyActiveCardTheme(curMod, true);
-                alert(`✔ Calibración completa para ${curMod.title}. Parámetros fijados en RAM.`);
-            } else if (macro === 'clear_ram') {
+            if(macro === 'clear_ram') {
                 spores = [];
                 initSpores();
-                triggerUniversalEntryProtocol(curMod.color);
-                alert("✔ Búfer de memoria purgado exitosamente. Esporas re-inicializadas.");
-            } else if (macro === 'ghost') {
-                toggleGhostScope();
-            } else if (macro === 'gallery') {
-                openGalleryModal();
+                triggerUniversalEntryProtocol('#00E5FF');
+                alert("✔ Búfer purgado. RAM optimizada.");
             }
-        }
-
-        function executeCustomBotCommand() {
-            const input = document.getElementById('botCommandInput');
-            const cmd = input.value.trim().toLowerCase();
-            if (!cmd) return;
-
-            const term = document.getElementById('botTerminalOutput');
-            const curMod = moduleCatalog[activeCardIndex];
-
-            playBotVoiceChirp();
-            term.innerHTML += `<br>> COMANDO EJECUTADO: <span style="color:#fff;">${cmd}</span><br>> APLICANDO AJUSTE NEURONAL...`;
-            input.value = '';
-
-            setTimeout(() => {
-                triggerUniversalEntryProtocol(curMod.color);
-                term.innerHTML += `<br>> AJUSTE CONFIRMADO EN TERMINAL [OK]`;
-            }, 300);
         }
     </script>
 </body>
@@ -1115,3 +978,16 @@ def process_image(payload: ImageCaptureRequest, session: Session = Depends(get_s
 @router.get("/images/", response_model=list[ProcessedImage])
 def list_images(session: Session = Depends(get_session)):
     return session.exec(select(ProcessedImage)).all()
+
+@router.delete("/images/{image_id}")
+def delete_image(image_id: int, session: Session = Depends(get_session)):
+    db_image = session.get(ProcessedImage, image_id)
+    if not db_image:
+        raise HTTPException(status_code=404, detail="Imagen no encontrada")
+    # Limpiar archivo físico si existe
+    clean_path = db_image.image_path.lstrip("/bian/")
+    if os.path.exists(clean_path):
+        os.remove(clean_path)
+    session.delete(db_image)
+    session.commit()
+    return {"status": "success", "deleted_id": image_id}
