@@ -16,14 +16,14 @@ router.mount("/storage", StaticFiles(directory="storage"), name="storage")
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Captura Retrato Bokeh V10"
+    prompt_analysis: str = "Captura Lonas 3D V10"
 
 HTML_CONTENT = """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>BIAN MASTER SUITE V10 PRO - RETRATO BOKEH</title>
+    <title>BIAN MASTER SUITE V10 PRO - LONAS 3D</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', Roboto, monospace; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; width: 100vw; overflow: hidden; position: fixed; }
@@ -71,7 +71,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             position: relative; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .lens-cap-center { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #FF2D55; }
+        .lens-cap-center { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #FFD60A; }
         .lens-cap-sub { font-size: 7px; color: #777; margin-top: 2px; }
         .lens-cap-hint { font-size: 10px; font-weight: 800; color: #aaa; margin-top: 10px; letter-spacing: 1px; }
 
@@ -86,26 +86,31 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         #ghostScopeCanvas.active { opacity: 0.75; }
 
-        /* 1. HUD BOKEH IRIS & CONTROL F-STOP */
-        .bokeh-hud-container {
+        /* 1. RETÍCULA BASTIDOR Y OJILLOS EN TIEMPO REAL */
+        #lonaOverlayCanvas {
+            position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 55;
+        }
+
+        /* 1. HUD ESPECÍFICO LONAS 3D V10 */
+        .lona-hud-container {
             display: none; position: absolute; top: 120px; left: 16px; right: 16px;
             z-index: 60; flex-direction: column; align-items: center; gap: 8px; pointer-events: auto;
         }
-        .bokeh-iris-pill {
-            display: flex; gap: 10px; align-items: center; background: rgba(26, 12, 16, 0.88);
-            border: 1px solid rgba(255, 45, 85, 0.45); border-radius: 20px; padding: 5px 14px;
-            backdrop-filter: blur(14px); font-size: 11px; font-weight: 800; color: #FF2D55;
+        .lona-measure-pill {
+            display: flex; gap: 10px; align-items: center; background: rgba(26, 22, 10, 0.88);
+            border: 1px solid rgba(255, 214, 10, 0.45); border-radius: 20px; padding: 5px 14px;
+            backdrop-filter: blur(14px); font-size: 11px; font-weight: 800; color: #FFD60A;
         }
-        .bokeh-fstop-selector {
-            display: flex; gap: 6px; background: rgba(20, 10, 14, 0.8);
+        .lona-format-selector {
+            display: flex; gap: 6px; background: rgba(20, 18, 12, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; padding: 4px 8px;
             backdrop-filter: blur(12px);
         }
-        .fstop-chip-btn {
+        .lona-chip-btn {
             padding: 3px 9px; font-size: 10px; font-weight: 800; border-radius: 12px;
             color: #888; background: transparent; border: none; cursor: pointer; transition: all 0.2s;
         }
-        .fstop-chip-btn.active { background: #FF2D55; color: #fff; box-shadow: 0 0 8px rgba(255,45,85,0.6); }
+        .lona-chip-btn.active { background: #FFD60A; color: #000; box-shadow: 0 0 8px rgba(255,214,10,0.6); }
 
         .aero-hud-overlay {
             position: absolute; inset: 0; pointer-events: none; z-index: 50;
@@ -113,7 +118,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .horizon-line {
             position: absolute; top: 50%; left: 25%; width: 50%; height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 45, 85, 0.6), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 214, 10, 0.6), transparent);
         }
         .hud-telemetry-corner {
             display: flex; justify-content: space-between; font-family: monospace;
@@ -134,30 +139,30 @@ HTML_CONTENT = """<!DOCTYPE html>
             color: #fff; font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 20px;
             backdrop-filter: blur(10px); display: flex; align-items: center; gap: 6px;
         }
-        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #FF2D55; display: inline-block; }
+        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #FFD60A; display: inline-block; }
         .top-action-btn {
             background: rgba(18, 18, 22, 0.72); border: 1px solid rgba(255, 255, 255, 0.15);
             color: #fff; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 20px;
             backdrop-filter: blur(10px); cursor: pointer; display: flex; align-items: center; gap: 4px;
         }
         #botToggleBtn {
-            border-color: rgba(255,45,85,0.4); color: #FF2D55; transition: all 0.4s ease; min-width: 155px; justify-content: center;
+            border-color: rgba(255,214,10,0.4); color: #FFD60A; transition: all 0.4s ease; min-width: 155px; justify-content: center;
         }
 
         .ghost-scope-btn {
-            background: rgba(18, 18, 22, 0.75); border: 1px solid rgba(255, 45, 85, 0.35);
-            color: #FF2D55; font-size: 10px; font-weight: 800; padding: 6px 11px; border-radius: 18px;
+            background: rgba(18, 18, 22, 0.75); border: 1px solid rgba(255, 214, 10, 0.35);
+            color: #FFD60A; font-size: 10px; font-weight: 800; padding: 6px 11px; border-radius: 18px;
             cursor: pointer; backdrop-filter: blur(8px);
         }
-        .ghost-scope-btn.active { background: #FF2D55; color: #fff; box-shadow: 0 0 14px rgba(255,45,85,0.6); }
+        .ghost-scope-btn.active { background: #FFD60A; color: #000; box-shadow: 0 0 14px rgba(255,214,10,0.6); }
 
         .center-hud-overlay {
             position: absolute; top: 68px; left: 0; right: 0; z-index: 95;
             display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none;
         }
         .context-pill {
-            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(255, 45, 85, 0.4);
-            color: #FF2D55; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
+            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(255, 214, 10, 0.4);
+            color: #FFD60A; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
             padding: 4px 14px; border-radius: 20px; backdrop-filter: blur(10px); text-transform: uppercase;
         }
 
@@ -173,7 +178,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         .hud-zoom-tag {
             position: absolute; bottom: 155px; left: 24px; z-index: 100;
             background: rgba(20, 20, 24, 0.82); border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 18px; padding: 5px 12px; font-size: 12px; font-weight: 800; color: #FF2D55;
+            border-radius: 18px; padding: 5px 12px; font-size: 12px; font-weight: 800; color: #FFD60A;
             cursor: pointer; backdrop-filter: blur(12px);
         }
 
@@ -214,7 +219,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .dock-item-btn.active .dock-dot-indicator { display: block; }
 
-        /* OBTURADOR BOKEH */
+        /* OBTURADOR LONAS */
         .bottom-bar {
             position: absolute; bottom: 20px; left: 0; right: 0; z-index: 100;
             display: flex; justify-content: space-around; align-items: center; padding: 0 25px;
@@ -225,8 +230,8 @@ HTML_CONTENT = """<!DOCTYPE html>
             border: 2px dashed rgba(255,255,255,0.3); pointer-events: none;
         }
         .shutter-btn {
-            width: 72px; height: 72px; border-radius: 50%; background: #FF2D55;
-            border: 4px solid #fff; box-shadow: 0 0 22px rgba(255, 45, 85, 0.55); cursor: pointer;
+            width: 72px; height: 72px; border-radius: 50%; background: #FFD60A;
+            border: 4px solid #fff; box-shadow: 0 0 22px rgba(255, 214, 10, 0.55); cursor: pointer;
         }
         .lens-switch-btn {
             width: 46px; height: 46px; border-radius: 50%; background: rgba(30, 30, 35, 0.75);
@@ -241,24 +246,24 @@ HTML_CONTENT = """<!DOCTYPE html>
         /* GADGET Y PANELES */
         #floatingGadget {
             position: fixed; top: 180px; left: 14px; width: 48px; height: 48px;
-            border-radius: 50%; background: #0c0d12; border: 2px solid #FF2D55;
-            box-shadow: 0 6px 18px rgba(255, 45, 85, 0.4); z-index: 250;
+            border-radius: 50%; background: #0c0d12; border: 2px solid #FFD60A;
+            box-shadow: 0 6px 18px rgba(255, 214, 10, 0.4); z-index: 250;
             display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: grab;
         }
         #floatingPanel {
             display: none; position: fixed; inset: 100px 18px 120px 18px; z-index: 260;
-            background: rgba(10, 12, 16, 0.96); border: 1px solid #FF2D55; border-radius: 20px;
+            background: rgba(10, 12, 16, 0.96); border: 1px solid #FFD60A; border-radius: 20px;
             backdrop-filter: blur(25px); flex-direction: column; padding: 16px;
         }
         .float-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 
-        /* MESA DE EDICIÓN POST-RETRATO */
+        /* MESA DE EDICIÓN POST-LONA & TÚNEL DE VIENTO 3D */
         #postEditModal {
             display: none; position: fixed; inset: 0; z-index: 300; background: rgba(6, 7, 10, 0.96);
             backdrop-filter: blur(20px); flex-direction: column; padding: 20px 18px 25px 18px;
         }
         .edit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .edit-title { font-size: 14px; font-weight: 800; color: #FF2D55; }
+        .edit-title { font-size: 14px; font-weight: 800; color: #FFD60A; }
         .edit-close-btn { background: #222; border: 1px solid #444; color: #fff; padding: 5px 12px; border-radius: 14px; font-size: 11px; cursor: pointer; }
         
         .edit-preview-box {
@@ -267,15 +272,27 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .edit-preview-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
+        /* 3. INNOVACIÓN: TÚNEL DE VIENTO 3D PROCEDURAL */
+        #windTunnelCanvas {
+            display: none; width: 100%; height: 100%; object-fit: contain;
+        }
+
         .edit-tools-panel { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
         .tool-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
         .tool-chip {
             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
             padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #ddd; cursor: pointer;
         }
-        .tool-chip.active { border-color: #FF2D55; color: #FF2D55; background: rgba(255,45,85,0.12); }
+        .tool-chip.active { border-color: #FFD60A; color: #FFD60A; background: rgba(255,214,10,0.12); }
+
+        .wind-slider-box {
+            display: flex; align-items: center; gap: 10px; background: rgba(20, 18, 12, 0.7);
+            border: 1px solid rgba(255, 214, 10, 0.3); border-radius: 14px; padding: 8px 14px; font-size: 11px; color: #FFD60A; font-weight: 800;
+        }
+        .wind-slider-box input { flex: 1; accent-color: #FFD60A; }
+
         .btn-export-master {
-            background: linear-gradient(90deg, #FF2D55, #FF375F); color: #fff; font-size: 13px;
+            background: linear-gradient(90deg, #FFD60A, #FF9F0A); color: #000; font-size: 13px;
             font-weight: 900; padding: 13px; border-radius: 14px; border: none; cursor: pointer;
             width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
         }
@@ -293,7 +310,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: none; position: fixed; inset: 0; z-index: 330; background: rgba(5, 6, 8, 0.95);
             backdrop-filter: blur(25px); flex-direction: column; padding: 20px; justify-content: space-between;
         }
-        .bot-bubble { background: #121318; border: 1px solid rgba(255,45,85,0.3); border-radius: 16px; padding: 16px; font-size: 13px; line-height: 1.5; color: #eee; margin-top: 15px; }
+        .bot-bubble { background: #121318; border: 1px solid rgba(255,214,10,0.3); border-radius: 16px; padding: 16px; font-size: 13px; line-height: 1.5; color: #eee; margin-top: 15px; }
         .bot-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
         .bot-btn {
             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff;
@@ -310,15 +327,15 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="pill-badge">• BIAN MASTER SUITE V10</div>
         <div class="brand-center">
             <div class="brand-title">BIAN</div>
-            <div class="brand-subtitle">Retrato Bokeh V10 Ultra</div>
+            <div class="brand-subtitle">Lonas 3D V10 Ultra</div>
             <div style="font-size:11px; color:#777; max-width:280px; margin:0 auto; line-height:1.4;">
-                Iris f/1.2 • Convolución Gaussiana Progresiva • Shaper Anamórfico
+                Bastidor PTR • Túnel de Viento 110 km/h • Tensión Spring-Mass
             </div>
         </div>
         <div class="lens-cap-assembly" id="lensCapUnlockBtn">
             <div class="lens-cap-disk" id="lensCapDisk">
-                <div class="lens-cap-center">BIAN BOKEH</div>
-                <div class="lens-cap-sub">F/1.2 • 85MM CINEMA IRIS</div>
+                <div class="lens-cap-center">BIAN 3D</div>
+                <div class="lens-cap-sub">F/1.4 • 35MM ESTRUCTURA</div>
             </div>
             <div class="lens-cap-hint">🔓 DESTAPAR LENTE</div>
         </div>
@@ -330,54 +347,54 @@ HTML_CONTENT = """<!DOCTYPE html>
     <!-- PANEL FLOTANTE -->
     <div id="floatingPanel">
         <div class="float-header">
-            <div style="font-size:13px; font-weight:800; color:#FF2D55;">⚡ TALLER TÁCTICO FLOTANTE</div>
+            <div style="font-size:13px; font-weight:800; color:#FFD60A;">⚡ TALLER TÁCTICO FLOTANTE</div>
             <button class="edit-close-btn" onclick="toggleFloatingPanel()">✖ Cerrar</button>
         </div>
         <div style="flex:1; overflow-y:auto; font-size:12px; color:#aaa; display:flex; flex-direction:column; gap:10px;">
             <div style="background:#14151b; padding:12px; border-radius:12px; border:1px solid #222;">
                 <div style="color:#fff; font-weight:700; margin-bottom:4px;" id="floatModTitle">MODO ACTIVO</div>
-                <div id="floatModDesc">Simulador de apertura óptica e iris bokeh listos.</div>
+                <div id="floatModDesc">Simulador de tensión eólica y cálculo de metraje listos.</div>
             </div>
             <div class="bot-actions" id="floatActionList"></div>
         </div>
     </div>
 
-    <!-- VIEWPORT CON RETÍCULA AERO HUD Y RADAR ESPECTRAL -->
+    <!-- VIEWPORT CON RETÍCULA DE BASTIDOR Y OJILLOS -->
     <div class="suite-view" id="viewportArea">
         <div id="videoContainer">
             <video id="webcam" autoplay playsinline></video>
             <canvas id="ghostScopeCanvas"></canvas>
+            <!-- 1. RETÍCULA BASTIDOR PTR Y OJILLOS -->
+            <canvas id="lonaOverlayCanvas"></canvas>
         </div>
 
-        <!-- 1. HUD BOKEH IRIS & SELECTOR F-STOP EN VIVO -->
-        <div class="bokeh-hud-container" id="bokehHud">
-            <div class="bokeh-iris-pill">
-                <span>🎯 APERTURA: f/1.2</span>
+        <!-- 1. HUD MEDIDAS Y FORMATO BASTIDOR -->
+        <div class="lona-hud-container" id="lonaHud">
+            <div class="lona-measure-pill">
+                <span id="lonaDimLabel">📐 MEDIDA: 3.00m x 2.00m (6.0m²)</span>
                 <span style="color:#888;">|</span>
-                <span id="bokehRadiusLabel">DESENFOQUE: 18px</span>
+                <span>TENSIÓN: 85 Kgf</span>
             </div>
-            <div class="bokeh-fstop-selector">
-                <button class="fstop-chip-btn active" onclick="setBokehFStop(1.2, 18, this)">f/1.2</button>
-                <button class="fstop-chip-btn" onclick="setBokehFStop(1.8, 12, this)">f/1.8</button>
-                <button class="fstop-chip-btn" onclick="setBokehFStop(2.8, 8, this)">f/2.8</button>
-                <button class="fstop-chip-btn" onclick="setBokehFStop(4.0, 4, this)">f/4.0</button>
-                <button class="fstop-chip-btn" onclick="setBokehFStop(8.0, 0, this)">f/8.0</button>
+            <div class="lona-format-selector">
+                <button class="lona-chip-btn active" onclick="setLonaPreset(3, 2, this)">3x2 m (Standard)</button>
+                <button class="lona-chip-btn" onclick="setLonaPreset(4, 3, this)">4x3 m (Grande)</button>
+                <button class="lona-chip-btn" onclick="setLonaPreset(6, 3, this)">6x3 m (Espectacular)</button>
             </div>
         </div>
 
         <!-- HUD AEROESPACIAL -->
         <div class="aero-hud-overlay">
             <div class="hud-telemetry-corner">
-                <div class="telemetry-tag" id="telFocal">LENS: 85mm PRO</div>
-                <div class="telemetry-tag" id="telDepth">DEPTH SEPARATION: 92%</div>
+                <div class="telemetry-tag" id="telWind">VIENTO: 18 km/h BRISA</div>
+                <div class="telemetry-tag" id="telVinil">VINIL: 13oz FRONTLIT</div>
                 <div class="telemetry-tag" id="telISO">ISO: 100 AUTO</div>
-                <div class="telemetry-tag" id="telShutter">SS: 1/400s</div>
+                <div class="telemetry-tag" id="telShutter">SS: 1/500s</div>
             </div>
 
             <div class="horizon-line" id="horizonGyro"></div>
 
             <div class="hud-telemetry-corner" style="justify-content: flex-end; gap: 8px;">
-                <div class="telemetry-tag" style="color:#FF2D55;" id="telBokehStatus">CONVOLUTION: ACTIVE</div>
+                <div class="telemetry-tag" style="color:#FFD60A;" id="telFrameStatus">PTR FRAME: LOCKED</div>
                 <div class="telemetry-tag">SNAPDRAGON 8G2 NPU</div>
             </div>
         </div>
@@ -390,7 +407,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="top-dock">
             <div class="hud-status-badge" id="moduleTitleBadge">
                 <span class="dot" id="statusDot"></span>
-                <span id="moduleNameText">RETRATO BOKEH V10</span>
+                <span id="moduleNameText">LONAS 3D V10</span>
             </div>
             <div style="display: flex; gap: 6px;">
                 <button class="ghost-scope-btn" id="scopeToggleBtn" onclick="toggleGhostScope()">
@@ -402,7 +419,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
 
         <div class="center-hud-overlay" id="centerHud">
-            <div class="context-pill" id="contextPillText">🎭 RETRATO BOKEH: DESENFOQUE ÓPTICO 85MM</div>
+            <div class="context-pill" id="contextPillText">🎪 LONAS 3D: MONTAJE ESTRUCTURAL & DEFLÉXIÓN</div>
         </div>
 
         <div class="hud-zoom-tag" id="zoomChip" onclick="cycleZoomLevel()">
@@ -415,35 +432,41 @@ HTML_CONTENT = """<!DOCTYPE html>
         <!-- DOCK HORIZONTAL FLOTANTE -->
         <div id="horizontalDockBar"></div>
 
-        <!-- OBTURADOR BOKEH -->
+        <!-- OBTURADOR LONAS -->
         <div class="bottom-bar">
             <div class="lens-switch-btn" onclick="toggleLens()">🔄</div>
             <div class="shutter-wrapper">
                 <div class="shutter-corona" id="shutterCorona"></div>
-                <div class="shutter-btn" id="bokehShutterBtn" onclick="handleBokehCaptureTrigger()"></div>
+                <div class="shutter-btn" id="lonaShutterBtn" onclick="handleLonaCaptureTrigger()"></div>
             </div>
             <div class="gallery-thumb" id="thumbBox" onclick="openGalleryModal()"></div>
         </div>
     </div>
 
-    <!-- MESA DE EDICIÓN POST-RETRATO -->
+    <!-- MESA DE EDICIÓN POST-LONA & TÚNEL DE VIENTO 3D -->
     <div id="postEditModal">
         <div class="edit-header">
-            <div class="edit-title" id="editModalTitle">🎭 RETRATO BOKEH V10 RENDERIZADO</div>
+            <div class="edit-title" id="editModalTitle">🎪 LONAS 3D V10 RENDERIZADO</div>
             <button class="edit-close-btn" onclick="closeEditModal()">✖ Volver</button>
         </div>
         <div class="edit-preview-box">
-            <img id="editImagePreview" src="" alt="Retrato Bokeh" />
+            <img id="editImagePreview" src="" alt="Lona Montaje" />
+            <!-- 3. INNOVACIÓN: CANVAS DE TÚNEL DE VIENTO PROCEDURAL -->
+            <canvas id="windTunnelCanvas"></canvas>
         </div>
         <div class="edit-tools-panel">
+            <div class="wind-slider-box" id="windSliderContainer" style="display:none;">
+                <span>🌪️ VIENTO: <span id="windSpeedLabel">45</span> km/h</span>
+                <input type="range" id="windRange" min="0" max="110" value="45" oninput="updateWindSpeed(this.value)">
+            </div>
             <div class="tool-row" id="moduleToolRow">
-                <div class="tool-chip active" onclick="applyBokehBlade('circle_85mm', this)">⭕ Bokeh Circular 85mm</div>
-                <div class="tool-chip" onclick="applyBokehBlade('anamorphic_oval', this)">🎬 Óvalo Anamórfico Hollywood</div>
-                <div class="tool-chip" onclick="applyBokehBlade('swirly_petzval', this)">🌀 Petzval Swirly Vintage</div>
-                <div class="tool-chip" onclick="applyBokehBlade('cinematic_grade', this)">🎞️ Grado Cine V10</div>
+                <div class="tool-chip active" onclick="switchLonaView('flat', this)">🖼️ Render Estático PTR</div>
+                <div class="tool-chip" onclick="switchLonaView('wind_tunnel', this)">🌪️ Túnel de Viento 3D</div>
+                <div class="tool-chip" onclick="applyLonaTexture('frontlit', this)">☀️ Frontlit Brillante</div>
+                <div class="tool-chip" onclick="applyLonaTexture('mesh', this)">🌬️ Malla Mesh Microperforada</div>
             </div>
             <button class="btn-export-master" onclick="exportEditedResult()">
-                💾 EXPORTAR RETRATO BOKEH MASTER HD
+                💾 EXPORTAR FICHA TÉCNICA Y MONTAJE HD
             </button>
         </div>
     </div>
@@ -464,23 +487,27 @@ HTML_CONTENT = """<!DOCTYPE html>
                 <div class="edit-title" style="color:#00FFC8;">✨ NANO-BOT TÁCTICO V10</div>
                 <button class="edit-close-btn" onclick="closeNanobot()">✖ Cerrar</button>
             </div>
-            <div class="bot-bubble" id="botMessageText">Analizando plano de sujeto...</div>
+            <div class="bot-bubble" id="botMessageText">Analizando estructura...</div>
             <div class="bot-actions" id="botActionList"></div>
         </div>
         <div style="font-size:10px; color:#555; text-align:center;">IA Soberana local operando en Snapdragon 8 Gen 2</div>
     </div>
 
     <canvas id="hiddenBufferCanvas" style="display:none;"></canvas>
-    <!-- CANVAS DE CONVOLUCIÓN GAUSSIANA EN MEMORIA -->
-    <canvas id="bokehRenderCanvas" style="display:none;"></canvas>
+    <!-- CANVAS DE RENDER BASTIDOR 3D -->
+    <canvas id="lonaRenderCanvas" style="display:none;"></canvas>
 
     <script>
         const video = document.getElementById('webcam');
         const hiddenCanvas = document.getElementById('hiddenBufferCanvas');
         const ghostCanvas = document.getElementById('ghostScopeCanvas');
         const ghostCtx = ghostCanvas.getContext('2d');
-        const bokehCanvas = document.getElementById('bokehRenderCanvas');
-        const bokehCtx = bokehCanvas.getContext('2d');
+        const lonaWireCanvas = document.getElementById('lonaOverlayCanvas');
+        const lonaWireCtx = lonaWireCanvas.getContext('2d');
+        const lonaRenderCanvas = document.getElementById('lonaRenderCanvas');
+        const lonaRenderCtx = lonaRenderCanvas.getContext('2d');
+        const windCanvas = document.getElementById('windTunnelCanvas');
+        const windCtx = windCanvas.getContext('2d');
         const focusRing = document.getElementById('focusRing');
         let audioCtx = null;
         let facingMode = 'environment';
@@ -488,10 +515,13 @@ HTML_CONTENT = """<!DOCTYPE html>
         const zoomLevels = [0.6, 1.0, 2.0];
         let isGhostScopeOn = false;
 
-        /* ESTADO BOKEH V10 */
-        let currentFStop = 1.2;
-        let currentBlurRadius = 18;
-        let processedBokehDataUrl = null;
+        /* ESTADO LONAS 3D V10 */
+        let lonaWidthM = 3;
+        let lonaHeightM = 2;
+        let windSpeedKmh = 45;
+        let isWindTunnelActive = false;
+        let windAnimFrame = null;
+        let processedLonaDataUrl = null;
 
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -533,15 +563,17 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         });
 
-        /* PIPELINE EN TIEMPO REAL */
+        /* 1. PIPELINE DE RETÍCULA BASTIDOR PTR EN TIEMPO REAL */
         let frameCount = 0;
         function processVideoPipeline() {
             if (video.readyState >= 2) {
                 if (hiddenCanvas.width !== video.videoWidth) {
                     hiddenCanvas.width = video.videoWidth || 640;
                     hiddenCanvas.height = video.videoHeight || 480;
-                    bokehCanvas.width = hiddenCanvas.width;
-                    bokehCanvas.height = hiddenCanvas.height;
+                    lonaRenderCanvas.width = hiddenCanvas.width;
+                    lonaRenderCanvas.height = hiddenCanvas.height;
+                    lonaWireCanvas.width = window.innerWidth;
+                    lonaWireCanvas.height = window.innerHeight;
                     ghostCanvas.width = 320;
                     ghostCanvas.height = 240;
                 }
@@ -565,8 +597,54 @@ HTML_CONTENT = """<!DOCTYPE html>
                     }
                     ghostCtx.putImageData(imgData, 0, 0);
                 }
+
+                // Dibujar marco de bastidor si Lonas 3D está activo
+                const curMod = moduleCatalog[activeCardIndex];
+                if (curMod.key === 'lonas') {
+                    renderLonaWireframe();
+                } else {
+                    lonaWireCtx.clearRect(0, 0, lonaWireCanvas.width, lonaWireCanvas.height);
+                }
             }
             requestAnimationFrame(processVideoPipeline);
+        }
+
+        function renderLonaWireframe() {
+            lonaWireCtx.clearRect(0, 0, lonaWireCanvas.width, lonaWireCanvas.height);
+            const w = lonaWireCanvas.width;
+            const h = lonaWireCanvas.height;
+
+            const padX = w * 0.1;
+            const padY = h * 0.25;
+            const rw = w - padX * 2;
+            const rh = h - padY * 2;
+
+            // Marco de acero PTR tubular
+            lonaWireCtx.strokeStyle = "#FFD60A";
+            lonaWireCtx.lineWidth = 3;
+            lonaWireCtx.strokeRect(padX, padY, rw, rh);
+
+            // Costura de dobladillo
+            lonaWireCtx.strokeStyle = "rgba(255, 214, 10, 0.4)";
+            lonaWireCtx.lineWidth = 1;
+            lonaWireCtx.setLineDash([6, 4]);
+            lonaWireCtx.strokeRect(padX + 8, padY + 8, rw - 16, rh - 16);
+            lonaWireCtx.setLineDash([]);
+
+            // Ojillos metálicos perimetrales cada 50cm proporcionales
+            lonaWireCtx.fillStyle = "#FFD60A";
+            const numOjillosX = 6;
+            const numOjillosY = 4;
+            for (let i = 0; i <= numOjillosX; i++) {
+                const ox = padX + (rw / numOjillosX) * i;
+                lonaWireCtx.beginPath(); lonaWireCtx.arc(ox, padY + 4, 3, 0, Math.PI * 2); lonaWireCtx.fill();
+                lonaWireCtx.beginPath(); lonaWireCtx.arc(ox, padY + rh - 4, 3, 0, Math.PI * 2); lonaWireCtx.fill();
+            }
+            for (let j = 0; j <= numOjillosY; j++) {
+                const oy = padY + (rh / numOjillosY) * j;
+                lonaWireCtx.beginPath(); lonaWireCtx.arc(padX + 4, oy, 3, 0, Math.PI * 2); lonaWireCtx.fill();
+                lonaWireCtx.beginPath(); lonaWireCtx.arc(padX + rw - 4, oy, 3, 0, Math.PI * 2); lonaWireCtx.fill();
+            }
         }
 
         function toggleGhostScope() {
@@ -583,113 +661,195 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         }
 
-        /* 2. TRABAJO PESADO: RENDER BOKEH CONVOLUCIONAL PROGRESIVO */
-        function setBokehFStop(fstop, blurPx, elem) {
-            currentFStop = fstop;
-            currentBlurRadius = blurPx;
-            document.querySelectorAll('.fstop-chip-btn').forEach(b => b.classList.remove('active'));
+        /* 2. TRABAJO PESADO: RENDERIZADO DEL MONTAJE Y TENSIÓN EN RAM */
+        function setLonaPreset(wM, hM, elem) {
+            lonaWidthM = wM;
+            lonaHeightM = hM;
+            const area = (wM * hM).toFixed(1);
+            document.querySelectorAll('.lona-chip-btn').forEach(b => b.classList.remove('active'));
             elem.classList.add('active');
-            document.getElementById('bokehRadiusLabel').innerText = `DESENFOQUE: ${blurPx}px`;
+            document.getElementById('lonaDimLabel').innerText = `📐 MEDIDA: ${wM}.00m x ${hM}.00m (${area}m²)`;
         }
 
-        async function handleBokehCaptureTrigger() {
+        async function handleLonaCaptureTrigger() {
             const curMod = moduleCatalog[activeCardIndex];
-            if (curMod.key === 'bokeh') {
-                executeBokehDepthCapture();
+            if (curMod.key === 'lonas') {
+                executeLona3DCapture();
             } else {
                 captureStandardZSL();
             }
         }
 
-        async function executeBokehDepthCapture() {
+        async function executeLona3DCapture() {
             const flash = document.getElementById('ambientLightLayer');
             flash.classList.add('flash');
             setTimeout(() => flash.classList.remove('flash'), 60);
-            playBokehApertureSound();
+            playStructureSound();
 
-            document.getElementById('telBokehStatus').innerText = 'CONVOLUTION: RENDERING';
+            // Fondo real capturado
+            lonaRenderCtx.drawImage(hiddenCanvas, 0, 0);
 
-            // Dibujar capa de fondo con convolución gaussiana simulada
-            bokehCtx.filter = `blur(${currentBlurRadius}px) contrast(1.05)`;
-            bokehCtx.drawImage(hiddenCanvas, 0, 0);
-            bokehCtx.filter = 'none';
+            // Simulación de montaje de lona tensada sobre el fondo
+            const w = lonaRenderCanvas.width;
+            const h = lonaRenderCanvas.height;
+            const lx = w * 0.12;
+            const ly = h * 0.2;
+            const lw = w * 0.76;
+            const lh = h * 0.6;
 
-            // Máscara radial de sujeto en foco central (simulación de profundidad óptica 85mm)
-            const w = bokehCanvas.width;
-            const h = bokehCanvas.height;
-            const cx = w / 2;
-            const cy = h / 2;
-            const radius = Math.min(w, h) * 0.38;
+            // Sombra de relieve estructural
+            lonaRenderCtx.shadowColor = "rgba(0,0,0,0.7)";
+            lonaRenderCtx.shadowBlur = 25;
+            lonaRenderCtx.shadowOffsetX = 8;
+            lonaRenderCtx.shadowOffsetY = 12;
 
-            bokehCtx.save();
-            bokehCtx.beginPath();
-            bokehCtx.ellipse(cx, cy, radius * 0.82, radius * 1.15, 0, 0, Math.PI * 2);
-            bokehCtx.clip();
-            bokehCtx.drawImage(hiddenCanvas, 0, 0);
-            bokehCtx.restore();
+            // Placa de lona Frontlit
+            lonaRenderCtx.fillStyle = "#ffffff";
+            lonaRenderCtx.fillRect(lx, ly, lw, lh);
+            lonaRenderCtx.shadowColor = "transparent";
 
-            processedBokehDataUrl = bokehCanvas.toDataURL('image/jpeg', 0.95);
+            // Detalle de bastidor y ojillos
+            lonaRenderCtx.strokeStyle = "#FFD60A";
+            lonaRenderCtx.lineWidth = 4;
+            lonaRenderCtx.strokeRect(lx, ly, lw, lh);
+
+            // Ficha técnica impresa en esquina
+            lonaRenderCtx.fillStyle = "#000";
+            lonaRenderCtx.font = "bold 14px monospace";
+            lonaRenderCtx.fillText(`BIAN LONAS 3D • ${lonaWidthM}x${lonaHeightM}m • 13oz FRONTLIT`, lx + 16, ly + lh - 16);
+
+            processedLonaDataUrl = lonaRenderCanvas.toDataURL('image/jpeg', 0.95);
 
             const res = await fetch('/bian/process/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: processedBokehDataUrl, prompt_analysis: `Retrato Bokeh f/${currentFStop} V10` })
+                body: JSON.stringify({ image_base64: processedLonaDataUrl, prompt_analysis: `Lonas 3D ${lonaWidthM}x${lonaHeightM}m V10` })
             });
 
             if (res.ok) {
                 const data = await res.json();
                 document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
-                openBokehEditModal(processedBokehDataUrl);
-                document.getElementById('telBokehStatus').innerText = 'CONVOLUTION: ACTIVE';
+                openLonaEditModal(processedLonaDataUrl);
             }
         }
 
-        function playBokehApertureSound() {
+        function playStructureSound() {
             try {
                 const ctx = getAudioContext();
                 const now = ctx.currentTime;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.connect(gain); gain.connect(ctx.destination);
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(240, now);
-                osc.frequency.exponentialRampToValueAtTime(80, now + 0.14);
-                gain.gain.setValueAtTime(0.28, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
-                osc.start(now); osc.stop(now + 0.15);
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.linearRampToValueAtTime(360, now + 0.18);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                osc.start(now); osc.stop(now + 0.19);
             } catch(e) {}
         }
 
-        /* 3. INNOVACIÓN: APERTURE BLADE SHAPER (ANAMÓRFICO / PETZVAL / CIRCULAR) */
-        function openBokehEditModal(imgSrc) {
-            document.getElementById('editModalTitle').innerText = `🎭 RETRATO BOKEH f/${currentFStop} PROCESADO`;
+        /* 3. INNOVACIÓN: TÚNEL DE VIENTO 3D PROCEDURAL & DEFLEXIÓN */
+        function openLonaEditModal(imgSrc) {
+            document.getElementById('editModalTitle').innerText = `🎪 LONAS 3D (${lonaWidthM}x${lonaHeightM}m) RENDERIZADO`;
             document.getElementById('editImagePreview').src = imgSrc;
+            document.getElementById('editImagePreview').style.display = 'block';
+            windCanvas.style.display = 'none';
+            document.getElementById('windSliderContainer').style.display = 'none';
+            isWindTunnelActive = false;
+            cancelAnimationFrame(windAnimFrame);
             document.getElementById('postEditModal').style.display = 'flex';
         }
 
-        function closeEditModal() { document.getElementById('postEditModal').style.display = 'none'; }
+        function closeEditModal() {
+            cancelAnimationFrame(windAnimFrame);
+            document.getElementById('postEditModal').style.display = 'none';
+        }
 
-        function applyBokehBlade(mode, elem) {
+        function switchLonaView(mode, elem) {
+            document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
+            elem.classList.add('active');
+
+            const flatImg = document.getElementById('editImagePreview');
+            const sliderBox = document.getElementById('windSliderContainer');
+
+            if (mode === 'flat') {
+                flatImg.style.display = 'block';
+                windCanvas.style.display = 'none';
+                sliderBox.style.display = 'none';
+                isWindTunnelActive = false;
+                cancelAnimationFrame(windAnimFrame);
+            } else if (mode === 'wind_tunnel') {
+                flatImg.style.display = 'none';
+                windCanvas.style.display = 'block';
+                sliderBox.style.display = 'flex';
+                isWindTunnelActive = true;
+                initWindTunnelSimulation();
+            }
+        }
+
+        function updateWindSpeed(val) {
+            windSpeedKmh = parseInt(val);
+            document.getElementById('windSpeedLabel').innerText = val;
+        }
+
+        let simTime = 0;
+        function initWindTunnelSimulation() {
+            windCanvas.width = 480;
+            windCanvas.height = 360;
+            animateWindDeflection();
+        }
+
+        function animateWindDeflection() {
+            if (!isWindTunnelActive) return;
+            simTime += 0.08;
+
+            windCtx.clearRect(0, 0, windCanvas.width, windCanvas.height);
+            windCtx.drawImage(lonaRenderCanvas, 0, 0, windCanvas.width, windCanvas.height);
+
+            // Amplitud de oscilación según velocidad del viento
+            const waveAmp = (windSpeedKmh / 110) * 18;
+            const w = windCanvas.width;
+            const h = windCanvas.height;
+
+            // Renderizar curvas de deformación eólica en 3D
+            windCtx.strokeStyle = "rgba(255, 214, 10, 0.6)";
+            windCtx.lineWidth = 2;
+            for (let y = h * 0.25; y <= h * 0.75; y += 30) {
+                windCtx.beginPath();
+                for (let x = w * 0.15; x <= w * 0.85; x += 10) {
+                    const offset = Math.sin((x * 0.03) + simTime) * waveAmp;
+                    if (x === w * 0.15) windCtx.moveTo(x, y + offset);
+                    else windCtx.lineTo(x, y + offset);
+                }
+                windCtx.stroke();
+            }
+
+            // Vector de fuerza
+            windCtx.fillStyle = "#FFD60A";
+            windCtx.font = "bold 11px monospace";
+            windCtx.fillText(`EMPUJE: ${(windSpeedKmh * 1.8).toFixed(0)} Pa • DEFLEXIÓN: ${waveAmp.toFixed(1)} cm`, 20, 30);
+
+            windAnimFrame = requestAnimationFrame(animateWindDeflection);
+        }
+
+        function applyLonaTexture(mode, elem) {
             document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
             elem.classList.add('active');
             const img = document.getElementById('editImagePreview');
-            if (mode === 'circle_85mm') {
-                img.style.filter = 'contrast(1.1) brightness(1.02) saturate(1.1)';
-            } else if (mode === 'anamorphic_oval') {
-                img.style.filter = 'contrast(1.2) saturate(1.15) drop-shadow(0 0 10px rgba(0,210,255,0.4))';
-            } else if (mode === 'swirly_petzval') {
-                img.style.filter = 'sepia(0.15) contrast(1.25) brightness(0.98)';
-            } else if (mode === 'cinematic_grade') {
-                img.style.filter = 'sepia(0.2) contrast(1.3) saturate(0.9)';
+            if (mode === 'frontlit') {
+                img.style.filter = 'contrast(1.2) brightness(1.1) drop-shadow(0 0 10px rgba(255,214,10,0.5))';
+            } else if (mode === 'mesh') {
+                img.style.filter = 'contrast(1.1) brightness(0.95) opacity(0.85)';
             }
         }
 
         function exportEditedResult() {
             const a = document.createElement('a');
-            a.href = processedBokehDataUrl || document.getElementById('editImagePreview').src;
-            a.download = `bian_retrato_bokeh_f${currentFStop}_v10_${Date.now()}.jpg`;
+            a.href = processedLonaDataUrl || document.getElementById('editImagePreview').src;
+            a.download = `bian_lona3d_${lonaWidthM}x${lonaHeightM}_v10_${Date.now()}.jpg`;
             a.click();
-            alert('✔ Retrato Bokeh Master HD exportado a la memoria local.');
+            alert('✔ Ficha técnica y render Lona 3D exportado con éxito.');
         }
 
         /* DISPARO ESTÁNDAR ZSL */
@@ -708,7 +868,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             if (res.ok) {
                 const data = await res.json();
                 document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
-                openBokehEditModal(b64);
+                openLonaEditModal(b64);
             }
         }
 
@@ -771,9 +931,10 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         }, { passive: true });
 
-        /* CATÁLOGO DE MÓDULOS CON RETRATO BOKEH INTEGRADO */
+        /* CATÁLOGO DE MÓDULOS CON LONAS 3D INTEGRADO */
         const moduleCatalog = [
-            { key: 'bokeh', icon: '🎭', title: 'RETRATO BOKEH', pill: '🎭 APERTURA ÓPTICA & IRIS SHAPER', color: '#FF2D55', botTips: 'Mantén al sujeto a 1-2 metros del fondo para maximizar el desenfoque progresivo.' },
+            { key: 'lonas', icon: '🎪', title: 'LONAS 3D', pill: '🎪 BASTIDOR PTR & TÚNEL DE VIENTO 110 km/h', color: '#FFD60A', botTips: 'Alinea la estructura en el encuadre para simular ojillos cada 50cm y deformación eólica.' },
+            { key: 'bokeh', icon: '🎭', title: 'RETRATO BOKEH', pill: '🎭 APERTURA ÓPTICA & IRIS SHAPER', color: '#FF2D55', botTips: 'Mantén al sujeto a 1-2 metros del fondo.' },
             { key: 'night', icon: '🌙', title: 'NIGHTOGRAPHY', pill: '🌙 MULTI-FRAME STACK & DEEP-SKY BOOST', color: '#5E5CE6', botTips: 'Baja iluminación detectada.' },
             { key: 'macro', icon: '🔍', title: 'MACRO PRO', pill: '🔍 FOCUS PEAKING & DEEP FOCUS STACK', color: '#30D158', botTips: 'Distancia de 2 a 8 cm.' },
             { key: 'scan', icon: '📄', title: 'SCAN DOC PRO', pill: '📄 AUTO-ENCUADRE HOMOGRÁFICO & OCR', color: '#00D2FF', botTips: 'Alinea el documento dentro del cuadrilátero.' },
@@ -884,11 +1045,11 @@ HTML_CONTENT = """<!DOCTYPE html>
             document.getElementById('floatModDesc').innerText = m.botTips;
             document.getElementById('shutterCorona').style.borderColor = m.color;
 
-            // Mostrar u ocultar selector de iris bokeh
-            if (m.key === 'bokeh') {
-                document.getElementById('bokehHud').style.display = 'flex';
+            // Mostrar u ocultar controles de Lonas 3D
+            if (m.key === 'lonas') {
+                document.getElementById('lonaHud').style.display = 'flex';
             } else {
-                document.getElementById('bokehHud').style.display = 'none';
+                document.getElementById('lonaHud').style.display = 'none';
             }
 
             const topCard = deckStack.querySelector('.pos-0');
@@ -982,7 +1143,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                 const cur = moduleCatalog[activeCardIndex];
                 const list = document.getElementById('floatActionList');
                 list.innerHTML = `
-                    <button class="bot-btn" onclick="handleBokehCaptureTrigger(); toggleFloatingPanel();">📸 Disparo con ${cur.title}</button>
+                    <button class="bot-btn" onclick="handleLonaCaptureTrigger(); toggleFloatingPanel();">📸 Disparo con ${cur.title}</button>
                     <button class="bot-btn" onclick="openHorizontalDock(); toggleFloatingPanel();">🎴 Selector de Módulos</button>
                     <button class="bot-btn" onclick="toggleGhostScope(); toggleFloatingPanel();">👁️ Alternar Radar Espectral</button>
                     <button class="bot-btn" onclick="openGalleryModal(); toggleFloatingPanel();">🖼️ Ver Galería Local</button>
@@ -1020,7 +1181,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                     card.className = 'gallery-card';
                     card.onclick = () => {
                         closeGalleryModal();
-                        openBokehEditModal(img.image_path);
+                        openLonaEditModal(img.image_path);
                     };
                     card.innerHTML = `
                         <img src="${img.image_path}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\' viewBox=\\'0 0 100 100\\'><rect width=\\'100\\' height=\\'100\\' fill=\\'%23222\\'/><text x=\\'50\\' y=\\'55\\' fill=\\'%23666\\' font-size=\\'11\\' text-anchor=\\'middle\\'>Sin Vista</text></svg>'"/>
@@ -1044,14 +1205,14 @@ HTML_CONTENT = """<!DOCTYPE html>
             const act = document.getElementById('botActionList');
 
             msg.innerHTML = `
-                <div style="color:#FF2D55; font-weight:800; margin-bottom:6px;">🤖 Diagnóstico V10 para ${curMod.title}:</div>
+                <div style="color:#FFD60A; font-weight:800; margin-bottom:6px;">🤖 Diagnóstico V10 para ${curMod.title}:</div>
                 <div>${curMod.botTips}</div>
             `;
 
             act.innerHTML = `
-                <button class="bot-btn" onclick="executeBotAction('calibrate')">⚡ Calibrar Iris f/1.2 & Separación de Sujeto</button>
+                <button class="bot-btn" onclick="executeBotAction('calibrate')">⚡ Calibrar Sensor Estructural & Resistencia Eólica</button>
                 <button class="bot-btn" onclick="executeBotAction('ghost')">👁️ Activar Radar Espectral</button>
-                <button class="bot-btn" onclick="executeBotAction('gallery')">🖼️ Ver Retratos Guardados</button>
+                <button class="bot-btn" onclick="executeBotAction('gallery')">🖼️ Ver Renders Guardados</button>
             `;
 
             modal.style.display = 'flex';
@@ -1063,7 +1224,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             closeNanobot();
             if(action === 'calibrate') {
                 applyActiveCardTheme(moduleCatalog[activeCardIndex]);
-                alert("✔ Apertura f/1.2 y convolución gaussiana calibradas.");
+                alert("✔ Bastidor PTR y resistencia eólica calibrados.");
             } else if(action === 'ghost') {
                 toggleGhostScope();
             } else if(action === 'gallery') {
