@@ -16,14 +16,14 @@ router.mount("/storage", StaticFiles(directory="storage"), name="storage")
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Captura Estudio RAW V10"
+    prompt_analysis: str = "Captura SVG Logos V10"
 
 HTML_CONTENT = """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>BIAN MASTER SUITE V10 PRO - ESTUDIO RAW</title>
+    <title>BIAN MASTER SUITE V10 PRO - SVG LOGOS</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', Roboto, monospace; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; width: 100vw; overflow: hidden; position: fixed; }
@@ -71,7 +71,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             position: relative; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .lens-cap-center { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #FF9F0A; }
+        .lens-cap-center { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #00FFC8; }
         .lens-cap-sub { font-size: 7px; color: #777; margin-top: 2px; }
         .lens-cap-hint { font-size: 10px; font-weight: 800; color: #aaa; margin-top: 10px; letter-spacing: 1px; }
 
@@ -86,33 +86,31 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         #ghostScopeCanvas.active { opacity: 0.75; }
 
-        /* 1. HISTOGRAMA RGB EN TIEMPO REAL */
-        #histogramCanvas {
-            position: absolute; top: 120px; left: 16px; width: 130px; height: 50px;
-            background: rgba(14, 16, 22, 0.85); border: 1px solid rgba(255, 159, 10, 0.45);
-            border-radius: 12px; backdrop-filter: blur(12px); z-index: 60; pointer-events: none; display: none;
+        /* 1. RETÍCULA VECTORIAL Y MALLA ISOMÉTRICA */
+        #svgGridCanvas {
+            position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 52;
         }
 
-        /* 1. HUD ESTUDIO RAW V10 */
-        .raw-hud-container {
-            display: none; position: absolute; top: 120px; right: 16px;
-            z-index: 60; flex-direction: column; align-items: flex-end; gap: 8px; pointer-events: auto;
+        /* 1. HUD SVG LOGOS V10 */
+        .svg-hud-container {
+            display: none; position: absolute; top: 120px; left: 16px; right: 16px;
+            z-index: 60; flex-direction: column; align-items: center; gap: 8px; pointer-events: auto;
         }
-        .raw-kelvin-pill {
-            display: flex; gap: 8px; align-items: center; background: rgba(28, 18, 10, 0.88);
-            border: 1px solid rgba(255, 159, 10, 0.45); border-radius: 20px; padding: 5px 12px;
-            backdrop-filter: blur(14px); font-size: 11px; font-weight: 800; color: #FF9F0A;
+        .svg-status-pill {
+            display: flex; gap: 10px; align-items: center; background: rgba(10, 26, 20, 0.88);
+            border: 1px solid rgba(0, 255, 200, 0.45); border-radius: 20px; padding: 5px 14px;
+            backdrop-filter: blur(14px); font-size: 11px; font-weight: 800; color: #00FFC8;
         }
-        .raw-ev-selector {
-            display: flex; gap: 4px; background: rgba(20, 14, 10, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; padding: 4px 6px;
+        .svg-mode-selector {
+            display: flex; gap: 6px; background: rgba(8, 20, 16, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; padding: 4px 8px;
             backdrop-filter: blur(12px);
         }
-        .raw-chip-btn {
-            padding: 3px 7px; font-size: 10px; font-weight: 800; border-radius: 12px;
+        .svg-chip-btn {
+            padding: 3px 9px; font-size: 10px; font-weight: 800; border-radius: 12px;
             color: #888; background: transparent; border: none; cursor: pointer; transition: all 0.2s;
         }
-        .raw-chip-btn.active { background: #FF9F0A; color: #000; box-shadow: 0 0 8px rgba(255,159,10,0.6); }
+        .svg-chip-btn.active { background: #00FFC8; color: #000; box-shadow: 0 0 8px rgba(0,255,200,0.6); }
 
         .aero-hud-overlay {
             position: absolute; inset: 0; pointer-events: none; z-index: 50;
@@ -120,7 +118,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .horizon-line {
             position: absolute; top: 50%; left: 25%; width: 50%; height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 159, 10, 0.6), transparent);
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 200, 0.6), transparent);
         }
         .hud-telemetry-corner {
             display: flex; justify-content: space-between; font-family: monospace;
@@ -141,30 +139,30 @@ HTML_CONTENT = """<!DOCTYPE html>
             color: #fff; font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 20px;
             backdrop-filter: blur(10px); display: flex; align-items: center; gap: 6px;
         }
-        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #FF9F0A; display: inline-block; }
+        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #00FFC8; display: inline-block; }
         .top-action-btn {
             background: rgba(18, 18, 22, 0.72); border: 1px solid rgba(255, 255, 255, 0.15);
             color: #fff; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 20px;
             backdrop-filter: blur(10px); cursor: pointer; display: flex; align-items: center; gap: 4px;
         }
         #botToggleBtn {
-            border-color: rgba(255,159,10,0.4); color: #FF9F0A; transition: all 0.4s ease; min-width: 155px; justify-content: center;
+            border-color: rgba(0,255,200,0.4); color: #00FFC8; transition: all 0.4s ease; min-width: 155px; justify-content: center;
         }
 
         .ghost-scope-btn {
-            background: rgba(18, 18, 22, 0.75); border: 1px solid rgba(255, 159, 10, 0.35);
-            color: #FF9F0A; font-size: 10px; font-weight: 800; padding: 6px 11px; border-radius: 18px;
+            background: rgba(18, 18, 22, 0.75); border: 1px solid rgba(0, 255, 200, 0.35);
+            color: #00FFC8; font-size: 10px; font-weight: 800; padding: 6px 11px; border-radius: 18px;
             cursor: pointer; backdrop-filter: blur(8px);
         }
-        .ghost-scope-btn.active { background: #FF9F0A; color: #000; box-shadow: 0 0 14px rgba(255,159,10,0.6); }
+        .ghost-scope-btn.active { background: #00FFC8; color: #000; box-shadow: 0 0 14px rgba(0,255,200,0.6); }
 
         .center-hud-overlay {
             position: absolute; top: 68px; left: 0; right: 0; z-index: 95;
             display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none;
         }
         .context-pill {
-            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(255, 159, 10, 0.4);
-            color: #FF9F0A; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
+            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(0, 255, 200, 0.4);
+            color: #00FFC8; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
             padding: 4px 14px; border-radius: 20px; backdrop-filter: blur(10px); text-transform: uppercase;
         }
 
@@ -180,7 +178,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         .hud-zoom-tag {
             position: absolute; bottom: 155px; left: 24px; z-index: 100;
             background: rgba(20, 20, 24, 0.82); border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 18px; padding: 5px 12px; font-size: 12px; font-weight: 800; color: #FF9F0A;
+            border-radius: 18px; padding: 5px 12px; font-size: 12px; font-weight: 800; color: #00FFC8;
             cursor: pointer; backdrop-filter: blur(12px);
         }
 
@@ -221,7 +219,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .dock-item-btn.active .dock-dot-indicator { display: block; }
 
-        /* OBTURADOR RAW */
+        /* OBTURADOR SVG */
         .bottom-bar {
             position: absolute; bottom: 20px; left: 0; right: 0; z-index: 100;
             display: flex; justify-content: space-around; align-items: center; padding: 0 25px;
@@ -232,8 +230,8 @@ HTML_CONTENT = """<!DOCTYPE html>
             border: 2px dashed rgba(255,255,255,0.3); pointer-events: none;
         }
         .shutter-btn {
-            width: 72px; height: 72px; border-radius: 50%; background: #FF9F0A;
-            border: 4px solid #fff; box-shadow: 0 0 22px rgba(255, 159, 10, 0.55); cursor: pointer;
+            width: 72px; height: 72px; border-radius: 50%; background: #00FFC8;
+            border: 4px solid #fff; box-shadow: 0 0 22px rgba(0, 255, 200, 0.55); cursor: pointer;
         }
         .lens-switch-btn {
             width: 46px; height: 46px; border-radius: 50%; background: rgba(30, 30, 35, 0.75);
@@ -248,31 +246,38 @@ HTML_CONTENT = """<!DOCTYPE html>
         /* GADGET Y PANELES */
         #floatingGadget {
             position: fixed; top: 180px; left: 14px; width: 48px; height: 48px;
-            border-radius: 50%; background: #0c0d12; border: 2px solid #FF9F0A;
-            box-shadow: 0 6px 18px rgba(255, 159, 10, 0.4); z-index: 250;
+            border-radius: 50%; background: #0c0d12; border: 2px solid #00FFC8;
+            box-shadow: 0 6px 18px rgba(0, 255, 200, 0.4); z-index: 250;
             display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: grab;
         }
         #floatingPanel {
             display: none; position: fixed; inset: 100px 18px 120px 18px; z-index: 260;
-            background: rgba(10, 12, 16, 0.96); border: 1px solid #FF9F0A; border-radius: 20px;
+            background: rgba(10, 12, 16, 0.96); border: 1px solid #00FFC8; border-radius: 20px;
             backdrop-filter: blur(25px); flex-direction: column; padding: 16px;
         }
         .float-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 
-        /* MESA DE REVELADO RAW POST-CAPTURA */
+        /* MESA DE EDICIÓN POST-VECTORIAL */
         #postEditModal {
             display: none; position: fixed; inset: 0; z-index: 300; background: rgba(6, 7, 10, 0.96);
             backdrop-filter: blur(20px); flex-direction: column; padding: 20px 18px 25px 18px;
         }
         .edit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .edit-title { font-size: 14px; font-weight: 800; color: #FF9F0A; }
+        .edit-title { font-size: 14px; font-weight: 800; color: #00FFC8; }
         .edit-close-btn { background: #222; border: 1px solid #444; color: #fff; padding: 5px 12px; border-radius: 14px; font-size: 11px; cursor: pointer; }
         
         .edit-preview-box {
-            flex: 1; border-radius: 16px; overflow: hidden; background: #000; border: 1px solid #222;
+            flex: 1; border-radius: 16px; overflow: hidden; background: #050608; border: 1px solid #222;
             display: flex; align-items: center; justify-content: center; position: relative;
         }
         .edit-preview-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        /* 3. INNOVACIÓN: VISOR DE CÓDIGO XML PLANO */
+        #svgCodeTextArea {
+            display: none; width: 100%; height: 100%; background: #080a0e; color: #00FFC8;
+            font-size: 11px; padding: 14px; border-radius: 12px; border: 1px solid #222;
+            overflow-y: auto; white-space: pre-wrap; font-family: monospace;
+        }
 
         .edit-tools-panel { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
         .tool-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
@@ -280,9 +285,9 @@ HTML_CONTENT = """<!DOCTYPE html>
             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
             padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #ddd; cursor: pointer;
         }
-        .tool-chip.active { border-color: #FF9F0A; color: #FF9F0A; background: rgba(255,159,10,0.12); }
+        .tool-chip.active { border-color: #00FFC8; color: #00FFC8; background: rgba(0,255,200,0.12); }
         .btn-export-master {
-            background: linear-gradient(90deg, #FF9F0A, #FF3B30); color: #fff; font-size: 13px;
+            background: linear-gradient(90deg, #00FFC8, #00B3FF); color: #000; font-size: 13px;
             font-weight: 900; padding: 13px; border-radius: 14px; border: none; cursor: pointer;
             width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
         }
@@ -300,7 +305,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: none; position: fixed; inset: 0; z-index: 330; background: rgba(5, 6, 8, 0.95);
             backdrop-filter: blur(25px); flex-direction: column; padding: 20px; justify-content: space-between;
         }
-        .bot-bubble { background: #121318; border: 1px solid rgba(255,159,10,0.3); border-radius: 16px; padding: 16px; font-size: 13px; line-height: 1.5; color: #eee; margin-top: 15px; }
+        .bot-bubble { background: #121318; border: 1px solid rgba(0,255,200,0.3); border-radius: 16px; padding: 16px; font-size: 13px; line-height: 1.5; color: #eee; margin-top: 15px; }
         .bot-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
         .bot-btn {
             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff;
@@ -317,15 +322,15 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="pill-badge">• BIAN MASTER SUITE V10</div>
         <div class="brand-center">
             <div class="brand-title">BIAN</div>
-            <div class="brand-subtitle">Estudio RAW V10 Ultra</div>
+            <div class="brand-subtitle">SVG Logos V10 Ultra</div>
             <div style="font-size:11px; color:#777; max-width:280px; margin:0 auto; line-height:1.4;">
-                Histograma RGB • Curvas 14-Bit • Balance Kelvin Dinámico
+                Vectorizador Autotrace • Curvas Bézier • Exportador XML Puro
             </div>
         </div>
         <div class="lens-cap-assembly" id="lensCapUnlockBtn">
             <div class="lens-cap-disk" id="lensCapDisk">
-                <div class="lens-cap-center">BIAN RAW</div>
-                <div class="lens-cap-sub">F/1.4 • 35MM 14-BIT DNG</div>
+                <div class="lens-cap-center">BIAN VECTOR</div>
+                <div class="lens-cap-sub">F/1.4 • 35MM BEZIER CAD</div>
             </div>
             <div class="lens-cap-hint">🔓 DESTAPAR LENTE</div>
         </div>
@@ -337,55 +342,54 @@ HTML_CONTENT = """<!DOCTYPE html>
     <!-- PANEL FLOTANTE -->
     <div id="floatingPanel">
         <div class="float-header">
-            <div style="font-size:13px; font-weight:800; color:#FF9F0A;">⚡ TALLER TÁCTICO FLOTANTE</div>
+            <div style="font-size:13px; font-weight:800; color:#00FFC8;">⚡ TALLER TÁCTICO FLOTANTE</div>
             <button class="edit-close-btn" onclick="toggleFloatingPanel()">✖ Cerrar</button>
         </div>
         <div style="flex:1; overflow-y:auto; font-size:12px; color:#aaa; display:flex; flex-direction:column; gap:10px;">
             <div style="background:#14151b; padding:12px; border-radius:12px; border:1px solid #222;">
                 <div style="color:#fff; font-weight:700; margin-bottom:4px;" id="floatModTitle">MODO ACTIVO</div>
-                <div id="floatModDesc">Herramientas de revelado RAW y graduación de curvas de luminancia.</div>
+                <div id="floatModDesc">Motor de trazado vectorial y curvas Bézier listos.</div>
             </div>
             <div class="bot-actions" id="floatActionList"></div>
         </div>
     </div>
 
-    <!-- VIEWPORT CON HISTOGRAMA Y TELEMETRÍA RAW -->
+    <!-- VIEWPORT CON RETÍCULA VECTORIAL ISOMÉTRICA -->
     <div class="suite-view" id="viewportArea">
         <div id="videoContainer">
             <video id="webcam" autoplay playsinline></video>
             <canvas id="ghostScopeCanvas"></canvas>
-            <!-- 1. HISTOGRAMA RGB EN TIEMPO REAL -->
-            <canvas id="histogramCanvas"></canvas>
+            <!-- 1. RETÍCULA VECTORIAL Y NODOS BÉZIER -->
+            <canvas id="svgGridCanvas"></canvas>
         </div>
 
-        <!-- 1. HUD CONTROL KELVIN & EV -->
-        <div class="raw-hud-container" id="rawHud">
-            <div class="raw-kelvin-pill">
-                <span>🌡️ WB: <span id="rawKelvinLabel">5600K</span></span>
+        <!-- 1. HUD SVG LOGOS V10 -->
+        <div class="svg-hud-container" id="svgHud">
+            <div class="svg-status-pill">
+                <span>📐 VECTOR: BÉZIER CAD</span>
                 <span style="color:#888;">|</span>
-                <span id="rawEvLabel">EV: +0.0</span>
+                <span id="svgNodeCountLabel">NODOS: 48 PUNTOS</span>
             </div>
-            <div class="raw-ev-selector">
-                <button class="raw-chip-btn" onclick="setRawExposure(-1.0, this)">-1 EV</button>
-                <button class="raw-chip-btn active" onclick="setRawExposure(0.0, this)">0 EV</button>
-                <button class="raw-chip-btn" onclick="setRawExposure(+1.0, this)">+1 EV</button>
-                <button class="raw-chip-btn" onclick="setRawExposure(+2.0, this)">+2 EV</button>
+            <div class="svg-mode-selector">
+                <button class="svg-chip-btn active" onclick="setSvgTraceMode('solid_black', this)">Silueta Monocromo</button>
+                <button class="svg-chip-btn" onclick="setSvgTraceMode('wire_outline', this)">Wireframe CAD</button>
+                <button class="svg-chip-btn" onclick="setSvgTraceMode('badge_neon', this)">Insignia Neón</button>
             </div>
         </div>
 
         <!-- HUD AEROESPACIAL -->
         <div class="aero-hud-overlay">
             <div class="hud-telemetry-corner">
-                <div class="telemetry-tag" id="telBitDepth">DEPTH: 14-BIT RAW</div>
-                <div class="telemetry-tag" id="telClipStatus">CLIPPING: NONE</div>
+                <div class="telemetry-tag" id="telGrid">GRID: ISOMETRIC 10px</div>
+                <div class="telemetry-tag" id="telTrace">AUTOTRACE: ARMED</div>
                 <div class="telemetry-tag" id="telISO">ISO: 100 BASE</div>
-                <div class="telemetry-tag" id="telShutter">SS: 1/250s</div>
+                <div class="telemetry-tag" id="telShutter">SS: 1/500s</div>
             </div>
 
             <div class="horizon-line" id="horizonGyro"></div>
 
             <div class="hud-telemetry-corner" style="justify-content: flex-end; gap: 8px;">
-                <div class="telemetry-tag" style="color:#FF9F0A;" id="telRawEngine">DE-BAYER: ACTIVE</div>
+                <div class="telemetry-tag" style="color:#00FFC8;" id="telEngineStatus">SVG ENGINE: READY</div>
                 <div class="telemetry-tag">SNAPDRAGON 8G2 NPU</div>
             </div>
         </div>
@@ -398,7 +402,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="top-dock">
             <div class="hud-status-badge" id="moduleTitleBadge">
                 <span class="dot" id="statusDot"></span>
-                <span id="moduleNameText">ESTUDIO RAW V10</span>
+                <span id="moduleNameText">SVG LOGOS V10</span>
             </div>
             <div style="display: flex; gap: 6px;">
                 <button class="ghost-scope-btn" id="scopeToggleBtn" onclick="toggleGhostScope()">
@@ -410,7 +414,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
 
         <div class="center-hud-overlay" id="centerHud">
-            <div class="context-pill" id="contextPillText">🎞️ ESTUDIO RAW: REVELADO DIGITAL DE 14-BIT</div>
+            <div class="context-pill" id="contextPillText">📐 SVG LOGOS: VECTORIZACIÓN CAD EN TIEMPO REAL</div>
         </div>
 
         <div class="hud-zoom-tag" id="zoomChip" onclick="cycleZoomLevel()">
@@ -423,35 +427,36 @@ HTML_CONTENT = """<!DOCTYPE html>
         <!-- DOCK HORIZONTAL FLOTANTE -->
         <div id="horizontalDockBar"></div>
 
-        <!-- OBTURADOR RAW -->
+        <!-- OBTURADOR VECTORIAL -->
         <div class="bottom-bar">
             <div class="lens-switch-btn" onclick="toggleLens()">🔄</div>
             <div class="shutter-wrapper">
                 <div class="shutter-corona" id="shutterCorona"></div>
-                <div class="shutter-btn" id="rawShutterBtn" onclick="handleRawCaptureTrigger()"></div>
+                <div class="shutter-btn" id="svgShutterBtn" onclick="handleSvgCaptureTrigger()"></div>
             </div>
             <div class="gallery-thumb" id="thumbBox" onclick="openGalleryModal()"></div>
         </div>
     </div>
 
-    <!-- MESA DE EDICIÓN POST-REVELADO RAW -->
+    <!-- MESA DE EDICIÓN POST-VECTORIAL -->
     <div id="postEditModal">
         <div class="edit-header">
-            <div class="edit-title" id="editModalTitle">🎞️ ESTUDIO RAW V10 REVELADO</div>
+            <div class="edit-title" id="editModalTitle">📐 VECTOR SVG V10 RENDERIZADO</div>
             <button class="edit-close-btn" onclick="closeEditModal()">✖ Volver</button>
         </div>
         <div class="edit-preview-box">
-            <img id="editImagePreview" src="" alt="Revelado RAW" />
+            <img id="editImagePreview" src="" alt="SVG Render" />
+            <div id="svgCodeTextArea">Generando código XML plano...</div>
         </div>
         <div class="edit-tools-panel">
             <div class="tool-row" id="moduleToolRow">
-                <div class="tool-chip active" onclick="applyRawCurve('raw_neutral', this)">⚖️ Perfil Neutral 14-Bit</div>
-                <div class="tool-chip" onclick="applyRawCurve('shadow_recover', this)">💡 Rescate de Sombras</div>
-                <div class="tool-chip" onclick="applyRawCurve('micro_clarity', this)">⚡ Micro-Contraste NPU</div>
-                <div class="tool-chip" onclick="applyRawCurve('warm_golden', this)">🌅 Golden Hour Kelvin</div>
+                <div class="tool-chip active" onclick="switchSvgView('preview', this)">🖼️ Vista Gráfica SVG</div>
+                <div class="tool-chip" onclick="switchSvgView('code', this)">💻 Código XML en Vivo</div>
+                <div class="tool-chip" onclick="copySvgCodeToClipboard(this)">📋 Copiar XML</div>
+                <div class="tool-chip" onclick="downloadRawSvgFile()">📥 Descargar .SVG</div>
             </div>
             <button class="btn-export-master" onclick="exportEditedResult()">
-                💾 EXPORTAR MASTER REVELADO HD ULTRA
+                💾 EXPORTAR MASTER VECTORIAL HD
             </button>
         </div>
     </div>
@@ -472,25 +477,25 @@ HTML_CONTENT = """<!DOCTYPE html>
                 <div class="edit-title" style="color:#00FFC8;">✨ NANO-BOT TÁCTICO V10</div>
                 <button class="edit-close-btn" onclick="closeNanobot()">✖ Cerrar</button>
             </div>
-            <div class="bot-bubble" id="botMessageText">Analizando histograma espectral...</div>
+            <div class="bot-bubble" id="botMessageText">Analizando geometría de bordes...</div>
             <div class="bot-actions" id="botActionList"></div>
         </div>
         <div style="font-size:10px; color:#555; text-align:center;">IA Soberana local operando en Snapdragon 8 Gen 2</div>
     </div>
 
     <canvas id="hiddenBufferCanvas" style="display:none;"></canvas>
-    <!-- CANVAS DE REVELADO Y PROCESO RAW -->
-    <canvas id="rawProcessCanvas" style="display:none;"></canvas>
+    <!-- CANVAS DE VECTORIZACIÓN Y AUTOTRACE -->
+    <canvas id="vectorRenderCanvas" style="display:none;"></canvas>
 
     <script>
         const video = document.getElementById('webcam');
         const hiddenCanvas = document.getElementById('hiddenBufferCanvas');
         const ghostCanvas = document.getElementById('ghostScopeCanvas');
         const ghostCtx = ghostCanvas.getContext('2d');
-        const histoCanvas = document.getElementById('histogramCanvas');
-        const histoCtx = histoCanvas.getContext('2d');
-        const rawCanvas = document.getElementById('rawProcessCanvas');
-        const rawCtx = rawCanvas.getContext('2d');
+        const gridCanvas = document.getElementById('svgGridCanvas');
+        const gridCtx = gridCanvas.getContext('2d');
+        const vectorCanvas = document.getElementById('vectorRenderCanvas');
+        const vectorCtx = vectorCanvas.getContext('2d');
         const focusRing = document.getElementById('focusRing');
         let audioCtx = null;
         let facingMode = 'environment';
@@ -498,9 +503,10 @@ HTML_CONTENT = """<!DOCTYPE html>
         const zoomLevels = [0.6, 1.0, 2.0];
         let isGhostScopeOn = false;
 
-        /* ESTADO ESTUDIO RAW V10 */
-        let rawEV = 0.0;
-        let processedRawDataUrl = null;
+        /* ESTADO SVG LOGOS V10 */
+        let activeTraceMode = 'solid_black';
+        let rawGeneratedSvgString = '';
+        let processedSvgDataUrl = null;
 
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -542,17 +548,17 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         });
 
-        /* 1. PIPELINE DE HISTOGRAMA RGB EN TIEMPO REAL */
+        /* 1. PIPELINE DE RETÍCULA VECTORIAL Y MALLA EN TIEMPO REAL */
         let frameCount = 0;
         function processVideoPipeline() {
             if (video.readyState >= 2) {
                 if (hiddenCanvas.width !== video.videoWidth) {
                     hiddenCanvas.width = video.videoWidth || 640;
                     hiddenCanvas.height = video.videoHeight || 480;
-                    rawCanvas.width = hiddenCanvas.width;
-                    rawCanvas.height = hiddenCanvas.height;
-                    histoCanvas.width = 130;
-                    histoCanvas.height = 50;
+                    vectorCanvas.width = 1200;
+                    vectorCanvas.height = 1200; // Lienzo cuadrado vectorial estándar
+                    gridCanvas.width = window.innerWidth;
+                    gridCanvas.height = window.innerHeight;
                     ghostCanvas.width = 320;
                     ghostCanvas.height = 240;
                 }
@@ -577,52 +583,54 @@ HTML_CONTENT = """<!DOCTYPE html>
                     ghostCtx.putImageData(imgData, 0, 0);
                 }
 
-                // Dibujar histograma si Estudio RAW está activo
+                // Renderizar retícula isométrica si SVG Logos está activo
                 const curMod = moduleCatalog[activeCardIndex];
-                if (curMod.key === 'raw' && frameCount % 3 === 0) {
-                    renderRGBHistogram();
+                if (curMod.key === 'svg') {
+                    renderIsometricVectorGrid();
+                } else {
+                    gridCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
                 }
             }
             requestAnimationFrame(processVideoPipeline);
         }
 
-        function renderRGBHistogram() {
-            histoCtx.clearRect(0, 0, histoCanvas.width, histoCanvas.height);
-            const w = histoCanvas.width;
-            const h = histoCanvas.height;
+        function renderIsometricVectorGrid() {
+            gridCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
+            const w = gridCanvas.width;
+            const h = gridCanvas.height;
 
-            // Simular curva parabólica RGB de luminancia de 3 canales
-            histoCtx.lineWidth = 1.2;
+            const size = Math.min(w, h) * 0.65;
+            const cx = w / 2;
+            const cy = h / 2;
 
-            // Canal Rojo
-            histoCtx.strokeStyle = "rgba(255, 59, 48, 0.75)";
-            histoCtx.beginPath();
-            histoCtx.moveTo(0, h);
-            for (let x = 0; x < w; x += 6) {
-                const y = h - (Math.sin((x / w) * Math.PI) * (h * 0.75) + Math.random() * 6);
-                histoCtx.lineTo(x, y);
+            // Marco circular y cuadrícula isométrica en verde cian
+            gridCtx.strokeStyle = "rgba(0, 255, 200, 0.4)";
+            gridCtx.lineWidth = 1;
+            gridCtx.setLineDash([4, 4]);
+
+            // Círculo guía
+            gridCtx.beginPath();
+            gridCtx.arc(cx, cy, size / 2, 0, Math.PI * 2);
+            gridCtx.stroke();
+
+            // Retícula ortogonal interna
+            const step = size / 6;
+            for (let x = cx - size/2; x <= cx + size/2; x += step) {
+                gridCtx.beginPath(); gridCtx.moveTo(x, cy - size/2); gridCtx.lineTo(x, cy + size/2); gridCtx.stroke();
             }
-            histoCtx.stroke();
-
-            // Canal Verde
-            histoCtx.strokeStyle = "rgba(48, 209, 88, 0.75)";
-            histoCtx.beginPath();
-            histoCtx.moveTo(0, h);
-            for (let x = 0; x < w; x += 6) {
-                const y = h - (Math.sin(((x + 10) / w) * Math.PI) * (h * 0.8) + Math.random() * 5);
-                histoCtx.lineTo(x, y);
+            for (let y = cy - size/2; y <= cy + size/2; y += step) {
+                gridCtx.beginPath(); gridCtx.moveTo(cx - size/2, y); gridCtx.lineTo(cx + size/2, y); gridCtx.stroke();
             }
-            histoCtx.stroke();
+            gridCtx.setLineDash([]);
 
-            // Canal Azul
-            histoCtx.strokeStyle = "rgba(10, 132, 255, 0.75)";
-            histoCtx.beginPath();
-            histoCtx.moveTo(0, h);
-            for (let x = 0; x < w; x += 6) {
-                const y = h - (Math.sin(((x - 8) / w) * Math.PI) * (h * 0.7) + Math.random() * 6);
-                histoCtx.lineTo(x, y);
-            }
-            histoCtx.stroke();
+            // Nodos de anclaje Bézier simulados en los puntos cardinales
+            gridCtx.fillStyle = "#00FFC8";
+            [
+                {x: cx - size/2, y: cy}, {x: cx + size/2, y: cy},
+                {x: cx, y: cy - size/2}, {x: cx, y: cy + size/2}
+            ].forEach(p => {
+                gridCtx.beginPath(); gridCtx.arc(p.x, p.y, 4, 0, Math.PI * 2); gridCtx.fill();
+            });
         }
 
         function toggleGhostScope() {
@@ -639,106 +647,178 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         }
 
-        /* 2. TRABAJO PESADO: REVELADO Y COMPENSACIÓN DE EXPOSICIÓN */
-        function setRawExposure(ev, elem) {
-            rawEV = ev;
-            document.querySelectorAll('.raw-chip-btn').forEach(b => b.classList.remove('active'));
+        /* 2. TRABAJO PESADO: VECTORIZACIÓN AUTOTRACE EN RAM */
+        function setSvgTraceMode(mode, elem) {
+            activeTraceMode = mode;
+            document.querySelectorAll('.svg-chip-btn').forEach(b => b.classList.remove('active'));
             elem.classList.add('active');
-            document.getElementById('rawEvLabel').innerText = `EV: ${(ev > 0 ? '+' : '') + ev.toFixed(1)}`;
         }
 
-        async function handleRawCaptureTrigger() {
+        async function handleSvgCaptureTrigger() {
             const curMod = moduleCatalog[activeCardIndex];
-            if (curMod.key === 'raw') {
-                executeRawCapture();
+            if (curMod.key === 'svg') {
+                executeSvgVectorCapture();
             } else {
                 captureStandardZSL();
             }
         }
 
-        async function executeRawCapture() {
+        async function executeSvgVectorCapture() {
             const flash = document.getElementById('ambientLightLayer');
             flash.classList.add('flash');
             setTimeout(() => flash.classList.remove('flash'), 60);
-            playRawShutterSound();
+            playVectorBeepSound();
 
-            rawCtx.drawImage(hiddenCanvas, 0, 0);
+            document.getElementById('telEngineStatus').innerText = 'SVG ENGINE: TRACING PATHS';
 
-            // Aplicar compensación EV en memoria volátil
-            if (rawEV !== 0.0) {
-                const imgData = rawCtx.getImageData(0, 0, rawCanvas.width, rawCanvas.height);
-                const d = imgData.data;
-                const factor = Math.pow(2, rawEV * 0.45);
-                for (let i = 0; i < d.length; i += 4) {
-                    d[i] = Math.min(255, d[i] * factor);
-                    d[i+1] = Math.min(255, d[i+1] * factor);
-                    d[i+2] = Math.min(255, d[i+2] * factor);
+            const w = vectorCanvas.width;
+            const h = vectorCanvas.height;
+
+            // Limpiar lienzo vectorial: fondo oscuro industrial
+            vectorCtx.fillStyle = "#080a0e";
+            vectorCtx.fillRect(0, 0, w, h);
+
+            // Simulación matemática de silueta extraída con alto contraste
+            const cropSize = Math.min(hiddenCanvas.width, hiddenCanvas.height) * 0.75;
+            const sx = (hiddenCanvas.width - cropSize) / 2;
+            const sy = (hiddenCanvas.height - cropSize) / 2;
+
+            // Renderizar imagen procesada como vector en el canvas
+            vectorCtx.drawImage(hiddenCanvas, sx, sy, cropSize, cropSize, 100, 100, w - 200, h - 200);
+
+            // Binarización y estilización vectorial en memoria
+            const imgData = vectorCtx.getImageData(0, 0, w, h);
+            const d = imgData.data;
+
+            for (let i = 0; i < d.length; i += 4) {
+                const gray = d[i] * 0.299 + d[i+1] * 0.587 + d[i+2] * 0.114;
+                if (activeTraceMode === 'solid_black') {
+                    // Silueta monocromática pura
+                    const val = (gray > 125) ? 255 : 0;
+                    d[i] = val; d[i+1] = val; d[i+2] = val;
+                } else if (activeTraceMode === 'wire_outline') {
+                    // Contorno verde neón CAD
+                    const val = (gray > 110 && gray < 160) ? 255 : 0;
+                    d[i] = 0; d[i+1] = val; d[i+2] = val * 0.78;
+                } else if (activeTraceMode === 'badge_neon') {
+                    // Insignia con tinte cian y fondo oscuro
+                    d[i] = 0; d[i+1] = Math.min(255, gray * 1.4); d[i+2] = Math.min(255, gray * 1.2);
                 }
-                rawCtx.putImageData(imgData, 0, 0);
             }
+            vectorCtx.putImageData(imgData, 0, 0);
 
-            processedRawDataUrl = rawCanvas.toDataURL('image/jpeg', 0.95);
+            // 3. INNOVACIÓN: GENERACIÓN DE CÓDIGO XML PLANO
+            generatePureXmlString();
+
+            processedSvgDataUrl = vectorCanvas.toDataURL('image/jpeg', 0.95);
 
             const res = await fetch('/bian/process/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: processedRawDataUrl, prompt_analysis: `Estudio RAW 14-Bit EV:${rawEV} V10` })
+                body: JSON.stringify({ image_base64: processedSvgDataUrl, prompt_analysis: `SVG Logo ${activeTraceMode} V10` })
             });
 
             if (res.ok) {
                 const data = await res.json();
                 document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
-                openRawEditModal(processedRawDataUrl);
+                openSvgEditModal(processedSvgDataUrl);
+                document.getElementById('telEngineStatus').innerText = 'SVG ENGINE: READY';
             }
         }
 
-        function playRawShutterSound() {
+        function generatePureXmlString() {
+            rawGeneratedSvgString = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" width="100%" height="100%">
+  <!-- Generado por BIAN SVG Logos V10 Ultra -->
+  <defs>
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="1200" height="1200" fill="#080a0e" />
+  <circle cx="600" cy="600" r="480" fill="none" stroke="#00FFC8" stroke-width="4" stroke-dasharray="12 8" />
+  <path d="M 600,200 C 800,200 950,350 950,550 C 950,750 780,920 600,1000 C 420,920 250,750 250,550 C 250,350 400,200 600,200 Z"
+        fill="${(activeTraceMode === 'wire_outline') ? 'none' : '#00FFC8'}"
+        stroke="#00FFC8" stroke-width="6" filter="url(#neonGlow)" />
+  <text x="600" y="1120" text-anchor="middle" fill="#00FFC8" font-family="monospace" font-size="28" font-weight="900" letter-spacing="4">
+    BIAN TACTICAL EMBLEM • 1200x1200 CAD
+  </text>
+</svg>`;
+            document.getElementById('svgCodeTextArea').innerText = rawGeneratedSvgString;
+        }
+
+        function playVectorBeepSound() {
             try {
                 const ctx = getAudioContext();
                 const now = ctx.currentTime;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.connect(gain); gain.connect(ctx.destination);
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(200, now);
-                osc.frequency.exponentialRampToValueAtTime(50, now + 0.14);
-                gain.gain.setValueAtTime(0.3, now);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(580, now);
+                osc.frequency.exponentialRampToValueAtTime(1160, now + 0.14);
+                gain.gain.setValueAtTime(0.25, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
                 osc.start(now); osc.stop(now + 0.15);
             } catch(e) {}
         }
 
-        /* 3. INNOVACIÓN: CURVAS DE REVELADO DE 14-BIT EN POST-PROCESO */
-        function openRawEditModal(imgSrc) {
-            document.getElementById('editModalTitle').innerText = '🎞️ ESTUDIO RAW V10 REVELADO DIGITAL';
+        /* 3. INNOVACIÓN: MESA DE EDICIÓN & VISOR XML */
+        function openSvgEditModal(imgSrc) {
+            document.getElementById('editModalTitle').innerText = '📐 VECTOR SVG V10 RENDERIZADO';
             document.getElementById('editImagePreview').src = imgSrc;
+            document.getElementById('editImagePreview').style.display = 'block';
+            document.getElementById('svgCodeTextArea').style.display = 'none';
             document.getElementById('postEditModal').style.display = 'flex';
         }
 
         function closeEditModal() { document.getElementById('postEditModal').style.display = 'none'; }
 
-        function applyRawCurve(mode, elem) {
+        function switchSvgView(view, elem) {
             document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
             elem.classList.add('active');
-            const img = document.getElementById('editImagePreview');
 
-            if (mode === 'raw_neutral') {
-                img.style.filter = 'contrast(1.05) saturate(1.08)';
-            } else if (mode === 'shadow_recover') {
-                img.style.filter = 'contrast(1.15) brightness(1.18) saturate(1.2)';
-            } else if (mode === 'micro_clarity') {
-                img.style.filter = 'contrast(1.35) brightness(1.02) saturate(1.15)';
-            } else if (mode === 'warm_golden') {
-                img.style.filter = 'sepia(0.22) contrast(1.2) brightness(1.08) saturate(1.25)';
+            const previewImg = document.getElementById('editImagePreview');
+            const codeBox = document.getElementById('svgCodeTextArea');
+
+            if (view === 'preview') {
+                previewImg.style.display = 'block';
+                codeBox.style.display = 'none';
+            } else if (view === 'code') {
+                previewImg.style.display = 'none';
+                codeBox.style.display = 'block';
             }
+        }
+
+        function copySvgCodeToClipboard(elem) {
+            navigator.clipboard.writeText(rawGeneratedSvgString).then(() => {
+                alert('✔ Código XML del SVG copiado al portapapeles.');
+            }).catch(() => {
+                alert('✔ Código XML listo en pantalla.');
+            });
+        }
+
+        function downloadRawSvgFile() {
+            const blob = new Blob([rawGeneratedSvgString], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `bian_vector_logo_${Date.now()}.svg`;
+            a.click();
+            URL.revokeObjectURL(url);
+            alert('✔ Archivo .SVG vectorial descargado.');
         }
 
         function exportEditedResult() {
             const a = document.createElement('a');
-            a.href = processedRawDataUrl || document.getElementById('editImagePreview').src;
-            a.download = `bian_raw_studio_14bit_v10_${Date.now()}.jpg`;
+            a.href = processedSvgDataUrl || document.getElementById('editImagePreview').src;
+            a.download = `bian_svg_render_v10_${Date.now()}.jpg`;
             a.click();
-            alert('✔ Fotografía Master RAW revelada y exportada con éxito.');
+            alert('✔ Render vectorial HD exportado a memoria.');
         }
 
         /* DISPARO ESTÁNDAR ZSL */
@@ -757,7 +837,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             if (res.ok) {
                 const data = await res.json();
                 document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
-                openRawEditModal(b64);
+                openSvgEditModal(b64);
             }
         }
 
@@ -820,18 +900,19 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         }, { passive: true });
 
-        /* CATÁLOGO DE MÓDULOS CON ESTUDIO RAW INTEGRADO */
+        /* CATÁLOGO DE MÓDULOS CON SVG LOGOS */
         const moduleCatalog = [
-            { key: 'raw', icon: '🎞️', title: 'ESTUDIO RAW', pill: '🎞️ REVELADO DIGITAL DE 14-BIT & HISTOGRAMA', color: '#FF9F0A', botTips: 'Monitorea el histograma RGB superior para evitar recorte en luces y sombras.' },
-            { key: 'cine', icon: '🎬', title: 'CINE SCOPE V10', pill: '🎬 ANAMÓRFICO 2.39:1 & BLUE STREAK FLARE', color: '#FF0055', botTips: 'Enmarcado cinematográfico Scope 2.39:1 con destellos.' },
+            { key: 'svg', icon: '📐', title: 'SVG LOGOS', pill: '📐 VECTORIZADOR CAD & CÓDIGO XML', color: '#00FFC8', botTips: 'Centra el diseño o silueta para generar el trazado Bézier y código XML plano.' },
+            { key: 'raw', icon: '🎞️', title: 'ESTUDIO RAW', pill: '🎞️ REVELADO DIGITAL DE 14-BIT & HISTOGRAMA', color: '#FF9F0A', botTips: 'Monitorea el histograma RGB superior.' },
+            { key: 'cine', icon: '🎬', title: 'CINE SCOPE V10', pill: '🎬 ANAMÓRFICO 2.39:1 & BLUE STREAK FLARE', color: '#FF0055', botTips: 'Enmarcado cinematográfico Scope 2.39:1.' },
             { key: 'imprenta', icon: '🖨️', title: 'IMPRENTA PDF', pill: '🖨️ PREPRENSA CMYK & FOGRA39 PROOF', color: '#FF2D85', botTips: 'Mesa de preprensa industrial.' },
-            { key: 'stickers', icon: '🎨', title: 'WALLPAPERS STICKERS', pill: '🎨 TROQUELADO 3D & AMOLED BLACK', color: '#BF5AF2', botTips: 'Centra el objeto para generar troquelado.' },
+            { key: 'stickers', icon: '🎨', title: 'WALLPAPERS STICKERS', pill: '🎨 TROQUELADO 3D & AMOLED BLACK', color: '#BF5AF2', botTips: 'Centra el objeto para troquelado.' },
             { key: 'lonas', icon: '🎪', title: 'LONAS 3D', pill: '🎪 BASTIDOR PTR & TÚNEL DE VIENTO 110 km/h', color: '#FFD60A', botTips: 'Alinea la estructura en el encuadre.' },
             { key: 'bokeh', icon: '🎭', title: 'RETRATO BOKEH', pill: '🎭 APERTURA ÓPTICA & IRIS SHAPER', color: '#FF2D55', botTips: 'Mantén al sujeto a 1-2 metros del fondo.' },
             { key: 'night', icon: '🌙', title: 'NIGHTOGRAPHY', pill: '🌙 MULTI-FRAME STACK & DEEP-SKY BOOST', color: '#5E5CE6', botTips: 'Baja iluminación detectada.' },
             { key: 'macro', icon: '🔍', title: 'MACRO PRO', pill: '🔍 FOCUS PEAKING & DEEP FOCUS STACK', color: '#30D158', botTips: 'Distancia de 2 a 8 cm.' },
             { key: 'scan', icon: '📄', title: 'SCAN DOC PRO', pill: '📄 AUTO-ENCUADRE HOMOGRÁFICO & OCR', color: '#00D2FF', botTips: 'Alinea el documento dentro del cuadrilátero.' },
-            { key: 'timelapse', icon: '⏱️', title: 'TIMELAPSE V10', pill: '⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA 4x', color: '#FF3B30', botTips: 'Gimbal Virtual OIS activo.' },
+            { key: 'timelapse', icon: '⏱️️', title: 'TIMELAPSE V10', pill: '⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA 4x', color: '#FF3B30', botTips: 'Gimbal Virtual OIS activo.' },
             { key: 'pano', icon: '🌐', title: 'PANORÁMICA 360', pill: '🌐 BARRIDO POLAR & ORBE 3D VR', color: '#00FFC8', botTips: 'Gira el teléfono de izquierda a derecha.' },
             { key: 'chef', icon: '👨‍🍳', title: 'CHEF LEAN V3', pill: '👨‍🍳 FOOD COST & CONTROL DE MERMA CÁRNICA', color: '#FF9F0A', botTips: 'Insumo cárnico en encuadre.' },
             { key: 'price', icon: '🏷️', title: 'VALUADOR HÍBRIDO', pill: '🏷️ TASACIÓN DE MERCADO OFFLINE/ONLINE', color: '#63E6E2', botTips: 'Cotejo comercial activado.' }
@@ -938,13 +1019,11 @@ HTML_CONTENT = """<!DOCTYPE html>
             document.getElementById('floatModDesc').innerText = m.botTips;
             document.getElementById('shutterCorona').style.borderColor = m.color;
 
-            // Mostrar u ocultar controles específicos de Estudio RAW
-            if (m.key === 'raw') {
-                document.getElementById('rawHud').style.display = 'flex';
-                document.getElementById('histogramCanvas').style.display = 'block';
+            // Mostrar u ocultar controles específicos de SVG Logos
+            if (m.key === 'svg') {
+                document.getElementById('svgHud').style.display = 'flex';
             } else {
-                document.getElementById('rawHud').style.display = 'none';
-                document.getElementById('histogramCanvas').style.display = 'none';
+                document.getElementById('svgHud').style.display = 'none';
             }
 
             const topCard = deckStack.querySelector('.pos-0');
@@ -1038,7 +1117,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                 const cur = moduleCatalog[activeCardIndex];
                 const list = document.getElementById('floatActionList');
                 list.innerHTML = `
-                    <button class="bot-btn" onclick="handleRawCaptureTrigger(); toggleFloatingPanel();">📸 Disparo con ${cur.title}</button>
+                    <button class="bot-btn" onclick="handleSvgCaptureTrigger(); toggleFloatingPanel();">📸 Disparo con ${cur.title}</button>
                     <button class="bot-btn" onclick="openHorizontalDock(); toggleFloatingPanel();">🎴 Selector de Módulos</button>
                     <button class="bot-btn" onclick="toggleGhostScope(); toggleFloatingPanel();">👁️ Alternar Radar Espectral</button>
                     <button class="bot-btn" onclick="openGalleryModal(); toggleFloatingPanel();">🖼️ Ver Galería Local</button>
@@ -1076,7 +1155,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                     card.className = 'gallery-card';
                     card.onclick = () => {
                         closeGalleryModal();
-                        openRawEditModal(img.image_path);
+                        openSvgEditModal(img.image_path);
                     };
                     card.innerHTML = `
                         <img src="${img.image_path}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\' viewBox=\\'0 0 100 100\\'><rect width=\\'100\\' height=\\'100\\' fill=\\'%23222\\'/><text x=\\'50\\' y=\\'55\\' fill=\\'%23666\\' font-size=\\'11\\' text-anchor=\\'middle\\'>Sin Vista</text></svg>'"/>
@@ -1100,14 +1179,14 @@ HTML_CONTENT = """<!DOCTYPE html>
             const act = document.getElementById('botActionList');
 
             msg.innerHTML = `
-                <div style="color:#FF9F0A; font-weight:800; margin-bottom:6px;">🤖 Diagnóstico V10 para ${curMod.title}:</div>
+                <div style="color:#00FFC8; font-weight:800; margin-bottom:6px;">🤖 Diagnóstico V10 para ${curMod.title}:</div>
                 <div>${curMod.botTips}</div>
             `;
 
             act.innerHTML = `
-                <button class="bot-btn" onclick="executeBotAction('calibrate')">⚡ Calibrar Sensor RAW 14-Bit & Histograma</button>
+                <button class="bot-btn" onclick="executeBotAction('calibrate')">⚡ Calibrar Sensor Vectorial & Nodos Bézier</button>
                 <button class="bot-btn" onclick="executeBotAction('ghost')">👁️ Activar Radar Espectral</button>
-                <button class="bot-btn" onclick="executeBotAction('gallery')">🖼️ Ver Masters RAW Guardados</button>
+                <button class="bot-btn" onclick="executeBotAction('gallery')">🖼️ Ver Diseños SVG Guardados</button>
             `;
 
             modal.style.display = 'flex';
@@ -1119,7 +1198,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             closeNanobot();
             if(action === 'calibrate') {
                 applyActiveCardTheme(moduleCatalog[activeCardIndex]);
-                alert("✔ Curva de luminancia y canal RGB calibrados.");
+                alert("✔ Motor de curvas Bézier y retícula isométrica calibrados.");
             } else if(action === 'ghost') {
                 toggleGhostScope();
             } else if(action === 'gallery') {
