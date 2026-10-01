@@ -23,7 +23,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>BIAN MASTER SUITE V10 PRO - PANORAMA 360</title>
+    <title>BIAN MASTER SUITE V10 PRO - HYPERLAPSE</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', Roboto, monospace; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; width: 100vw; overflow: hidden; position: fixed; }
@@ -117,28 +117,30 @@ HTML_CONTENT = """<!DOCTYPE html>
             border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(8px);
         }
 
-        /* 1. HUD ESPECÍFICO DE PANORÁMICA 360 V10 */
-        .pano-hud-container {
-            display: none; position: absolute; top: 125px; left: 20px; right: 20px;
-            z-index: 60; flex-direction: column; align-items: center; gap: 8px; pointer-events: none;
+        /* 1. HUD CHRONO & HYPERLAPSE V10 */
+        .chrono-hud-container {
+            display: none; position: absolute; top: 120px; left: 16px; right: 16px;
+            z-index: 60; flex-direction: column; align-items: center; gap: 8px; pointer-events: auto;
         }
-        .pano-compass-tape {
-            width: 100%; height: 26px; border: 1px solid rgba(0, 255, 200, 0.3); border-radius: 14px;
-            background: rgba(12, 14, 18, 0.82); backdrop-filter: blur(12px);
-            position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
+        .chrono-pill-box {
+            display: flex; gap: 10px; align-items: center; background: rgba(16, 18, 24, 0.85);
+            border: 1px solid rgba(255, 59, 48, 0.4); border-radius: 20px; padding: 5px 14px;
+            backdrop-filter: blur(14px); font-size: 11px; font-weight: 800;
         }
-        .pano-guide-arrow {
-            width: 3px; height: 100%; background: #00FFC8; position: absolute; z-index: 2;
-            box-shadow: 0 0 8px #00FFC8;
+        .chrono-live-rec { color: #FF3B30; display: flex; align-items: center; gap: 6px; }
+        .chrono-dot-rec { width: 7px; height: 7px; border-radius: 50%; background: #FF3B30; animation: blinkRec 1s infinite alternate; }
+        @keyframes blinkRec { from { opacity: 1; } to { opacity: 0.2; } }
+
+        .multiplier-bar-v10 {
+            display: flex; gap: 6px; background: rgba(14, 16, 22, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; padding: 4px 8px;
+            backdrop-filter: blur(12px);
         }
-        .pano-progress-track {
-            position: absolute; left: 0; top: 0; bottom: 0; width: 0%;
-            background: linear-gradient(90deg, rgba(0,255,200,0.2), rgba(0,255,200,0.6));
-            transition: width 0.1s linear;
+        .mult-btn-chip {
+            padding: 3px 9px; font-size: 10px; font-weight: 800; border-radius: 12px;
+            color: #888; background: transparent; border: none; cursor: pointer; transition: all 0.2s;
         }
-        .pano-degrees-text {
-            font-size: 9px; font-weight: 900; color: #fff; z-index: 3; font-family: monospace;
-        }
+        .mult-btn-chip.active { background: #FF3B30; color: #fff; box-shadow: 0 0 8px rgba(255,59,48,0.6); }
 
         /* TOP DOCK */
         .top-dock {
@@ -150,7 +152,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             color: #fff; font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 20px;
             backdrop-filter: blur(10px); display: flex; align-items: center; gap: 6px;
         }
-        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #00FFC8; display: inline-block; transition: background 0.3s; }
+        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #FF3B30; display: inline-block; transition: background 0.3s; }
         .top-action-btn {
             background: rgba(18, 18, 22, 0.72); border: 1px solid rgba(255, 255, 255, 0.15);
             color: #fff; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 20px;
@@ -166,17 +168,15 @@ HTML_CONTENT = """<!DOCTYPE html>
             color: #00FFC8; font-size: 10px; font-weight: 800; padding: 6px 11px; border-radius: 18px;
             cursor: pointer; backdrop-filter: blur(8px); display: flex; align-items: center; gap: 5px;
         }
-        .ghost-scope-btn.active {
-            background: #00FFC8; color: #000; box-shadow: 0 0 14px rgba(0,255,200,0.6);
-        }
+        .ghost-scope-btn.active { background: #00FFC8; color: #000; box-shadow: 0 0 14px rgba(0,255,200,0.6); }
 
         .center-hud-overlay {
             position: absolute; top: 68px; left: 0; right: 0; z-index: 95;
             display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none;
         }
         .context-pill {
-            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(0, 255, 200, 0.4);
-            color: #00FFC8; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
+            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(255, 59, 48, 0.4);
+            color: #FF3B30; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
             padding: 4px 14px; border-radius: 20px; backdrop-filter: blur(10px); text-transform: uppercase;
             transition: all 0.3s ease;
         }
@@ -267,13 +267,11 @@ HTML_CONTENT = """<!DOCTYPE html>
             border: 4px solid #fff; box-shadow: 0 0 22px rgba(255, 59, 48, 0.55); cursor: pointer;
             transition: transform 0.1s ease;
         }
-        .shutter-btn.recording {
-            background: #00FFC8; box-shadow: 0 0 24px #00FFC8; animation: pulseRecord 1s infinite alternate;
+        .shutter-btn.hyper-recording {
+            border-radius: 18px; transform: scale(0.85); background: #FF3B30;
+            animation: pulseRec 1s infinite alternate;
         }
-        @keyframes pulseRecord {
-            from { transform: scale(1); }
-            to { transform: scale(0.92); }
-        }
+        @keyframes pulseRec { from { box-shadow: 0 0 12px #FF3B30; } to { box-shadow: 0 0 30px #FF3B30; } }
 
         .lens-switch-btn {
             width: 46px; height: 46px; border-radius: 50%; background: rgba(30, 30, 35, 0.75);
@@ -301,7 +299,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .float-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 
-        /* MESA DE EDICIÓN POST-CAPTURA / 3. VISOR ORBE 3D VR */
+        /* POST PROCESADO & VIDEO PLAYER HYPERLAPSE */
         #postEditModal {
             display: none; position: fixed; inset: 0; z-index: 300; background: rgba(6, 7, 10, 0.96);
             backdrop-filter: blur(20px); flex-direction: column; padding: 20px 18px 25px 18px;
@@ -314,14 +312,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             flex: 1; border-radius: 16px; overflow: hidden; background: #000; border: 1px solid #222;
             display: flex; align-items: center; justify-content: center; position: relative;
         }
-        .edit-preview-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
-
-        /* CANVAS DEL ORBE VR 360 */
-        #vrMarbleCanvas {
-            display: none; width: 280px; height: 280px; border-radius: 50%;
-            box-shadow: 0 0 35px rgba(0, 255, 200, 0.4), inset 0 0 20px rgba(0,0,0,0.8);
-            cursor: grab; touch-action: none; border: 2px solid rgba(0,255,200,0.6);
-        }
+        .edit-preview-box img, .edit-preview-box video { max-width: 100%; max-height: 100%; object-fit: contain; }
 
         .edit-tools-panel { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
         .tool-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
@@ -366,21 +357,21 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="pill-badge">• BIAN MASTER SUITE V10</div>
         <div class="brand-center">
             <div class="brand-title">BIAN</div>
-            <div class="brand-subtitle">Panorama 360 V10 Ultra</div>
+            <div class="brand-subtitle">Hyperlapse V10 Ultra</div>
             <div style="font-size:11px; color:#777; max-width:280px; margin:0 auto; line-height:1.4;">
-                Barrido Cilíndrico • Brújula Polar • Orbe VR Equirrectangular
+                Gimbal Virtual OIS • Chrono Engine • Rastro Cuántico de Luz
             </div>
         </div>
         <div class="lens-cap-assembly" id="lensCapUnlockBtn">
             <div class="lens-cap-disk" id="lensCapDisk">
-                <div class="lens-cap-center">BIAN 360</div>
-                <div class="lens-cap-sub">F/1.4 • 35MM PANORAMA</div>
+                <div class="lens-cap-center">BIAN HYPER</div>
+                <div class="lens-cap-sub">F/1.4 • 35MM MOTION</div>
             </div>
             <div class="lens-cap-hint">🔓 DESTAPAR LENTE</div>
         </div>
     </div>
 
-    <!-- GADGET BURBUJA FLOTANTE -->
+    <!-- GADGET FLOTANTE -->
     <div id="floatingGadget" title="Arrastra o toca para abrir taller">⚡</div>
 
     <!-- PANEL FLOTANTE -->
@@ -392,7 +383,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div style="flex:1; overflow-y:auto; font-size:12px; color:#aaa; display:flex; flex-direction:column; gap:10px;">
             <div style="background:#14151b; padding:12px; border-radius:12px; border:1px solid #222;">
                 <div style="color:#fff; font-weight:700; margin-bottom:4px;" id="floatModTitle">MODO ACTIVO</div>
-                <div id="floatModDesc">Herramientas soberanas de barrido y proyección cilíndrica.</div>
+                <div id="floatModDesc">Chrono Engine y motor de estabilización cuántica listos.</div>
             </div>
             <div class="bot-actions" id="floatActionList"></div>
         </div>
@@ -405,16 +396,26 @@ HTML_CONTENT = """<!DOCTYPE html>
             <canvas id="ghostScopeCanvas"></canvas>
         </div>
 
-        <!-- 1. HUD ESPECÍFICO PANORAMA 360 V10 (BRÚJULA POLAR EN VIVO) -->
-        <div class="pano-hud-container" id="panoCompassHud">
-            <div class="pano-compass-tape">
-                <div class="pano-progress-track" id="panoTrack"></div>
-                <div class="pano-guide-arrow"></div>
-                <div class="pano-degrees-text" id="panoDegrees">GIRO: 0° / 360°</div>
+        <!-- 1. HUD CHRONO DUAL & SELECTOR VELOCIDAD TIME-LAPSE V10 -->
+        <div class="chrono-hud-container" id="chronoHud">
+            <div class="chrono-pill-box">
+                <div class="chrono-live-rec">
+                    <span class="chrono-dot-rec"></span>
+                    <span id="chronoLiveRecTime">REC: 00:00:00</span>
+                </div>
+                <div style="color: #888;">|</div>
+                <div style="color: #00FFC8;" id="chronoResultTime">CLIP: 00:00.0s</div>
+            </div>
+            <div class="multiplier-bar-v10" id="speedBar">
+                <button class="mult-btn-chip active" onclick="setSpeedMultiplier(4, this)">4x</button>
+                <button class="mult-btn-chip" onclick="setSpeedMultiplier(8, this)">8x</button>
+                <button class="mult-btn-chip" onclick="setSpeedMultiplier(16, this)">16x</button>
+                <button class="mult-btn-chip" onclick="setSpeedMultiplier(32, this)">32x</button>
+                <button class="mult-btn-chip" onclick="setSpeedMultiplier(64, this)">64x</button>
             </div>
         </div>
 
-        <!-- HUD AEROESPACIAL TITANIUM -->
+        <!-- HUD AEROESPACIAL -->
         <div class="aero-hud-overlay">
             <div class="hud-telemetry-corner">
                 <div class="telemetry-tag" id="telExposure">EXP: +0.0 EV</div>
@@ -426,7 +427,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             <div class="horizon-line" id="horizonGyro"></div>
 
             <div class="hud-telemetry-corner" style="justify-content: flex-end; gap: 8px;">
-                <div class="telemetry-tag" style="color:#00FFC8;" id="telBufferStatus">CYLINDER STITCH: OK</div>
+                <div class="telemetry-tag" style="color:#FF3B30;" id="telGimbalStatus">HYPER OIS: READY</div>
                 <div class="telemetry-tag">SNAPDRAGON 8G2 NPU</div>
             </div>
         </div>
@@ -439,7 +440,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="top-dock">
             <div class="hud-status-badge" id="moduleTitleBadge">
                 <span class="dot" id="statusDot"></span>
-                <span id="moduleNameText">PANORÁMICA 360</span>
+                <span id="moduleNameText">TIMELAPSE V10</span>
             </div>
             <div style="display: flex; gap: 6px;">
                 <button class="ghost-scope-btn" id="scopeToggleBtn" onclick="toggleGhostScope()">
@@ -451,7 +452,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
 
         <div class="center-hud-overlay" id="centerHud">
-            <div class="context-pill" id="contextPillText">🌐 ULTRA WIDE COMPOSITION 360°</div>
+            <div class="context-pill" id="contextPillText">⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA 4x</div>
         </div>
 
         <div class="hud-zoom-tag" id="zoomChip" onclick="cycleZoomLevel()">
@@ -464,37 +465,35 @@ HTML_CONTENT = """<!DOCTYPE html>
         <!-- DOCK HORIZONTAL FLOTANTE -->
         <div id="horizontalDockBar"></div>
 
-        <!-- OBTURADOR PANORÁMICO -->
+        <!-- OBTURADOR TIMELAPSE -->
         <div class="bottom-bar">
             <div class="lens-switch-btn" onclick="toggleLens()">🔄</div>
             <div class="shutter-wrapper">
                 <div class="shutter-corona" id="shutterCorona"></div>
-                <div class="shutter-btn" id="panoShutterBtn" onclick="handlePanoCaptureTrigger()"></div>
+                <div class="shutter-btn" id="hyperShutterBtn" onclick="handleHyperlapseTrigger()"></div>
             </div>
             <div class="gallery-thumb" id="thumbBox" onclick="openGalleryModal()"></div>
         </div>
     </div>
 
-    <!-- MESA DE EDICIÓN POST-CAPTURA / VISOR ORBE VR 360 -->
+    <!-- MESA DE EDICIÓN POST-CAPTURA / VISOR VIDEO HYPERLAPSE -->
     <div id="postEditModal">
         <div class="edit-header">
-            <div class="edit-title" id="editModalTitle">🛠️ PANORAMA 360 V10 PROCESADO</div>
+            <div class="edit-title" id="editModalTitle">⏱️ HYPERLAPSE V10 RENDERIZADO</div>
             <button class="edit-close-btn" onclick="closeEditModal()">✖ Volver</button>
         </div>
         <div class="edit-preview-box">
-            <img id="editImagePreview" src="" alt="Panorama" />
-            <!-- 3. INNOVACIÓN: ORBE 3D VR INTERACTIVO -->
-            <canvas id="vrMarbleCanvas"></canvas>
+            <img id="editImagePreview" src="" alt="Hyperlapse Preview" />
+            <video id="editVideoPreview" controls autoplay loop playsinline style="display:none;"></video>
         </div>
         <div class="edit-tools-panel">
             <div class="tool-row" id="moduleToolRow">
-                <div class="tool-chip active" onclick="switchPanoramaView('flat', this)">Tira 360 Cilíndrica</div>
-                <div class="tool-chip" onclick="switchPanoramaView('vr_marble', this)">🪐 Orbe 3D Tiny Planet</div>
-                <div class="tool-chip" onclick="applyEditTool('hdr_balance', this)">⚡ Fusión HDR Seam</div>
+                <div class="tool-chip active" onclick="applyEditTool('light_trails', this)">🌌 Rastro Cuántico (Trails)</div>
+                <div class="tool-chip" onclick="applyEditTool('de_flicker', this)">⚡ Anti-Flicker NPU</div>
                 <div class="tool-chip" onclick="applyEditTool('cinematic_grade', this)">🎞️ Grado Cine V10</div>
             </div>
             <button class="btn-export-master" onclick="exportEditedResult()">
-                💾 EXPORTAR MASTER PANORAMA 360
+                💾 EXPORTAR CLIP HYPERLAPSE HD
             </button>
         </div>
     </div>
@@ -502,7 +501,7 @@ HTML_CONTENT = """<!DOCTYPE html>
     <!-- GALERÍA SOBERANA -->
     <div id="galleryModal">
         <div class="edit-header">
-            <div class="edit-title" style="color:#00FFC8;">🖼️ GALERÍA SOBERANA (SQLITE LOCAL)</div>
+            <div class="edit-title" style="color:#00FFC8;">🖼️️ GALERÍA SOBERANA (SQLITE LOCAL)</div>
             <button class="edit-close-btn" onclick="closeGalleryModal()">✖ Cerrar</button>
         </div>
         <div class="gallery-grid" id="galleryGridContent"></div>
@@ -522,18 +521,16 @@ HTML_CONTENT = """<!DOCTYPE html>
     </div>
 
     <canvas id="hiddenBufferCanvas" style="display:none;"></canvas>
-    <!-- CANVAS CILÍNDRICO DE TRABAJO PESADO -->
-    <canvas id="cylinderStitchCanvas" style="display:none;"></canvas>
+    <!-- CANVAS DE ACUMULACIÓN Y RASTROS DE LUZ (LIGHT TRAILS) -->
+    <canvas id="trailsAccumCanvas" style="display:none;"></canvas>
 
     <script>
         const video = document.getElementById('webcam');
         const hiddenCanvas = document.getElementById('hiddenBufferCanvas');
         const ghostCanvas = document.getElementById('ghostScopeCanvas');
         const ghostCtx = ghostCanvas.getContext('2d');
-        const cylinderCanvas = document.getElementById('cylinderStitchCanvas');
-        const cylinderCtx = cylinderCanvas.getContext('2d');
-        const vrCanvas = document.getElementById('vrMarbleCanvas');
-        const vrCtx = vrCanvas.getContext('2d');
+        const trailsCanvas = document.getElementById('trailsAccumCanvas');
+        const trailsCtx = trailsCanvas.getContext('2d');
         const focusRing = document.getElementById('focusRing');
         let audioCtx = null;
         let facingMode = 'environment';
@@ -541,11 +538,13 @@ HTML_CONTENT = """<!DOCTYPE html>
         const zoomLevels = [0.6, 1.0, 2.0];
         let isGhostScopeOn = false;
 
-        /* ESTADO DE CAPTURA PANORÁMICA 360 V10 */
-        let isPanoRecording = false;
-        let panoProgress = 0;
-        let panoInterval = null;
-        let stitchedPanoramaDataUrl = null;
+        /* MOTOR DE HYPERLAPSE V10 */
+        let isHyperRecording = false;
+        let speedMultiplier = 4;
+        let hyperStartTime = 0;
+        let hyperInterval = null;
+        let recordedFrames = [];
+        let exportableMediaUrl = null;
 
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -594,6 +593,8 @@ HTML_CONTENT = """<!DOCTYPE html>
                 if (hiddenCanvas.width !== video.videoWidth) {
                     hiddenCanvas.width = video.videoWidth || 640;
                     hiddenCanvas.height = video.videoHeight || 480;
+                    trailsCanvas.width = hiddenCanvas.width;
+                    trailsCanvas.height = hiddenCanvas.height;
                     ghostCanvas.width = 320;
                     ghostCanvas.height = 240;
                 }
@@ -618,9 +619,11 @@ HTML_CONTENT = """<!DOCTYPE html>
                     ghostCtx.putImageData(imgData, 0, 0);
                 }
 
-                // Si está barriendo en Panorámica 360: coser en el cilindro
-                if (isPanoRecording) {
-                    sliceStitchFrame();
+                // 3. INNOVACIÓN: FUSIÓN DE RASTROS CUÁNTICOS (LIGHT TRAILS) SI ESTÁ GRABANDO
+                if (isHyperRecording && frameCount % Math.max(1, Math.floor(speedMultiplier / 4)) === 0) {
+                    trailsCtx.globalAlpha = 0.25; // Opacidad de acumulación de estela
+                    trailsCtx.drawImage(hiddenCanvas, 0, 0);
+                    trailsCtx.globalAlpha = 1.0;
                 }
             }
             requestAnimationFrame(processVideoPipeline);
@@ -640,174 +643,104 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         }
 
-        /* 2. TRABAJO PESADO: SLIT-SCAN Y COSTURA CILÍNDRICA CONTINUA */
-        const PANO_TOTAL_SLICES = 120;
-        let currentSliceIndex = 0;
+        /* 2. TRABAJO PESADO: DISPARADOR Y CONTROL DE HYPERLAPSE V10 */
+        function setSpeedMultiplier(val, elem) {
+            speedMultiplier = val;
+            document.querySelectorAll('.mult-btn-chip').forEach(b => b.classList.remove('active'));
+            elem.classList.add('active');
+            document.getElementById('contextPillText').innerText = `⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA ${val}x`;
+        }
 
-        function handlePanoCaptureTrigger() {
+        function handleHyperlapseTrigger() {
             const curMod = moduleCatalog[activeCardIndex];
-            if (curMod.key === 'pano') {
-                if (!isPanoRecording) startPanoSweep();
-                else stopPanoSweep();
+            if (curMod.key === 'timelapse') {
+                if (!isHyperRecording) startHyperlapse();
+                else stopHyperlapse();
             } else {
                 captureStandardZSL();
             }
         }
 
-        function startPanoSweep() {
-            isPanoRecording = true;
-            panoProgress = 0;
-            currentSliceIndex = 0;
+        function startHyperlapse() {
+            isHyperRecording = true;
+            hyperStartTime = Date.now();
+            recordedFrames = [];
+            trailsCtx.drawImage(hiddenCanvas, 0, 0);
 
-            // Iniciar lienzo panorámico: 2400px x 600px
-            cylinderCanvas.width = 2400;
-            cylinderCanvas.height = 600;
-            cylinderCtx.fillStyle = "#000";
-            cylinderCtx.fillRect(0, 0, 2400, 600);
+            document.getElementById('hyperShutterBtn').classList.add('hyper-recording');
+            document.getElementById('telGimbalStatus').innerText = 'HYPER OIS: TRACKING';
+            playChronoSound(true);
 
-            document.getElementById('panoShutterBtn').classList.add('recording');
-            document.getElementById('panoCompassHud').style.display = 'flex';
-            playToneSweep(true);
+            // Contador Chrono en vivo
+            hyperInterval = setInterval(() => {
+                const elapsedSec = Math.floor((Date.now() - hyperStartTime) / 1000);
+                const hrs = String(Math.floor(elapsedSec / 3600)).padStart(2, '0');
+                const mins = String(Math.floor((elapsedSec % 3600) / 60)).padStart(2, '0');
+                const secs = String(elapsedSec % 60).padStart(2, '0');
+                document.getElementById('chronoLiveRecTime').innerText = `REC: ${hrs}:${mins}:${secs}`;
+
+                // Cálculo de tiempo resultante a 30 FPS según factor multiplicador
+                const clipSeconds = (elapsedSec / speedMultiplier).toFixed(1);
+                document.getElementById('chronoResultTime').innerText = `CLIP: 00:${String(clipSeconds).padStart(4, '0')}s`;
+
+                // Capturar fotograma para renderizado posterior
+                recordedFrames.push(hiddenCanvas.toDataURL('image/jpeg', 0.88));
+            }, Math.floor(1000 / (30 / (speedMultiplier / 4))));
         }
 
-        function sliceStitchFrame() {
-            if (currentSliceIndex >= PANO_TOTAL_SLICES) {
-                stopPanoSweep();
-                return;
-            }
+        async function stopHyperlapse() {
+            isHyperRecording = false;
+            clearInterval(hyperInterval);
+            document.getElementById('hyperShutterBtn').classList.remove('hyper-recording');
+            document.getElementById('telGimbalStatus').innerText = 'HYPER OIS: READY';
+            playChronoSound(false);
 
-            const sliceWidth = cylinderCanvas.width / PANO_TOTAL_SLICES;
-            const srcSliceW = Math.floor(hiddenCanvas.width / 8);
-            const srcX = Math.floor((hiddenCanvas.width - srcSliceW) / 2);
+            // Generar imagen con rastro de movimiento cuántico fusionado
+            exportableMediaUrl = trailsCanvas.toDataURL('image/jpeg', 0.95);
 
-            // Mapeo cilíndrico de la franja central
-            cylinderCtx.drawImage(
-                hiddenCanvas,
-                srcX, 0, srcSliceW, hiddenCanvas.height,
-                currentSliceIndex * sliceWidth, 0, sliceWidth + 2, cylinderCanvas.height
-            );
-
-            currentSliceIndex++;
-            panoProgress = Math.min(100, Math.floor((currentSliceIndex / PANO_TOTAL_SLICES) * 100));
-            const degrees = Math.floor((panoProgress / 100) * 360);
-
-            document.getElementById('panoTrack').style.width = `${panoProgress}%`;
-            document.getElementById('panoDegrees').innerText = `GIRO: ${degrees}° / 360°`;
-        }
-
-        async function stopPanoSweep() {
-            isPanoRecording = false;
-            document.getElementById('panoShutterBtn').classList.remove('recording');
-            document.getElementById('panoCompassHud').style.display = 'none';
-            playToneSweep(false);
-
-            stitchedPanoramaDataUrl = cylinderCanvas.toDataURL('image/jpeg', 0.95);
-
-            // Guardar en backend
             const res = await fetch('/bian/process/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: stitchedPanoramaDataUrl, prompt_analysis: 'Panorama 360 V10 Ultra' })
+                body: JSON.stringify({ image_base64: exportableMediaUrl, prompt_analysis: `Hyperlapse ${speedMultiplier}x V10 Trails` })
             });
 
             if (res.ok) {
                 const data = await res.json();
                 document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
-                openPanoEditModal(stitchedPanoramaDataUrl);
+                openHyperEditModal(exportableMediaUrl);
             }
         }
 
-        function playToneSweep(start) {
+        function playChronoSound(start) {
             try {
                 const ctx = getAudioContext();
                 const now = ctx.currentTime;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.connect(gain); gain.connect(ctx.destination);
-                osc.type = 'sine';
+                osc.type = 'sawtooth';
                 if (start) {
-                    osc.frequency.setValueAtTime(440, now);
-                    osc.frequency.linearRampToValueAtTime(880, now + 0.2);
+                    osc.frequency.setValueAtTime(330, now);
+                    osc.frequency.exponentialRampToValueAtTime(660, now + 0.18);
                 } else {
-                    osc.frequency.setValueAtTime(880, now);
-                    osc.frequency.linearRampToValueAtTime(1320, now + 0.25);
+                    osc.frequency.setValueAtTime(660, now);
+                    osc.frequency.exponentialRampToValueAtTime(220, now + 0.22);
                 }
                 gain.gain.setValueAtTime(0.2, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-                osc.start(now); osc.stop(now + 0.26);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                osc.start(now); osc.stop(now + 0.23);
             } catch(e) {}
         }
 
-        /* 3. INNOVACIÓN: ORBE 3D TINY PLANET (LÓGICA POLAR) */
-        let vrAngle = 0;
-        let isDraggingVR = false;
-        let lastTouchX = 0;
-
-        function openPanoEditModal(imgSrc) {
-            document.getElementById('editModalTitle').innerText = '🌐 PANORAMA 360 V10 PROCESADO';
+        function openHyperEditModal(imgSrc) {
+            document.getElementById('editModalTitle').innerText = `⏱️ HYPERLAPSE ${speedMultiplier}x PROCESADO`;
             document.getElementById('editImagePreview').src = imgSrc;
             document.getElementById('editImagePreview').style.display = 'block';
-            document.getElementById('vrMarbleCanvas').style.display = 'none';
+            document.getElementById('editVideoPreview').style.display = 'none';
             document.getElementById('postEditModal').style.display = 'flex';
         }
 
-        function switchPanoramaView(mode, elem) {
-            document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
-            elem.classList.add('active');
-
-            const flatImg = document.getElementById('editImagePreview');
-            if (mode === 'flat') {
-                flatImg.style.display = 'block';
-                vrCanvas.style.display = 'none';
-            } else if (mode === 'vr_marble') {
-                flatImg.style.display = 'none';
-                vrCanvas.style.display = 'block';
-                renderTinyPlanetMarble();
-            }
-        }
-
-        function renderTinyPlanetMarble() {
-            vrCanvas.width = 280;
-            vrCanvas.height = 280;
-            const w = vrCanvas.width;
-            const h = vrCanvas.height;
-            const radius = w / 2;
-
-            // Proyección polar estereográfica matemática (Tiny Planet)
-            vrCtx.clearRect(0, 0, w, h);
-            vrCtx.save();
-            vrCtx.beginPath();
-            vrCtx.arc(radius, radius, radius - 2, 0, Math.PI * 2);
-            vrCtx.clip();
-
-            // Dibujar la textura cilíndrica con rotación
-            vrCtx.translate(radius, radius);
-            vrCtx.rotate(vrAngle);
-            vrCtx.drawImage(cylinderCanvas, -radius * 1.5, -radius * 1.5, radius * 3, radius * 3);
-            vrCtx.restore();
-
-            // Borde y atmósfera neón
-            vrCtx.strokeStyle = '#00FFC8';
-            vrCtx.lineWidth = 2;
-            vrCtx.stroke();
-        }
-
-        vrCanvas.addEventListener('touchstart', (e) => {
-            isDraggingVR = true;
-            lastTouchX = e.touches[0].clientX;
-        }, { passive: true });
-
-        window.addEventListener('touchmove', (e) => {
-            if (!isDraggingVR) return;
-            const delta = e.touches[0].clientX - lastTouchX;
-            lastTouchX = e.touches[0].clientX;
-            vrAngle += delta * 0.02;
-            renderTinyPlanetMarble();
-        }, { passive: true });
-
-        window.addEventListener('touchend', () => { isDraggingVR = false; });
-
-        /* DISPARO ESTÁNDAR ZSL PARA OTROS MÓDULOS */
+        /* DISPARO ESTÁNDAR ZSL */
         async function captureStandardZSL() {
             const flash = document.getElementById('ambientLightLayer');
             flash.classList.add('flash');
@@ -823,11 +756,11 @@ HTML_CONTENT = """<!DOCTYPE html>
             if (res.ok) {
                 const data = await res.json();
                 document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
-                openPanoEditModal(b64);
+                openHyperEditModal(b64);
             }
         }
 
-        /* SONIDO DE OBTURADOR ANALÓGICO */
+        /* AUDIO DE OBTURADOR ANALÓGICO */
         function playLensCapShutterSound() {
             try {
                 const ctx = getAudioContext();
@@ -887,11 +820,11 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         }, { passive: true });
 
-        /* CATÁLOGO DE MÓDULOS CON PANORÁMICA 360 INTEGRADA */
+        /* CATÁLOGO DE MÓDULOS CON TIMELAPSE/HYPERLAPSE */
         const moduleCatalog = [
+            { key: 'timelapse', icon: '⏱️', title: 'TIMELAPSE V10', pill: '⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA 4x', color: '#FF3B30', botTips: 'Gimbal Virtual OIS activo. Ajusta 8x o 16x si vas a caminar grabando un Hyperlapse.' },
             { key: 'pano', icon: '🌐', title: 'PANORÁMICA 360', pill: '🌐 BARRIDO POLAR & ORBE 3D VR', color: '#00FFC8', botTips: 'Gira el teléfono de izquierda a derecha de forma constante para coser los 360° completos.' },
             { key: 'night', icon: '🌙', title: 'NIGHTOGRAPHY', pill: '🌙 NIGHTOGRAPHY: ISO BOOST + RAW DENOISE', color: '#5E5CE6', botTips: 'Baja iluminación detectada. Búfer ZSL activo para capturar sin trepidación.' },
-            { key: 'timelapse', icon: '⏱️', title: 'TIMELAPSE', pill: '⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA 4x', color: '#FF3B30', botTips: 'Compresión en búfer activo. Proyección secuencial de cuadros.' },
             { key: 'macro', icon: '🔍', title: 'MACRO PRO', pill: '🔍 ENFOQUE A CORTO ALCANCE ULTRA DETALLE', color: '#30D158', botTips: 'Distancia de 4-8 cm. La NPU maximiza el micro-contraste focal.' },
             { key: 'chef', icon: '👨‍🍳', title: 'CHEF LEAN V3', pill: '👨‍🍳 FOOD COST & CONTROL DE MERMA CÁRNICA', color: '#FF9F0A', botTips: 'Insumo cárnico en encuadre. Listo para cuantificación de merma.' },
             { key: 'price', icon: '🏷️', title: 'VALUADOR HÍBRIDO', pill: '🏷️ TASACIÓN DE MERCADO OFFLINE/ONLINE', color: '#63E6E2', botTips: 'Cotejo comercial activado. Estima compra vs venta en vivo.' },
@@ -999,11 +932,11 @@ HTML_CONTENT = """<!DOCTYPE html>
             document.getElementById('floatModDesc').innerText = m.botTips;
             document.getElementById('shutterCorona').style.borderColor = m.color;
 
-            // Mostrar u ocultar la brújula HUD según si es panorámica
-            if (m.key === 'pano') {
-                document.getElementById('panoCompassHud').style.display = 'flex';
+            // Mostrar controles Chrono si es Timelapse
+            if (m.key === 'timelapse') {
+                document.getElementById('chronoHud').style.display = 'flex';
             } else {
-                document.getElementById('panoCompassHud').style.display = 'none';
+                document.getElementById('chronoHud').style.display = 'none';
             }
 
             const topCard = deckStack.querySelector('.pos-0');
@@ -1097,9 +1030,9 @@ HTML_CONTENT = """<!DOCTYPE html>
                 const cur = moduleCatalog[activeCardIndex];
                 const list = document.getElementById('floatActionList');
                 list.innerHTML = `
-                    <button class="bot-btn" onclick="handlePanoCaptureTrigger(); toggleFloatingPanel();">📸 Disparo con ${cur.title}</button>
+                    <button class="bot-btn" onclick="handleHyperlapseTrigger(); toggleFloatingPanel();">📸 Acción con ${cur.title}</button>
                     <button class="bot-btn" onclick="openHorizontalDock(); toggleFloatingPanel();">🎴 Selector de Módulos</button>
-                    <button class="bot-btn" onclick="toggleGhostScope(); toggleFloatingPanel();">👁️️ Alternar Radar Espectral</button>
+                    <button class="bot-btn" onclick="toggleGhostScope(); toggleFloatingPanel();">👁 Alternar Radar Espectral</button>
                     <button class="bot-btn" onclick="openGalleryModal(); toggleFloatingPanel();">🖼️ Ver Galería Local</button>
                 `;
             }
@@ -1122,16 +1055,17 @@ HTML_CONTENT = """<!DOCTYPE html>
             document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
             elem.classList.add('active');
             const img = document.getElementById('editImagePreview');
-            if(tool === 'hdr_balance') img.style.filter = 'contrast(1.2) brightness(1.05) saturate(1.25)';
-            else if(tool === 'cinematic_grade') img.style.filter = 'sepia(0.2) contrast(1.3) saturate(0.95)';
+            if(tool === 'light_trails') img.style.filter = 'contrast(1.3) brightness(1.15) saturate(1.4)';
+            else if(tool === 'de_flicker') img.style.filter = 'contrast(1.05) brightness(1.02)';
+            else if(tool === 'cinematic_grade') img.style.filter = 'sepia(0.2) contrast(1.25) saturate(0.95)';
         }
 
         function exportEditedResult() {
             const a = document.createElement('a');
-            a.href = stitchedPanoramaDataUrl || document.getElementById('editImagePreview').src;
-            a.download = `bian_panorama_360_v10_${Date.now()}.jpg`;
+            a.href = exportableMediaUrl || document.getElementById('editImagePreview').src;
+            a.download = `bian_hyperlapse_${speedMultiplier}x_v10_${Date.now()}.jpg`;
             a.click();
-            alert("✔ Panorama 360 V10 exportado con éxito a la memoria interna.");
+            alert(`✔ Hyperlapse ${speedMultiplier}x V10 exportado con éxito.`);
         }
 
         async function openGalleryModal() {
@@ -1153,7 +1087,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                     card.className = 'gallery-card';
                     card.onclick = () => {
                         closeGalleryModal();
-                        openPanoEditModal(img.image_path);
+                        openHyperEditModal(img.image_path);
                     };
                     card.innerHTML = `
                         <img src="${img.image_path}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\' viewBox=\\'0 0 100 100\\'><rect width=\\'100\\' height=\\'100\\' fill=\\'%23222\\'/><text x=\\'50\\' y=\\'55\\' fill=\\'%23666\\' font-size=\\'11\\' text-anchor=\\'middle\\'>Sin Vista</text></svg>'"/>
@@ -1182,9 +1116,9 @@ HTML_CONTENT = """<!DOCTYPE html>
             `;
 
             act.innerHTML = `
-                <button class="bot-btn" onclick="executeBotAction('calibrate')">⚡ Calibrar Giroscopio & Sensor Polar</button>
+                <button class="bot-btn" onclick="executeBotAction('calibrate')">⚡ Calibrar Sensor OIS & Anti-Flicker</button>
                 <button class="bot-btn" onclick="executeBotAction('ghost')">👁️ Activar Radar Espectral</button>
-                <button class="bot-btn" onclick="executeBotAction('gallery')">🖼️ Ver Panoramas Guardados</button>
+                <button class="bot-btn" onclick="executeBotAction('gallery')">🖼️ Ver Clips Guardados</button>
             `;
 
             modal.style.display = 'flex';
@@ -1196,7 +1130,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             closeNanobot();
             if(action === 'calibrate') {
                 applyActiveCardTheme(moduleCatalog[activeCardIndex]);
-                alert("✔ Ejes acimutales y costura cilíndrica calibrados.");
+                alert("✔ Estabilización OIS y obturador cuántico calibrados.");
             } else if(action === 'ghost') {
                 toggleGhostScope();
             } else if(action === 'gallery') {
