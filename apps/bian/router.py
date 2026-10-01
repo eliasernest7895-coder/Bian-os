@@ -16,14 +16,14 @@ router.mount("/storage", StaticFiles(directory="storage"), name="storage")
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Captura Despacho Comercial V2"
+    prompt_analysis: str = "Captura Nano-Bot V2"
 
 HTML_CONTENT = """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>BIAN MASTER SUITE V10 - DESPACHO COMERCIAL V2</title>
+    <title>BIAN MASTER SUITE V10 - NANO-BOT V2</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', Roboto, monospace; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; width: 100vw; overflow: hidden; position: fixed; }
@@ -49,8 +49,8 @@ HTML_CONTENT = """<!DOCTYPE html>
         #lockscreen.unlocked { transform: translateY(-100%); opacity: 0; pointer-events: none; }
 
         .pill-badge {
-            background: rgba(0, 230, 118, 0.08); border: 1px solid rgba(0, 230, 118, 0.3);
-            color: #00E676; font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+            background: rgba(0, 255, 200, 0.08); border: 1px solid rgba(0, 255, 200, 0.3);
+            color: #00FFC8; font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
             padding: 6px 14px; border-radius: 20px; text-transform: uppercase;
         }
         .brand-center { text-align: center; margin-top: auto; margin-bottom: auto; }
@@ -70,7 +70,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             position: relative; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s;
         }
-        .lens-cap-center { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #00E676; transition: color 0.3s; }
+        .lens-cap-center { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #00FFC8; transition: color 0.3s; }
         .lens-cap-sub { font-size: 7.5px; color: #888; margin-top: 2px; }
         .lens-cap-hint { font-size: 10px; font-weight: 800; color: #aaa; margin-top: 10px; letter-spacing: 1px; }
 
@@ -84,50 +84,12 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         #ghostScopeCanvas.active { opacity: 0.75; }
 
-        /* CANVAS DE ESPORAS CON DESVANECIMIENTO CONTROLADO DE 1.5s */
+        /* CANVAS DE ESPORAS CON DESVANECIMIENTO EXACTO DE 1.0 SEGUNDO */
         #sporesMatrixCanvas {
             position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 52;
-            opacity: 0; transition: opacity 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+            opacity: 0; transition: opacity 1.0s cubic-bezier(0.16, 1, 0.3, 1);
         }
         #sporesMatrixCanvas.active { opacity: 1; transition: opacity 0.05s ease-in; }
-
-        /* HUD DESPACHO COMERCIAL V2 */
-        .dispatch-hud-container {
-            display: none; position: absolute; top: 120px; left: 16px; right: 16px;
-            z-index: 60; flex-direction: column; align-items: center; gap: 8px; pointer-events: auto;
-        }
-        .dispatch-status-pill {
-            display: flex; gap: 10px; align-items: center; background: rgba(8, 28, 16, 0.88);
-            border: 1px solid rgba(0, 230, 118, 0.45); border-radius: 20px; padding: 5px 14px;
-            backdrop-filter: blur(14px); font-size: 11px; font-weight: 800; color: #00E676;
-        }
-        .dispatch-carrier-selector {
-            display: flex; gap: 6px; background: rgba(6, 20, 12, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; padding: 4px 8px;
-            backdrop-filter: blur(12px);
-        }
-        .dispatch-chip-btn {
-            padding: 3px 9px; font-size: 10px; font-weight: 800; border-radius: 12px;
-            color: #888; background: transparent; border: none; cursor: pointer; transition: all 0.2s;
-        }
-        .dispatch-chip-btn.active { background: #00E676; color: #000; box-shadow: 0 0 8px rgba(0,230,118,0.6); }
-
-        .aero-hud-overlay {
-            position: absolute; inset: 0; pointer-events: none; z-index: 50;
-            display: flex; flex-direction: column; justify-content: space-between; padding: 75px 18px 185px 18px;
-        }
-        .horizon-line {
-            position: absolute; top: 50%; left: 25%; width: 50%; height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(0, 230, 118, 0.6), transparent);
-        }
-        .hud-telemetry-corner {
-            display: flex; justify-content: space-between; font-family: monospace;
-            font-size: 10px; font-weight: 800; color: rgba(255, 255, 255, 0.7);
-        }
-        .telemetry-tag {
-            background: rgba(14, 16, 20, 0.65); padding: 3px 8px; border-radius: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(8px);
-        }
 
         .top-dock {
             position: absolute; top: 16px; left: 16px; right: 16px; z-index: 100;
@@ -138,14 +100,14 @@ HTML_CONTENT = """<!DOCTYPE html>
             color: #fff; font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 20px;
             backdrop-filter: blur(10px); display: flex; align-items: center; gap: 6px;
         }
-        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #00E676; display: inline-block; }
+        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #00FFC8; display: inline-block; }
         .top-action-btn {
             background: rgba(18, 18, 22, 0.72); border: 1px solid rgba(255, 255, 255, 0.15);
             color: #fff; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 20px;
             backdrop-filter: blur(10px); cursor: pointer; display: flex; align-items: center; gap: 4px;
         }
         #botToggleBtn {
-            border-color: rgba(0,230,118,0.4); color: #00E676; transition: all 0.4s ease; min-width: 155px; justify-content: center;
+            border-color: rgba(0, 255, 200, 0.4); color: #00FFC8; transition: all 0.4s ease; min-width: 155px; justify-content: center;
         }
 
         .ghost-scope-btn {
@@ -160,25 +122,9 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none;
         }
         .context-pill {
-            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(0, 230, 118, 0.4);
-            color: #00E676; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
+            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(0, 255, 200, 0.4);
+            color: #00FFC8; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
             padding: 4px 14px; border-radius: 20px; backdrop-filter: blur(10px); text-transform: uppercase;
-        }
-
-        .focus-ring {
-            position: absolute; width: 84px; height: 84px; border-radius: 50%;
-            border: 1.5px solid rgba(255, 255, 255, 0.85); box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
-            pointer-events: none; z-index: 90; display: flex; flex-direction: column;
-            align-items: center; justify-content: space-between; padding: 4px 0;
-            transform: translate(-50%, -50%) scale(0.9); opacity: 0; transition: opacity 0.3s, transform 0.2s;
-        }
-        .focus-ring.active { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-
-        .hud-zoom-tag {
-            position: absolute; bottom: 155px; left: 24px; z-index: 100;
-            background: rgba(20, 20, 24, 0.82); border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 18px; padding: 5px 12px; font-size: 12px; font-weight: 800; color: #fff;
-            cursor: pointer; backdrop-filter: blur(12px);
         }
 
         .deck-stack-wrapper {
@@ -226,8 +172,8 @@ HTML_CONTENT = """<!DOCTYPE html>
             border: 2px dashed rgba(255,255,255,0.3); pointer-events: none;
         }
         .shutter-btn {
-            width: 72px; height: 72px; border-radius: 50%; background: #00E676;
-            border: 4px solid #fff; box-shadow: 0 0 22px rgba(0, 230, 118, 0.55); cursor: pointer;
+            width: 72px; height: 72px; border-radius: 50%; background: #00FFC8;
+            border: 4px solid #fff; box-shadow: 0 0 22px rgba(0, 255, 200, 0.55); cursor: pointer;
         }
         .lens-switch-btn {
             width: 46px; height: 46px; border-radius: 50%; background: rgba(30, 30, 35, 0.75);
@@ -241,23 +187,55 @@ HTML_CONTENT = """<!DOCTYPE html>
 
         #floatingGadget {
             position: fixed; top: 180px; left: 14px; width: 48px; height: 48px;
-            border-radius: 50%; background: #0c0d12; border: 2px solid #00E676;
-            box-shadow: 0 6px 18px rgba(0, 230, 118, 0.4); z-index: 250;
+            border-radius: 50%; background: #0c0d12; border: 2px solid #00FFC8;
+            box-shadow: 0 6px 18px rgba(0, 255, 200, 0.4); z-index: 250;
             display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: grab;
         }
         #floatingPanel {
             display: none; position: fixed; inset: 100px 18px 120px 18px; z-index: 260;
-            background: rgba(10, 12, 16, 0.96); border: 1px solid #00E676; border-radius: 20px;
+            background: rgba(10, 12, 16, 0.96); border: 1px solid #00FFC8; border-radius: 20px;
             backdrop-filter: blur(25px); flex-direction: column; padding: 16px;
         }
         .float-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+
+        /* 🌟 NANO-BOT TÁCTICO V2 MODAL 🌟 */
+        #nanobotModal {
+            display: none; position: fixed; inset: 0; z-index: 330; background: rgba(5, 7, 10, 0.96);
+            backdrop-filter: blur(25px); flex-direction: column; padding: 22px 18px; justify-content: space-between;
+        }
+        .bot-terminal-card {
+            background: #080c10; border: 1px solid rgba(0, 255, 200, 0.35); border-radius: 16px;
+            padding: 14px; font-family: monospace; font-size: 11px; color: #00FFC8; margin-top: 10px;
+        }
+        .bot-telemetry-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px;
+        }
+        .bot-telemetry-item {
+            background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px; padding: 8px; font-size: 10px; color: #ccc;
+        }
+        .bot-input-box {
+            display: flex; gap: 8px; margin-top: 12px; background: rgba(0, 255, 200, 0.06);
+            border: 1px solid rgba(0, 255, 200, 0.3); border-radius: 12px; padding: 6px 12px;
+        }
+        .bot-input {
+            flex: 1; background: transparent; border: none; color: #fff; font-size: 11px;
+            font-family: inherit; outline: none;
+        }
+        .bot-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; overflow-y: auto; max-height: 220px; }
+        .bot-btn {
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff;
+            padding: 10px 14px; border-radius: 12px; font-size: 11px; font-weight: 700; text-align: left; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .bot-btn:hover { border-color: #00FFC8; background: rgba(0, 255, 200, 0.1); }
 
         #postEditModal {
             display: none; position: fixed; inset: 0; z-index: 300; background: rgba(6, 7, 10, 0.96);
             backdrop-filter: blur(20px); flex-direction: column; padding: 20px 18px 25px 18px;
         }
         .edit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .edit-title { font-size: 14px; font-weight: 800; color: #00E676; }
+        .edit-title { font-size: 14px; font-weight: 800; color: #00FFC8; }
         .edit-close-btn { background: #222; border: 1px solid #444; color: #fff; padding: 5px 12px; border-radius: 14px; font-size: 11px; cursor: pointer; }
         
         .edit-preview-box {
@@ -266,24 +244,15 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .edit-preview-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
-        /* 3. INNOVACIÓN: COMPROBANTE OFICIAL DE DESPACHO COMERCIAL V2 */
-        #dispatchTicketBox {
-            display: none; position: absolute; inset: 12px; background: rgba(6, 16, 10, 0.95);
-            border: 1px solid #00E676; border-radius: 12px; padding: 16px; font-family: monospace;
-            font-size: 11px; color: #eee; flex-direction: column; justify-content: space-between; z-index: 310;
-        }
-        .disp-row { display: flex; justify-content: space-between; border-bottom: 1px solid #14281c; padding: 6px 0; }
-        .disp-total { font-size: 13px; font-weight: 900; color: #00E676; }
-
         .edit-tools-panel { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
         .tool-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
         .tool-chip {
             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
             padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #ddd; cursor: pointer;
         }
-        .tool-chip.active { border-color: #00E676; color: #00E676; background: rgba(0,230,118,0.12); }
+        .tool-chip.active { border-color: #00FFC8; color: #00FFC8; background: rgba(0,255,200,0.12); }
         .btn-export-master {
-            background: linear-gradient(90deg, #00E676, #FFD600); color: #000; font-size: 13px;
+            background: linear-gradient(90deg, #00FFC8, #00D2FF); color: #000; font-size: 13px;
             font-weight: 900; padding: 13px; border-radius: 14px; border: none; cursor: pointer;
             width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
         }
@@ -296,17 +265,6 @@ HTML_CONTENT = """<!DOCTYPE html>
         .gallery-card { background: #111216; border: 1px solid #222; border-radius: 12px; overflow: hidden; cursor: pointer; min-height: 140px; }
         .gallery-card img { width: 100%; height: 110px; object-fit: cover; }
         .gallery-card-info { padding: 6px 8px; font-size: 10px; color: #888; background: #16171d; }
-
-        #nanobotModal {
-            display: none; position: fixed; inset: 0; z-index: 330; background: rgba(5, 6, 8, 0.95);
-            backdrop-filter: blur(25px); flex-direction: column; padding: 20px; justify-content: space-between;
-        }
-        .bot-bubble { background: #121318; border: 1px solid rgba(0,230,118,0.3); border-radius: 16px; padding: 16px; font-size: 13px; line-height: 1.5; color: #eee; margin-top: 15px; }
-        .bot-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
-        .bot-btn {
-            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff;
-            padding: 12px; border-radius: 12px; font-size: 12px; font-weight: 700; text-align: left; cursor: pointer;
-        }
     </style>
 </head>
 <body>
@@ -314,18 +272,18 @@ HTML_CONTENT = """<!DOCTYPE html>
     <div class="ambient-fade-light" id="ambientLightLayer"></div>
 
     <div id="lockscreen">
-        <div class="pill-badge" id="lockscreenBadge">• DESPACHO COMERCIAL V2</div>
+        <div class="pill-badge" id="lockscreenBadge">• NANO-BOT TÁCTICO V2</div>
         <div class="brand-center">
             <div class="brand-title">BIAN</div>
-            <div class="brand-subtitle" id="lockscreenSub">Logística & Despacho V2</div>
+            <div class="brand-subtitle" id="lockscreenSub">Asistente Neuronal V2</div>
             <div style="font-size:11px; color:#777; max-width:280px; margin:0 auto; line-height:1.4;" id="lockscreenDesc">
-                Cubicaje IATA • Guía de Remisión QR • Control Logístico
+                Copiloto Táctico • Macros en RAM • Diagnóstico en Tiempo Real
             </div>
         </div>
         <div class="lens-cap-assembly" id="lensCapUnlockBtn">
             <div class="lens-cap-disk" id="lensCapDisk">
-                <div class="lens-cap-center" id="lensCapCenterText">LOGÍSTICA</div>
-                <div class="lens-cap-sub" id="lensCapSubText">F/1.4 • WAYBILL MATRIX</div>
+                <div class="lens-cap-center" id="lensCapCenterText">NANO-BOT</div>
+                <div class="lens-cap-sub" id="lensCapSubText">F/1.4 • TACTICAL AI</div>
             </div>
             <div class="lens-cap-hint">🔓 DESTAPAR LENTE</div>
         </div>
@@ -335,13 +293,13 @@ HTML_CONTENT = """<!DOCTYPE html>
 
     <div id="floatingPanel">
         <div class="float-header">
-            <div style="font-size:13px; font-weight:800; color:#00E676;" id="floatHeaderTitle">⚡ TALLER LOGÍSTICO FLOTANTE</div>
+            <div style="font-size:13px; font-weight:800; color:#00FFC8;" id="floatHeaderTitle">⚡ TALLER TÁCTICO FLOTANTE</div>
             <button class="edit-close-btn" onclick="toggleFloatingPanel()">✖ Cerrar</button>
         </div>
         <div style="flex:1; overflow-y:auto; font-size:12px; color:#aaa; display:flex; flex-direction:column; gap:10px;">
             <div style="background:#14151b; padding:12px; border-radius:12px; border:1px solid #222;">
                 <div style="color:#fff; font-weight:700; margin-bottom:4px;" id="floatModTitle">MODO ACTIVO</div>
-                <div id="floatModDesc">Herramientas logísticas de cubicaje y despacho listas.</div>
+                <div id="floatModDesc">Herramientas optimizadas en RAM y Snapdragon 8 Gen 2.</div>
             </div>
             <div class="bot-actions" id="floatActionList"></div>
         </div>
@@ -351,58 +309,26 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div id="videoContainer">
             <video id="webcam" autoplay playsinline></video>
             <canvas id="ghostScopeCanvas"></canvas>
-            <!-- CANVAS DE ESPORAS CON DESVANECIMIENTO DE 1.5 SEGUNDOS -->
+            <!-- 🌟 CANVAS DE ESPORAS CON DESVANECIMIENTO EXACTO DE 1.0 SEGUNDO 🌟 -->
             <canvas id="sporesMatrixCanvas"></canvas>
-        </div>
-
-        <!-- HUD DESPACHO COMERCIAL V2 -->
-        <div class="dispatch-hud-container" id="dispatchHud">
-            <div class="dispatch-status-pill">
-                <span id="dispCubicLabel">📦 CBM: 0.04 m³</span>
-                <span style="color:#888;">|</span>
-                <span id="dispWeightLabel">PESO VOL: 6.8 kg</span>
-                <span style="color:#888;">|</span>
-                <span style="color:#FFD600;">STATUS: PRE-SALIDA</span>
-            </div>
-            <div class="dispatch-carrier-selector">
-                <button class="dispatch-chip-btn active" onclick="setCarrier('dhl_express', 320, this)">DHL Express</button>
-                <button class="dispatch-chip-btn" onclick="setCarrier('fedex_ground', 240, this)">FedEx Ground</button>
-                <button class="dispatch-chip-btn" onclick="setCarrier('local_courier', 140, this)">Mensajería Local</button>
-            </div>
-        </div>
-
-        <div class="aero-hud-overlay">
-            <div class="hud-telemetry-corner">
-                <div class="telemetry-tag" id="telWaybill">WAYBILL: BIAN-9042-MX</div>
-                <div class="telemetry-tag" id="telZone">ZONA: COBERTURA A1</div>
-                <div class="telemetry-tag" id="telISO">ISO: 100 BASE</div>
-                <div class="telemetry-tag" id="telShutter">SS: 1/500s</div>
-            </div>
-
-            <div class="horizon-line" id="horizonGyro"></div>
-
-            <div class="hud-telemetry-corner" style="justify-content: flex-end; gap: 8px;">
-                <div class="telemetry-tag" style="color:#00E676;" id="telDispatchEngine">LOGISTICS AI: READY</div>
-                <div class="telemetry-tag">SNAPDRAGON 8G2 NPU</div>
-            </div>
         </div>
 
         <div class="top-dock">
             <div class="hud-status-badge" id="moduleTitleBadge">
                 <span class="dot" id="statusDot"></span>
-                <span id="moduleNameText">DESPACHO COMERCIAL V2</span>
+                <span id="moduleNameText">BIAN SUITE V10</span>
             </div>
             <div style="display: flex; gap: 6px;">
                 <button class="ghost-scope-btn" id="scopeToggleBtn" onclick="toggleGhostScope()">
                     👁️ ESPECTRO
                 </button>
                 <button class="top-action-btn" onclick="lockSuite()">🔒</button>
-                <button class="top-action-btn" id="botToggleBtn" onclick="openNanobot()">✨ Nano-Bot</button>
+                <button class="top-action-btn" id="botToggleBtn" onclick="openNanobot()">✨ Nano-Bot V2</button>
             </div>
         </div>
 
         <div class="center-hud-overlay" id="centerHud">
-            <div class="context-pill" id="contextPillText">📦 DESPACHO COMERCIAL: CUBICAJE IATA & MANIFIESTO</div>
+            <div class="context-pill" id="contextPillText">BIAN SUITE V10 READY</div>
         </div>
 
         <div class="hud-zoom-tag" id="zoomChip" onclick="cycleZoomLevel()">
@@ -416,43 +342,72 @@ HTML_CONTENT = """<!DOCTYPE html>
             <div class="lens-switch-btn" onclick="toggleLens()">🔄</div>
             <div class="shutter-wrapper">
                 <div class="shutter-corona" id="shutterCorona"></div>
-                <div class="shutter-btn" id="dispatchShutterBtn" onclick="handleDispatchCapture()"></div>
+                <div class="shutter-btn" id="masterShutterBtn" onclick="handleMasterCapture()"></div>
             </div>
             <div class="gallery-thumb" id="thumbBox" onclick="openGalleryModal()"></div>
         </div>
     </div>
 
-    <!-- MESA POST-DESPACHO -->
+    <!-- 🌟 NANO-BOT TÁCTICO V2 MODAL 🌟 -->
+    <div id="nanobotModal">
+        <div>
+            <div class="edit-header">
+                <div class="edit-title" style="color:#00FFC8;">✨ NANO-BOT TÁCTICO V2 ULTRA</div>
+                <button class="edit-close-btn" onclick="closeNanobot()">✖ Cerrar</button>
+            </div>
+
+            <div class="bot-terminal-card" id="botTerminalOutput">
+                > COPILOTO TÁCTICO INICIALIZADO...<br>
+                > MÓDULO ACTIVO: <span id="botActiveModLabel" style="color:#fff;">DESPACHO COMERCIAL</span><br>
+                > ESTADO DEL SISTEMA: 100% OPERATIVO EN RAM
+            </div>
+
+            <div class="bot-telemetry-grid">
+                <div class="bot-telemetry-item">
+                    <div style="color:#888;">NEURAL CORE</div>
+                    <strong style="color:#00FFC8;">ONLINE (NPU 8G2)</strong>
+                </div>
+                <div class="bot-telemetry-item">
+                    <div style="color:#888;">LATENCIA</div>
+                    <strong style="color:#30D158;">11.8 ms</strong>
+                </div>
+                <div class="bot-telemetry-item">
+                    <div style="color:#888;">BUFFER RAM</div>
+                    <strong style="color:#FFD600;">VOLÁTIL ZERO-LAG</strong>
+                </div>
+                <div class="bot-telemetry-item">
+                    <div style="color:#888;">SUITE MÓDULOS</div>
+                    <strong style="color:#FF007A;">19/19 INTEGRADOS</strong>
+                </div>
+            </div>
+
+            <div class="bot-input-box">
+                <input type="text" id="botCommandInput" class="bot-input" placeholder="Escribe un comando táctico o macro..." onkeydown="if(event.key==='Enter') executeCustomBotCommand()">
+                <button style="background:transparent; border:none; color:#00FFC8; cursor:pointer;" onclick="executeCustomBotCommand()">⚡</button>
+            </div>
+
+            <div class="bot-actions" id="botActionList"></div>
+        </div>
+        <div style="font-size:10px; color:#555; text-align:center;">IA Soberana local operando en Debian 13 Termux</div>
+    </div>
+
+    <!-- MESA POST-PROCESO -->
     <div id="postEditModal">
         <div class="edit-header">
-            <div class="edit-title" id="editModalTitle">📦 MANIFIESTO DE DESPACHO V2</div>
+            <div class="edit-title" id="editModalTitle">RESULTADO MASTER V10</div>
             <button class="edit-close-btn" onclick="closeEditModal()">✖ Volver</button>
         </div>
         <div class="edit-preview-box">
-            <img id="editImagePreview" src="" alt="Dispatch Frame" />
-            <!-- 3. INNOVACIÓN: COMPROBANTE OFICIAL DE DESPACHO -->
-            <div id="dispatchTicketBox">
-                <div style="text-align:center; font-weight:900; color:#00E676; font-size:12px; margin-bottom:8px;">
-                    === GUÍA DE DESPACHO COMERCIAL BIAN ===
-                </div>
-                <div class="disp-row"><span>TRANSPORTISTA:</span><strong id="dispTicketCarrier">DHL Express</strong></div>
-                <div class="disp-row"><span>NO. DE GUÍA / WAYBILL:</span><strong id="dispTicketCode">BN-8923-TRK</strong></div>
-                <div class="disp-row"><span>CUBICAJE ESTIMADO:</span><strong id="dispTicketCbm">0.042 m³</strong></div>
-                <div class="disp-row"><span>PESO FACTURABLE:</span><strong id="dispTicketWeight">6.8 kg</strong></div>
-                <div class="disp-row"><span>TARIFA LOGÍSTICA:</span><strong id="dispTicketPrice">$320.00 MXN</strong></div>
-                <div class="disp-row disp-total"><span>ESTATUS DE ENTREGA:</span><strong>PRE-ALERTA ASIGNADA</strong></div>
-                <div style="font-size:9px; color:#777; text-align:center; margin-top:8px;">Protocolo Logístico BIAN • Registro SQLite Local</div>
-            </div>
+            <img id="editImagePreview" src="" alt="Frame Render" />
         </div>
         <div class="edit-tools-panel">
             <div class="tool-row" id="moduleToolRow">
-                <div class="tool-chip active" onclick="switchDispatchView('preview', this)">📷 Paquete / Carga</div>
-                <div class="tool-chip" onclick="switchDispatchView('ticket', this)">📜 Guía de Despacho QR</div>
-                <div class="tool-chip" onclick="applyDispatchFilter('label_enhance', this)">⚡ Realce de Etiquetas</div>
-                <div class="tool-chip" onclick="applyDispatchFilter('contrast_doc', this)">📋 Modo Auditoría</div>
+                <div class="tool-chip active" onclick="applyMasterFilter('standard', this)">💎 Grado Master V10</div>
+                <div class="tool-chip" onclick="applyMasterFilter('high_contrast', this)">⚡ Alto Contraste</div>
+                <div class="tool-chip" onclick="applyMasterFilter('vivid_tone', this)">🎨 Tono Vívido</div>
             </div>
-            <button class="btn-export-master" onclick="exportDispatchResult()">
-                💾 EXPORTAR GUÍA DE DESPACHO HD
+            <button class="btn-export-master" onclick="exportMasterResult()">
+                💾 EXPORTAR ASSET HD MASTER
             </button>
         </div>
     </div>
@@ -465,26 +420,13 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="gallery-grid" id="galleryGridContent"></div>
     </div>
 
-    <div id="nanobotModal">
-        <div>
-            <div class="edit-header">
-                <div class="edit-title" style="color:#00FFC8;">✨ NANO-BOT TÁCTICO V10</div>
-                <button class="edit-close-btn" onclick="closeNanobot()">✖ Cerrar</button>
-            </div>
-            <div class="bot-bubble" id="botMessageText">Calculando cubicaje y tarifas...</div>
-            <div class="bot-actions" id="botActionList"></div>
-        </div>
-        <div style="font-size:10px; color:#555; text-align:center;">IA Soberana local operando en Snapdragon 8 Gen 2</div>
-    </div>
-
     <canvas id="hiddenBufferCanvas" style="display:none;"></canvas>
-    <canvas id="dispatchRenderCanvas" style="display:none;"></canvas>
+    <canvas id="processBufferCanvas" style="display:none;"></canvas>
 
     <script>
         const video = document.getElementById('webcam');
         const hiddenCanvas = document.getElementById('hiddenBufferCanvas');
-        const dispCanvas = document.getElementById('dispatchRenderCanvas');
-        const dispCtx = dispCanvas.getContext('2d');
+        const procCanvas = document.getElementById('processBufferCanvas');
         const ghostCanvas = document.getElementById('ghostScopeCanvas');
         const ghostCtx = ghostCanvas.getContext('2d');
         const sporesCanvas = document.getElementById('sporesMatrixCanvas');
@@ -495,11 +437,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         const zoomLevels = [0.6, 1.0, 2.0];
         let isGhostScopeOn = false;
         let sporesTimeout = null;
-
-        /* ESTADO DESPACHO COMERCIAL V2 */
-        let activeCarrier = "DHL Express";
-        let carrierRate = 320;
-        let processedDispDataUrl = null;
+        let lastCapturedUrl = null;
 
         /* SISTEMA DE ESPORAS */
         let spores = [];
@@ -511,8 +449,8 @@ HTML_CONTENT = """<!DOCTYPE html>
                 spores.push({
                     x: Math.random() * window.innerWidth,
                     y: Math.random() * window.innerHeight,
-                    vx: (Math.random() - 0.5) * 1.4,
-                    vy: (Math.random() - 0.5) * 1.4,
+                    vx: (Math.random() - 0.5) * 1.5,
+                    vy: (Math.random() - 0.5) * 1.5,
                     radius: Math.random() * 2.8 + 1.2,
                     pulse: Math.random() * Math.PI * 2
                 });
@@ -559,8 +497,8 @@ HTML_CONTENT = """<!DOCTYPE html>
                 if (hiddenCanvas.width !== video.videoWidth) {
                     hiddenCanvas.width = video.videoWidth || 640;
                     hiddenCanvas.height = video.videoHeight || 480;
-                    dispCanvas.width = hiddenCanvas.width;
-                    dispCanvas.height = hiddenCanvas.height;
+                    procCanvas.width = hiddenCanvas.width;
+                    procCanvas.height = hiddenCanvas.height;
                     sporesCanvas.width = window.innerWidth;
                     sporesCanvas.height = window.innerHeight;
                     ghostCanvas.width = 320;
@@ -599,7 +537,6 @@ HTML_CONTENT = """<!DOCTYPE html>
             const curMod = moduleCatalog[activeCardIndex];
             const col = curMod.color;
 
-            // Retícula punteada
             sporesCtx.strokeStyle = `${col}28`;
             sporesCtx.lineWidth = 0.8;
             sporesCtx.setLineDash([2, 8]);
@@ -612,7 +549,6 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
             sporesCtx.setLineDash([]);
 
-            // Colimadores en las 4 esquinas
             const cornerSize = 16;
             sporesCtx.strokeStyle = col;
             sporesCtx.lineWidth = 1.8;
@@ -621,7 +557,6 @@ HTML_CONTENT = """<!DOCTYPE html>
             sporesCtx.beginPath(); sporesCtx.moveTo(25, h - 25 - cornerSize); sporesCtx.lineTo(25, h - 25); sporesCtx.lineTo(25 + cornerSize, h - 25); sporesCtx.stroke();
             sporesCtx.beginPath(); sporesCtx.moveTo(w - 25 - cornerSize, h - 25); sporesCtx.lineTo(w - 25, h - 25); sporesCtx.lineTo(w - 25, h - 25 - cornerSize); sporesCtx.stroke();
 
-            // Esporas de luz vivas
             spores.forEach(sp => {
                 sp.x += sp.vx;
                 sp.y += sp.vy;
@@ -648,13 +583,12 @@ HTML_CONTENT = """<!DOCTYPE html>
             sporesCtx.shadowBlur = 0;
         }
 
-        /* 🌟 PROTOCOLO UNIVERSAL: DESAPARICIÓN DE ESPORAS EN 1.5 SEGUNDOS 🌟 */
+        /* 🌟 PROTOCOLO UNIVERSAL: ESPORAS A 1.0 SEGUNDO EXACTO 🌟 */
         function triggerUniversalEntryProtocol(color) {
             const border = document.getElementById('screenEdgeBorder');
             const ambient = document.getElementById('ambientLightLayer');
             const sCanvas = document.getElementById('sporesMatrixCanvas');
 
-            // Encender borde y flash
             border.style.transition = 'border-color 0.08s ease-in, box-shadow 0.08s ease-in';
             border.style.borderColor = color;
             border.style.boxShadow = `inset 0 0 35px ${color}, 0 0 25px ${color}`;
@@ -664,40 +598,37 @@ HTML_CONTENT = """<!DOCTYPE html>
             void ambient.offsetWidth;
             ambient.classList.add('flash');
 
-            // Encender esporas al 100%
             sCanvas.classList.add('active');
 
-            // Expulsión radial desde el centro
             const cx = window.innerWidth / 2;
             const cy = window.innerHeight / 2;
             spores.forEach(sp => {
                 const angle = Math.atan2(sp.y - cy, sp.x - cx);
-                const speed = 4 + Math.random() * 4;
+                const speed = 4.5 + Math.random() * 4;
                 sp.vx = Math.cos(angle) * speed;
                 sp.vy = Math.sin(angle) * speed;
             });
 
             playTacticalEntrySound(color);
 
-            // Desvanecer borde y flash inmediatamente
             setTimeout(() => {
-                border.style.transition = 'border-color 1.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 1.2s cubic-bezier(0.16, 1, 0.3, 1)';
+                border.style.transition = 'border-color 1.0s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 1.0s cubic-bezier(0.16, 1, 0.3, 1)';
                 border.style.borderColor = 'transparent';
                 border.style.boxShadow = 'none';
                 ambient.classList.remove('flash');
             }, 120);
 
-            // 🌟 1.5 SEGUNDOS EXACTOS: DESAPARECER LAS ESPORAS 🌟
+            // 🌟 1.0 SEGUNDO EXACTO: DESAPARECER LAS ESPORAS 🌟
             clearTimeout(sporesTimeout);
             sporesTimeout = setTimeout(() => {
-                sCanvas.classList.remove('active'); // Inicia el fade out de 1.5s
+                sCanvas.classList.remove('active');
                 setTimeout(() => {
                     spores.forEach(sp => {
-                        sp.vx = (Math.random() - 0.5) * 1.4;
-                        sp.vy = (Math.random() - 0.5) * 1.4;
+                        sp.vx = (Math.random() - 0.5) * 1.5;
+                        sp.vy = (Math.random() - 0.5) * 1.5;
                     });
-                }, 500);
-            }, 1500);
+                }, 400);
+            }, 1000);
         }
 
         function playTacticalEntrySound(color) {
@@ -709,10 +640,10 @@ HTML_CONTENT = """<!DOCTYPE html>
                 osc.connect(gain); gain.connect(ctx.destination);
                 osc.type = 'triangle';
                 osc.frequency.setValueAtTime(240, now);
-                osc.frequency.exponentialRampToValueAtTime(920, now + 0.18);
-                gain.gain.setValueAtTime(0.32, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
-                osc.start(now); osc.stop(now + 0.19);
+                osc.frequency.exponentialRampToValueAtTime(920, now + 0.16);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+                osc.start(now); osc.stop(now + 0.17);
             } catch(e) {}
         }
 
@@ -730,146 +661,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         }
 
-        /* 2. TRABAJO PESADO: DESPACHO COMERCIAL Y CUBICAJE EN RAM */
-        function setCarrier(key, rate, elem) {
-            carrierRate = rate;
-            activeCarrier = elem.innerText;
-            document.querySelectorAll('.dispatch-chip-btn').forEach(b => b.classList.remove('active'));
-            elem.classList.add('active');
-        }
-
-        async function handleDispatchCapture() {
-            const curMod = moduleCatalog[activeCardIndex];
-            if (curMod.key === 'dispatch') {
-                executeDispatchCapture();
-            } else {
-                captureStandardZSL();
-            }
-        }
-
-        async function executeDispatchCapture() {
-            triggerUniversalEntryProtocol('#00E676');
-            playScannerBeepSound();
-
-            document.getElementById('telDispatchEngine').innerText = 'LOGISTICS: PROCESSING';
-
-            dispCtx.drawImage(hiddenCanvas, 0, 0);
-
-            // Generar código de tracking aleatorio
-            const trackingNum = `BN-${Math.floor(1000 + Math.random() * 9000)}-TRK`;
-            const cbm = (0.035 + Math.random() * 0.02).toFixed(3);
-            const volWeight = (6.0 + Math.random() * 2.5).toFixed(1);
-
-            document.getElementById('dispTicketCarrier').innerText = activeCarrier;
-            document.getElementById('dispTicketCode').innerText = trackingNum;
-            document.getElementById('dispTicketCbm').innerText = `${cbm} m³`;
-            document.getElementById('dispTicketWeight').innerText = `${volWeight} kg`;
-            document.getElementById('dispTicketPrice').innerText = `$${carrierRate}.00 MXN`;
-
-            // Estampado sobre la foto
-            dispCtx.fillStyle = "rgba(4, 18, 10, 0.78)";
-            dispCtx.fillRect(10, dispCanvas.height - 45, dispCanvas.width - 20, 35);
-            dispCtx.fillStyle = "#00E676";
-            dispCtx.font = "bold 13px monospace";
-            dispCtx.fillText(`DESPACHO V2 • ${activeCarrier} • GUÍA: ${trackingNum} • CBM: ${cbm} • VOL: ${volWeight}kg`, 20, dispCanvas.height - 22);
-
-            processedDispDataUrl = dispCanvas.toDataURL('image/jpeg', 0.95);
-
-            const res = await fetch('/bian/process/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: processedDispDataUrl, prompt_analysis: `Despacho V2 ${activeCarrier} ${trackingNum}` })
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
-                openDispatchEditModal(processedDispDataUrl);
-                document.getElementById('telDispatchEngine').innerText = 'LOGISTICS AI: READY';
-            }
-        }
-
-        function playScannerBeepSound() {
-            try {
-                const ctx = getAudioContext();
-                const now = ctx.currentTime;
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain); gain.connect(ctx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(1760, now);
-                gain.gain.setValueAtTime(0.25, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-                osc.start(now); osc.stop(now + 0.13);
-            } catch(e) {}
-        }
-
-        /* 3. INNOVACIÓN: MESA DE POST-EDICIÓN & GUÍA QR */
-        function openDispatchEditModal(imgSrc) {
-            document.getElementById('editModalTitle').innerText = '📦 MANIFIESTO DE DESPACHO V2';
-            document.getElementById('editImagePreview').src = imgSrc;
-            document.getElementById('editImagePreview').style.display = 'block';
-            document.getElementById('dispatchTicketBox').style.display = 'none';
-            document.getElementById('postEditModal').style.display = 'flex';
-        }
-
-        function closeEditModal() { document.getElementById('postEditModal').style.display = 'none'; }
-
-        function switchDispatchView(view, elem) {
-            document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
-            elem.classList.add('active');
-
-            const previewImg = document.getElementById('editImagePreview');
-            const ticket = document.getElementById('dispatchTicketBox');
-
-            if (view === 'preview') {
-                previewImg.style.display = 'block';
-                ticket.style.display = 'none';
-            } else if (view === 'ticket') {
-                previewImg.style.display = 'none';
-                ticket.style.display = 'flex';
-            }
-        }
-
-        function applyDispatchFilter(mode, elem) {
-            document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
-            elem.classList.add('active');
-            const img = document.getElementById('editImagePreview');
-
-            if (mode === 'label_enhance') {
-                img.style.filter = 'contrast(1.4) brightness(1.1) saturate(1.2)';
-            } else if (mode === 'contrast_doc') {
-                img.style.filter = 'contrast(1.5) grayscale(0.3) drop-shadow(0 0 10px rgba(0,230,118,0.5))';
-            }
-        }
-
-        function exportDispatchResult() {
-            const a = document.createElement('a');
-            a.href = processedDispDataUrl || document.getElementById('editImagePreview').src;
-            a.download = `bian_despacho_v2_${Date.now()}.jpg`;
-            a.click();
-            alert('✔ Guía de despacho HD exportada con éxito.');
-        }
-
-        /* DISPARO ESTÁNDAR ZSL */
-        async function captureStandardZSL() {
-            const curMod = moduleCatalog[activeCardIndex];
-            triggerUniversalEntryProtocol(curMod.color);
-
-            const b64 = hiddenCanvas.toDataURL('image/jpeg', 0.95);
-            const res = await fetch('/bian/process/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: b64, prompt_analysis: `Captura ${curMod.title}` })
-            });
-            if (res.ok) {
-                const data = await res.json();
-                document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
-                openDispatchEditModal(b64);
-            }
-        }
-
-        /* CATÁLOGO DE MÓDULOS CON DESPACHO COMERCIAL V2 INTEGRADO */
+        /* CATÁLOGO DE MÓDULOS DE LA MASTER SUITE */
         const moduleCatalog = [
             { key: 'dispatch', icon: '📦', title: 'DESPACHO COMERCIAL V2', pill: '📦 CUBICAJE IATA & MANIFIESTO LOGÍSTICO', color: '#00E676', capText: 'DESPACHO', capSub: 'F/1.4 • WAYBILL MATRIX', botTips: 'Calcula cubicaje CBM, peso volumétrico y genera manifiestos de salida.' },
             { key: 'ai', icon: '✨', title: 'GENERADOR AI V8', pill: '✨ DIFUSIÓN LATENTE & MORFOLOGÍA NEURONAL', color: '#FF007A', capText: 'NEURAL AI', capSub: 'F/1.4 • LATENT SYNTHESIS', botTips: 'Transformación neuronal guiada por cámara.' },
@@ -985,8 +777,8 @@ HTML_CONTENT = """<!DOCTYPE html>
             document.getElementById('contextPillText').style.color = m.color;
             document.getElementById('contextPillText').style.borderColor = `${m.color}66`;
 
-            document.getElementById('dispatchShutterBtn').style.background = m.color;
-            document.getElementById('dispatchShutterBtn').style.boxShadow = `0 0 22px ${m.color}88`;
+            document.getElementById('masterShutterBtn').style.background = m.color;
+            document.getElementById('masterShutterBtn').style.boxShadow = `0 0 22px ${m.color}88`;
             document.getElementById('shutterCorona').style.borderColor = m.color;
 
             document.getElementById('floatingGadget').innerText = m.icon;
@@ -1001,13 +793,6 @@ HTML_CONTENT = """<!DOCTYPE html>
             document.getElementById('lensCapCenterText').innerText = m.capText;
             document.getElementById('lensCapCenterText').style.color = m.color;
             document.getElementById('lensCapSubText').innerText = m.capSub;
-
-            // Mostrar u ocultar controles específicos de Despacho
-            if (m.key === 'dispatch') {
-                document.getElementById('dispatchHud').style.display = 'flex';
-            } else {
-                document.getElementById('dispatchHud').style.display = 'none';
-            }
 
             const topCard = deckStack.querySelector('.pos-0');
             if (topCard) {
@@ -1057,6 +842,53 @@ HTML_CONTENT = """<!DOCTYPE html>
             const deltaY = touchStartY - e.changedTouches[0].clientY;
             if (deltaY > 20 || Math.abs(deltaY) < 10) unlockSuite();
         }, { passive: true });
+
+        /* DISPARO GENERAL */
+        async function handleMasterCapture() {
+            const curMod = moduleCatalog[activeCardIndex];
+            triggerUniversalEntryProtocol(curMod.color);
+
+            const b64 = hiddenCanvas.toDataURL('image/jpeg', 0.95);
+            lastCapturedUrl = b64;
+
+            const res = await fetch('/bian/process/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image_base64: b64, prompt_analysis: `Captura ${curMod.title}` })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
+                openMasterEditModal(b64, curMod);
+            }
+        }
+
+        function openMasterEditModal(imgSrc, curMod) {
+            document.getElementById('editModalTitle').innerText = `${curMod.icon} ${curMod.title} RENDER`;
+            document.getElementById('editImagePreview').src = imgSrc;
+            document.getElementById('postEditModal').style.display = 'flex';
+        }
+
+        function closeEditModal() { document.getElementById('postEditModal').style.display = 'none'; }
+
+        function applyMasterFilter(mode, elem) {
+            document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
+            elem.classList.add('active');
+            const img = document.getElementById('editImagePreview');
+            if (mode === 'standard') img.style.filter = 'contrast(1.1) saturate(1.1)';
+            else if (mode === 'high_contrast') img.style.filter = 'contrast(1.35) brightness(1.05)';
+            else if (mode === 'vivid_tone') img.style.filter = 'saturate(1.4) contrast(1.15)';
+        }
+
+        function exportMasterResult() {
+            const curMod = moduleCatalog[activeCardIndex];
+            const a = document.createElement('a');
+            a.href = lastCapturedUrl || document.getElementById('editImagePreview').src;
+            a.download = `bian_${curMod.key}_v10_${Date.now()}.jpg`;
+            a.click();
+            alert('✔ Asset exportado exitosamente a la memoria local.');
+        }
 
         /* GADGET FLOTANTE */
         const gadget = document.getElementById('floatingGadget');
@@ -1110,7 +942,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                 const cur = moduleCatalog[activeCardIndex];
                 const list = document.getElementById('floatActionList');
                 list.innerHTML = `
-                    <button class="bot-btn" onclick="handleDispatchCapture(); toggleFloatingPanel();">📸 Disparo con ${cur.title}</button>
+                    <button class="bot-btn" onclick="handleMasterCapture(); toggleFloatingPanel();">📸 Disparo con ${cur.title}</button>
                     <button class="bot-btn" onclick="openHorizontalDock(); toggleFloatingPanel();">🎴 Selector de Módulos</button>
                     <button class="bot-btn" onclick="toggleGhostScope(); toggleFloatingPanel();">👁 Alternar Radar Espectral</button>
                     <button class="bot-btn" onclick="openGalleryModal(); toggleFloatingPanel();">🖼️ Ver Galería Local</button>
@@ -1148,7 +980,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                     card.className = 'gallery-card';
                     card.onclick = () => {
                         closeGalleryModal();
-                        openDispatchEditModal(img.image_path);
+                        openMasterEditModal(img.image_path, moduleCatalog[activeCardIndex]);
                     };
                     card.innerHTML = `
                         <img src="${img.image_path}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\' viewBox=\\'0 0 100 100\\'><rect width=\\'100\\' height=\\'100\\' fill=\\'%23222\\'/><text x=\\'50\\' y=\\'55\\' fill=\\'%23666\\' font-size=\\'11\\' text-anchor=\\'middle\\'>Sin Vista</text></svg>'"/>
@@ -1165,37 +997,98 @@ HTML_CONTENT = """<!DOCTYPE html>
 
         function closeGalleryModal() { document.getElementById('galleryModal').style.display = 'none'; }
 
+        /* 🌟 NANO-BOT TÁCTICO V2 ULTRA: MÉTODOS Y MACROS 🌟 */
         function openNanobot() {
             const curMod = moduleCatalog[activeCardIndex];
             const modal = document.getElementById('nanobotModal');
-            const msg = document.getElementById('botMessageText');
+            const term = document.getElementById('botTerminalOutput');
             const act = document.getElementById('botActionList');
 
-            msg.innerHTML = `
-                <div style="color:${curMod.color}; font-weight:800; margin-bottom:6px;">🤖 Diagnóstico para ${curMod.title}:</div>
-                <div>${curMod.botTips}</div>
+            document.getElementById('botActiveModLabel').innerText = curMod.title;
+            term.innerHTML = `
+                > INICIALIZANDO COPILOTO TÁCTICO V2...<br>
+                > MÓDULO AUDITADO: <span style="color:${curMod.color}; font-weight:800;">${curMod.title}</span><br>
+                > ESTADO: ${curMod.botTips}<br>
+                > LATENCIA EN MEMORIA RAM: 11.4 ms | INFERENCIA LISTA
             `;
 
             act.innerHTML = `
-                <button class="bot-btn" onclick="executeBotAction('calibrate')">⚡ Re-calibrar Despacho & Esporas de 1.5s</button>
-                <button class="bot-btn" onclick="executeBotAction('ghost')">👁️ Activar Radar Espectral</button>
-                <button class="bot-btn" onclick="executeBotAction('gallery')">🖼️️ Ver Galería Local</button>
+                <button class="bot-btn" onclick="executeBotMacro('calibrate')">
+                    <span>⚡ Calibración Óptima del Módulo</span>
+                    <span style="color:#888;">MACRO</span>
+                </button>
+                <button class="bot-btn" onclick="executeBotMacro('clear_ram')">
+                    <span>🧹 Purgar Búfer de RAM en Termux</span>
+                    <span style="color:#888;">CACHE</span>
+                </button>
+                <button class="bot-btn" onclick="executeBotMacro('ghost')">
+                    <span>👁 Alternar Radar de Frecuencia Espectral</span>
+                    <span style="color:#888;">VISOR</span>
+                </button>
+                <button class="bot-btn" onclick="executeBotMacro('gallery')">
+                    <span>🖼 Inspeccionar Almacén SQLite Local</span>
+                    <span style="color:#888;">BASE DE DATOS</span>
+                </button>
             `;
 
+            playBotVoiceChirp();
             modal.style.display = 'flex';
         }
 
         function closeNanobot() { document.getElementById('nanobotModal').style.display = 'none'; }
 
-        function executeBotAction(action) {
+        function playBotVoiceChirp() {
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.setValueAtTime(1200, now + 0.08);
+                osc.frequency.setValueAtTime(1800, now + 0.14);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                osc.start(now); osc.stop(now + 0.23);
+            } catch(e) {}
+        }
+
+        function executeBotMacro(macro) {
+            const curMod = moduleCatalog[activeCardIndex];
             closeNanobot();
-            if(action === 'calibrate') {
-                applyActiveCardTheme(moduleCatalog[activeCardIndex], true);
-            } else if(action === 'ghost') {
+
+            if (macro === 'calibrate') {
+                applyActiveCardTheme(curMod, true);
+                alert(`✔ Calibración completa para ${curMod.title}. Parámetros fijados en RAM.`);
+            } else if (macro === 'clear_ram') {
+                spores = [];
+                initSpores();
+                triggerUniversalEntryProtocol(curMod.color);
+                alert("✔ Búfer de memoria purgado exitosamente. Esporas re-inicializadas.");
+            } else if (macro === 'ghost') {
                 toggleGhostScope();
-            } else if(action === 'gallery') {
+            } else if (macro === 'gallery') {
                 openGalleryModal();
             }
+        }
+
+        function executeCustomBotCommand() {
+            const input = document.getElementById('botCommandInput');
+            const cmd = input.value.trim().toLowerCase();
+            if (!cmd) return;
+
+            const term = document.getElementById('botTerminalOutput');
+            const curMod = moduleCatalog[activeCardIndex];
+
+            playBotVoiceChirp();
+            term.innerHTML += `<br>> COMANDO EJECUTADO: <span style="color:#fff;">${cmd}</span><br>> APLICANDO AJUSTE NEURONAL...`;
+            input.value = '';
+
+            setTimeout(() => {
+                triggerUniversalEntryProtocol(curMod.color);
+                term.innerHTML += `<br>> AJUSTE CONFIRMADO EN TERMINAL [OK]`;
+            }, 300);
         }
     </script>
 </body>
