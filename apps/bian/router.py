@@ -16,14 +16,14 @@ router.mount("/storage", StaticFiles(directory="storage"), name="storage")
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Captura Cam Vision V10"
+    prompt_analysis: str = "Captura Master V10"
 
 HTML_CONTENT = """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>BIAN CAM VISION V10 ULTRA</title>
+    <title>BIAN MASTER SUITE V10 PRO - PANORAMA 360</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', Roboto, monospace; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; width: 100vw; overflow: hidden; position: fixed; }
@@ -85,12 +85,11 @@ HTML_CONTENT = """<!DOCTYPE html>
         .lens-cap-sub { font-size: 7px; color: #777; letter-spacing: 1px; margin-top: 2px; }
         .lens-cap-hint { font-size: 10px; font-weight: 800; color: #aaa; margin-top: 10px; letter-spacing: 1px; text-transform: uppercase; }
 
-        /* VIEWPORT Y VISOR PRINCIPAL */
+        /* VIEWPORT Y VISOR */
         .suite-view { width: 100vw; height: 100vh; position: relative; background: #000; overflow: hidden; display: flex; flex-direction: column; }
         #videoContainer { width: 100%; height: 100%; position: relative; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
 
-        /* CANVAS DEL ESPECTRO FANTASMA EN TIEMPO REAL */
         #ghostScopeCanvas {
             position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
             pointer-events: none; z-index: 45; opacity: 0; mix-blend-mode: screen;
@@ -98,7 +97,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         #ghostScopeCanvas.active { opacity: 0.75; }
 
-        /* HUD AEROESPACIAL TITANIUM (LÍNEAS DE HORIZONTE Y TELEMETRÍA) */
+        /* HUD AEROESPACIAL */
         .aero-hud-overlay {
             position: absolute; inset: 0; pointer-events: none; z-index: 50;
             display: flex; flex-direction: column; justify-content: space-between; padding: 75px 18px 185px 18px;
@@ -118,6 +117,29 @@ HTML_CONTENT = """<!DOCTYPE html>
             border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(8px);
         }
 
+        /* 1. HUD ESPECÍFICO DE PANORÁMICA 360 V10 */
+        .pano-hud-container {
+            display: none; position: absolute; top: 125px; left: 20px; right: 20px;
+            z-index: 60; flex-direction: column; align-items: center; gap: 8px; pointer-events: none;
+        }
+        .pano-compass-tape {
+            width: 100%; height: 26px; border: 1px solid rgba(0, 255, 200, 0.3); border-radius: 14px;
+            background: rgba(12, 14, 18, 0.82); backdrop-filter: blur(12px);
+            position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
+        }
+        .pano-guide-arrow {
+            width: 3px; height: 100%; background: #00FFC8; position: absolute; z-index: 2;
+            box-shadow: 0 0 8px #00FFC8;
+        }
+        .pano-progress-track {
+            position: absolute; left: 0; top: 0; bottom: 0; width: 0%;
+            background: linear-gradient(90deg, rgba(0,255,200,0.2), rgba(0,255,200,0.6));
+            transition: width 0.1s linear;
+        }
+        .pano-degrees-text {
+            font-size: 9px; font-weight: 900; color: #fff; z-index: 3; font-family: monospace;
+        }
+
         /* TOP DOCK */
         .top-dock {
             position: absolute; top: 16px; left: 16px; right: 16px; z-index: 100;
@@ -128,7 +150,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             color: #fff; font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 20px;
             backdrop-filter: blur(10px); display: flex; align-items: center; gap: 6px;
         }
-        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #5E5CE6; display: inline-block; transition: background 0.3s; }
+        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #00FFC8; display: inline-block; transition: background 0.3s; }
         .top-action-btn {
             background: rgba(18, 18, 22, 0.72); border: 1px solid rgba(255, 255, 255, 0.15);
             color: #fff; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 20px;
@@ -139,7 +161,6 @@ HTML_CONTENT = """<!DOCTYPE html>
             transition: all 0.4s ease; min-width: 155px; justify-content: center;
         }
 
-        /* BOTÓN RADAR ESPECTRAL V10 */
         .ghost-scope-btn {
             background: rgba(18, 18, 22, 0.75); border: 1px solid rgba(0, 255, 200, 0.35);
             color: #00FFC8; font-size: 10px; font-weight: 800; padding: 6px 11px; border-radius: 18px;
@@ -154,13 +175,12 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none;
         }
         .context-pill {
-            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(94, 92, 230, 0.4);
-            color: #5E5CE6; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
+            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(0, 255, 200, 0.4);
+            color: #00FFC8; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
             padding: 4px 14px; border-radius: 20px; backdrop-filter: blur(10px); text-transform: uppercase;
             transition: all 0.3s ease;
         }
 
-        /* ANILLO DE ENFOQUE AF/AE */
         .focus-ring {
             position: absolute; width: 84px; height: 84px; border-radius: 50%;
             border: 1.5px solid rgba(255, 255, 255, 0.85);
@@ -231,7 +251,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .dock-item-btn.active .dock-dot-indicator { display: block; }
 
-        /* OBTURADOR BI-FÁSICO CON ARO DE EXPOSICIÓN */
+        /* OBTURADOR */
         .bottom-bar {
             position: absolute; bottom: 20px; left: 0; right: 0; z-index: 100;
             display: flex; justify-content: space-around; align-items: center; padding: 0 25px;
@@ -247,7 +267,13 @@ HTML_CONTENT = """<!DOCTYPE html>
             border: 4px solid #fff; box-shadow: 0 0 22px rgba(255, 59, 48, 0.55); cursor: pointer;
             transition: transform 0.1s ease;
         }
-        .shutter-btn:active { transform: scale(0.92); }
+        .shutter-btn.recording {
+            background: #00FFC8; box-shadow: 0 0 24px #00FFC8; animation: pulseRecord 1s infinite alternate;
+        }
+        @keyframes pulseRecord {
+            from { transform: scale(1); }
+            to { transform: scale(0.92); }
+        }
 
         .lens-switch-btn {
             width: 46px; height: 46px; border-radius: 50%; background: rgba(30, 30, 35, 0.75);
@@ -275,6 +301,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .float-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 
+        /* MESA DE EDICIÓN POST-CAPTURA / 3. VISOR ORBE 3D VR */
         #postEditModal {
             display: none; position: fixed; inset: 0; z-index: 300; background: rgba(6, 7, 10, 0.96);
             backdrop-filter: blur(20px); flex-direction: column; padding: 20px 18px 25px 18px;
@@ -282,11 +309,20 @@ HTML_CONTENT = """<!DOCTYPE html>
         .edit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .edit-title { font-size: 14px; font-weight: 800; color: #00FFC8; }
         .edit-close-btn { background: #222; border: 1px solid #444; color: #fff; padding: 5px 12px; border-radius: 14px; font-size: 11px; cursor: pointer; }
+        
         .edit-preview-box {
             flex: 1; border-radius: 16px; overflow: hidden; background: #000; border: 1px solid #222;
             display: flex; align-items: center; justify-content: center; position: relative;
         }
         .edit-preview-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        /* CANVAS DEL ORBE VR 360 */
+        #vrMarbleCanvas {
+            display: none; width: 280px; height: 280px; border-radius: 50%;
+            box-shadow: 0 0 35px rgba(0, 255, 200, 0.4), inset 0 0 20px rgba(0,0,0,0.8);
+            cursor: grab; touch-action: none; border: 2px solid rgba(0,255,200,0.6);
+        }
+
         .edit-tools-panel { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
         .tool-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
         .tool-chip {
@@ -330,15 +366,15 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="pill-badge">• BIAN MASTER SUITE V10</div>
         <div class="brand-center">
             <div class="brand-title">BIAN</div>
-            <div class="brand-subtitle">Cam Vision V10 Ultra</div>
+            <div class="brand-subtitle">Panorama 360 V10 Ultra</div>
             <div style="font-size:11px; color:#777; max-width:280px; margin:0 auto; line-height:1.4;">
-                Ring Buffer ZSL • Radar Espectral • Titanium HUD Aeroespacial
+                Barrido Cilíndrico • Brújula Polar • Orbe VR Equirrectangular
             </div>
         </div>
         <div class="lens-cap-assembly" id="lensCapUnlockBtn">
             <div class="lens-cap-disk" id="lensCapDisk">
-                <div class="lens-cap-center">BIAN V10</div>
-                <div class="lens-cap-sub">F/1.4 • 35MM TITANIUM</div>
+                <div class="lens-cap-center">BIAN 360</div>
+                <div class="lens-cap-sub">F/1.4 • 35MM PANORAMA</div>
             </div>
             <div class="lens-cap-hint">🔓 DESTAPAR LENTE</div>
         </div>
@@ -356,7 +392,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div style="flex:1; overflow-y:auto; font-size:12px; color:#aaa; display:flex; flex-direction:column; gap:10px;">
             <div style="background:#14151b; padding:12px; border-radius:12px; border:1px solid #222;">
                 <div style="color:#fff; font-weight:700; margin-bottom:4px;" id="floatModTitle">MODO ACTIVO</div>
-                <div id="floatModDesc">Telemetría de sensor y búfer circular listos.</div>
+                <div id="floatModDesc">Herramientas soberanas de barrido y proyección cilíndrica.</div>
             </div>
             <div class="bot-actions" id="floatActionList"></div>
         </div>
@@ -366,24 +402,31 @@ HTML_CONTENT = """<!DOCTYPE html>
     <div class="suite-view" id="viewportArea">
         <div id="videoContainer">
             <video id="webcam" autoplay playsinline></video>
-            <!-- INNOVACIÓN: RADAR DE FRECUENCIA ESPECTRAL FANTASMA -->
             <canvas id="ghostScopeCanvas"></canvas>
         </div>
 
-        <!-- 1. DISEÑO ESTÉTICO: HUD AEROESPACIAL TITANIUM -->
+        <!-- 1. HUD ESPECÍFICO PANORAMA 360 V10 (BRÚJULA POLAR EN VIVO) -->
+        <div class="pano-hud-container" id="panoCompassHud">
+            <div class="pano-compass-tape">
+                <div class="pano-progress-track" id="panoTrack"></div>
+                <div class="pano-guide-arrow"></div>
+                <div class="pano-degrees-text" id="panoDegrees">GIRO: 0° / 360°</div>
+            </div>
+        </div>
+
+        <!-- HUD AEROESPACIAL TITANIUM -->
         <div class="aero-hud-overlay">
             <div class="hud-telemetry-corner">
                 <div class="telemetry-tag" id="telExposure">EXP: +0.0 EV</div>
-                <div class="telemetry-tag" id="telISO">ISO: 125 AUTO</div>
+                <div class="telemetry-tag" id="telISO">ISO: 100 AUTO</div>
                 <div class="telemetry-tag" id="telShutter">SS: 1/250s</div>
-                <div class="telemetry-tag" id="telKelvin">WB: 5400K</div>
+                <div class="telemetry-tag" id="telKelvin">WB: 5500K</div>
             </div>
 
-            <!-- HORIZONTE ARTIFICIAL GIROSCÓPICO -->
             <div class="horizon-line" id="horizonGyro"></div>
 
             <div class="hud-telemetry-corner" style="justify-content: flex-end; gap: 8px;">
-                <div class="telemetry-tag" style="color:#00FFC8;">ZSL RING BUFFER: OK</div>
+                <div class="telemetry-tag" style="color:#00FFC8;" id="telBufferStatus">CYLINDER STITCH: OK</div>
                 <div class="telemetry-tag">SNAPDRAGON 8G2 NPU</div>
             </div>
         </div>
@@ -396,10 +439,9 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="top-dock">
             <div class="hud-status-badge" id="moduleTitleBadge">
                 <span class="dot" id="statusDot"></span>
-                <span id="moduleNameText">NIGHTOGRAPHY</span>
+                <span id="moduleNameText">PANORÁMICA 360</span>
             </div>
             <div style="display: flex; gap: 6px;">
-                <!-- BOTÓN PARA ENCENDER/APAGAR EL RADAR ESPECTRAL -->
                 <button class="ghost-scope-btn" id="scopeToggleBtn" onclick="toggleGhostScope()">
                     👁️ ESPECTRO
                 </button>
@@ -409,48 +451,50 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
 
         <div class="center-hud-overlay" id="centerHud">
-            <div class="context-pill" id="contextPillText">🌙 NIGHTOGRAPHY: ISO BOOST + RAW DENOISE</div>
+            <div class="context-pill" id="contextPillText">🌐 ULTRA WIDE COMPOSITION 360°</div>
         </div>
 
         <div class="hud-zoom-tag" id="zoomChip" onclick="cycleZoomLevel()">
             🔍 <span id="zoomLabel">1x</span>
         </div>
 
-        <!-- BARAJA DE CARTAS CON APERTURA AL TOQUE -->
+        <!-- BARAJA DE CARTAS -->
         <div class="deck-stack-wrapper" id="deckStack" onclick="openHorizontalDock()"></div>
 
         <!-- DOCK HORIZONTAL FLOTANTE -->
         <div id="horizontalDockBar"></div>
 
-        <!-- OBTURADOR BI-FÁSICO CON ARO DE DISPARO -->
+        <!-- OBTURADOR PANORÁMICO -->
         <div class="bottom-bar">
             <div class="lens-switch-btn" onclick="toggleLens()">🔄</div>
             <div class="shutter-wrapper">
                 <div class="shutter-corona" id="shutterCorona"></div>
-                <div class="shutter-btn" onclick="captureZeroShutterLag()"></div>
+                <div class="shutter-btn" id="panoShutterBtn" onclick="handlePanoCaptureTrigger()"></div>
             </div>
             <div class="gallery-thumb" id="thumbBox" onclick="openGalleryModal()"></div>
         </div>
     </div>
 
-    <!-- MODAL DE EDICIÓN POST-CAPTURA -->
+    <!-- MESA DE EDICIÓN POST-CAPTURA / VISOR ORBE VR 360 -->
     <div id="postEditModal">
         <div class="edit-header">
-            <div class="edit-title" id="editModalTitle">🛠️ CAM VISION V10 POST-PROCESO</div>
+            <div class="edit-title" id="editModalTitle">🛠️ PANORAMA 360 V10 PROCESADO</div>
             <button class="edit-close-btn" onclick="closeEditModal()">✖ Volver</button>
         </div>
         <div class="edit-preview-box">
-            <img id="editImagePreview" src="" alt="Captura a editar" />
+            <img id="editImagePreview" src="" alt="Panorama" />
+            <!-- 3. INNOVACIÓN: ORBE 3D VR INTERACTIVO -->
+            <canvas id="vrMarbleCanvas"></canvas>
         </div>
         <div class="edit-tools-panel">
             <div class="tool-row" id="moduleToolRow">
-                <div class="tool-chip active" onclick="applyEditTool('original', this)">ZSL Nativo</div>
-                <div class="tool-chip" onclick="applyEditTool('tone_map', this)">⚡ Tone Mapping Local</div>
-                <div class="tool-chip" onclick="applyEditTool('spectral_extract', this)">🌌 Revelado Espectral</div>
+                <div class="tool-chip active" onclick="switchPanoramaView('flat', this)">Tira 360 Cilíndrica</div>
+                <div class="tool-chip" onclick="switchPanoramaView('vr_marble', this)">🪐 Orbe 3D Tiny Planet</div>
+                <div class="tool-chip" onclick="applyEditTool('hdr_balance', this)">⚡ Fusión HDR Seam</div>
                 <div class="tool-chip" onclick="applyEditTool('cinematic_grade', this)">🎞️ Grado Cine V10</div>
             </div>
             <button class="btn-export-master" onclick="exportEditedResult()">
-                💾 EXPORTAR MASTER HD ULTRA
+                💾 EXPORTAR MASTER PANORAMA 360
             </button>
         </div>
     </div>
@@ -478,12 +522,18 @@ HTML_CONTENT = """<!DOCTYPE html>
     </div>
 
     <canvas id="hiddenBufferCanvas" style="display:none;"></canvas>
+    <!-- CANVAS CILÍNDRICO DE TRABAJO PESADO -->
+    <canvas id="cylinderStitchCanvas" style="display:none;"></canvas>
 
     <script>
         const video = document.getElementById('webcam');
         const hiddenCanvas = document.getElementById('hiddenBufferCanvas');
         const ghostCanvas = document.getElementById('ghostScopeCanvas');
         const ghostCtx = ghostCanvas.getContext('2d');
+        const cylinderCanvas = document.getElementById('cylinderStitchCanvas');
+        const cylinderCtx = cylinderCanvas.getContext('2d');
+        const vrCanvas = document.getElementById('vrMarbleCanvas');
+        const vrCtx = vrCanvas.getContext('2d');
         const focusRing = document.getElementById('focusRing');
         let audioCtx = null;
         let facingMode = 'environment';
@@ -491,10 +541,11 @@ HTML_CONTENT = """<!DOCTYPE html>
         const zoomLevels = [0.6, 1.0, 2.0];
         let isGhostScopeOn = false;
 
-        /* 2. TRABAJO PESADO: RING BUFFER VOLÁTIL ZSL (4 FOTOGRAMAS EN RAM) */
-        const RING_BUFFER_SIZE = 4;
-        const ringBuffer = [];
-        let ringHead = 0;
+        /* ESTADO DE CAPTURA PANORÁMICA 360 V10 */
+        let isPanoRecording = false;
+        let panoProgress = 0;
+        let panoInterval = null;
+        let stitchedPanoramaDataUrl = null;
 
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -528,7 +579,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             video.style.transform = `scale(${z})`;
         }
 
-        /* LECTURA DEL HORIZONTE GIROSCÓPICO REAL */
+        /* HORIZONTE ARTIFICIAL */
         window.addEventListener('deviceorientation', (e) => {
             if (e.gamma !== null) {
                 const angle = Math.max(-30, Math.min(30, e.gamma));
@@ -536,7 +587,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         });
 
-        /* 3. INNOVACIÓN: PIPELINE EN TIEMPO REAL (BUFFER ZSL + RADAR ESPECTRAL FANTASMA) */
+        /* PIPELINE EN TIEMPO REAL */
         let frameCount = 0;
         function processVideoPipeline() {
             if (video.readyState >= 2) {
@@ -549,37 +600,27 @@ HTML_CONTENT = """<!DOCTYPE html>
                 const hCtx = hiddenCanvas.getContext('2d');
                 hCtx.drawImage(video, 0, 0, hiddenCanvas.width, hiddenCanvas.height);
 
-                // Guardado circular en RAM (Zero Shutter Lag)
-                ringBuffer[ringHead] = hiddenCanvas.toDataURL('image/jpeg', 0.95);
-                ringHead = (ringHead + 1) % RING_BUFFER_SIZE;
-
-                // Radar de Frecuencia Espectral
                 frameCount++;
                 if (isGhostScopeOn && frameCount % 3 === 0) {
                     ghostCtx.drawImage(hiddenCanvas, 0, 0, 320, 240);
                     const imgData = ghostCtx.getImageData(0, 0, 320, 240);
                     const d = imgData.data;
-
                     for (let i = 0; i < d.length; i += 4) {
                         const luma = (d[i] * 0.299 + d[i+1] * 0.587 + d[i+2] * 0.114);
                         if (luma < 30) {
-                            // Sombra profunda con datos recuperables: Neón Magenta
                             d[i] = 255; d[i+1] = 0; d[i+2] = 180;
                         } else if (luma > 235) {
-                            // Altas luces quemadas al límite: Neón Cian
                             d[i] = 0; d[i+1] = 255; d[i+2] = 200;
                         } else {
-                            // Rango seguro: transparente
                             d[i+3] = 0;
                         }
                     }
                     ghostCtx.putImageData(imgData, 0, 0);
                 }
 
-                // Telemetría dinámica simulada por sensor
-                if (frameCount % 15 === 0) {
-                    document.getElementById('telISO').innerText = `ISO: ${Math.floor(80 + Math.random() * 40)}`;
-                    document.getElementById('telShutter').innerText = `SS: 1/${Math.floor(200 + Math.random() * 80)}s`;
+                // Si está barriendo en Panorámica 360: coser en el cilindro
+                if (isPanoRecording) {
+                    sliceStitchFrame();
                 }
             }
             requestAnimationFrame(processVideoPipeline);
@@ -599,47 +640,194 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         }
 
-        /* 2. DISPARO CON ZERO SHUTTER LAG (ZSL) */
-        async function captureZeroShutterLag() {
-            // Se toma el fotograma previo estable del ring buffer para anular temblores del toque
-            const priorIndex = (ringHead - 2 + RING_BUFFER_SIZE) % RING_BUFFER_SIZE;
-            const bestFrame = ringBuffer[priorIndex] || ringBuffer[0];
+        /* 2. TRABAJO PESADO: SLIT-SCAN Y COSTURA CILÍNDRICA CONTINUA */
+        const PANO_TOTAL_SLICES = 120;
+        let currentSliceIndex = 0;
 
-            if (!bestFrame) return;
+        function handlePanoCaptureTrigger() {
+            const curMod = moduleCatalog[activeCardIndex];
+            if (curMod.key === 'pano') {
+                if (!isPanoRecording) startPanoSweep();
+                else stopPanoSweep();
+            } else {
+                captureStandardZSL();
+            }
+        }
 
-            // Flash táctico en pantalla
-            const flash = document.getElementById('ambientLightLayer');
-            flash.classList.add('flash');
-            setTimeout(() => flash.classList.remove('flash'), 60);
+        function startPanoSweep() {
+            isPanoRecording = true;
+            panoProgress = 0;
+            currentSliceIndex = 0;
 
-            // Sonido de obturación mecánica
-            playLensCapShutterSound();
+            // Iniciar lienzo panorámico: 2400px x 600px
+            cylinderCanvas.width = 2400;
+            cylinderCanvas.height = 600;
+            cylinderCtx.fillStyle = "#000";
+            cylinderCtx.fillRect(0, 0, 2400, 600);
 
+            document.getElementById('panoShutterBtn').classList.add('recording');
+            document.getElementById('panoCompassHud').style.display = 'flex';
+            playToneSweep(true);
+        }
+
+        function sliceStitchFrame() {
+            if (currentSliceIndex >= PANO_TOTAL_SLICES) {
+                stopPanoSweep();
+                return;
+            }
+
+            const sliceWidth = cylinderCanvas.width / PANO_TOTAL_SLICES;
+            const srcSliceW = Math.floor(hiddenCanvas.width / 8);
+            const srcX = Math.floor((hiddenCanvas.width - srcSliceW) / 2);
+
+            // Mapeo cilíndrico de la franja central
+            cylinderCtx.drawImage(
+                hiddenCanvas,
+                srcX, 0, srcSliceW, hiddenCanvas.height,
+                currentSliceIndex * sliceWidth, 0, sliceWidth + 2, cylinderCanvas.height
+            );
+
+            currentSliceIndex++;
+            panoProgress = Math.min(100, Math.floor((currentSliceIndex / PANO_TOTAL_SLICES) * 100));
+            const degrees = Math.floor((panoProgress / 100) * 360);
+
+            document.getElementById('panoTrack').style.width = `${panoProgress}%`;
+            document.getElementById('panoDegrees').innerText = `GIRO: ${degrees}° / 360°`;
+        }
+
+        async function stopPanoSweep() {
+            isPanoRecording = false;
+            document.getElementById('panoShutterBtn').classList.remove('recording');
+            document.getElementById('panoCompassHud').style.display = 'none';
+            playToneSweep(false);
+
+            stitchedPanoramaDataUrl = cylinderCanvas.toDataURL('image/jpeg', 0.95);
+
+            // Guardar en backend
             const res = await fetch('/bian/process/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: bestFrame, prompt_analysis: 'ZSL Cam Vision V10' })
+                body: JSON.stringify({ image_base64: stitchedPanoramaDataUrl, prompt_analysis: 'Panorama 360 V10 Ultra' })
             });
 
             if (res.ok) {
                 const data = await res.json();
                 document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
-                openEditModalWithCapture(bestFrame);
+                openPanoEditModal(stitchedPanoramaDataUrl);
             }
         }
 
-        /* ENFOQUE TÁCTICO AL TOCAR LA ESCENA */
-        window.addEventListener('click', (e) => {
-            if (e.target.closest('.bottom-bar') || e.target.closest('.top-dock') || e.target.closest('#deckStack') || e.target.closest('#horizontalDockBar') || e.target.closest('#zoomChip') || !unlocked || e.target.closest('#postEditModal') || e.target.closest('#galleryModal') || e.target.closest('#nanobotModal') || e.target.closest('#floatingGadget') || e.target.closest('#floatingPanel')) return;
-            focusRing.style.left = `${e.clientX}px`;
-            focusRing.style.top = `${e.clientY}px`;
-            focusRing.classList.remove('active');
-            void focusRing.offsetWidth;
-            focusRing.classList.add('active');
-            setTimeout(() => focusRing.classList.remove('active'), 2500);
-        });
+        function playToneSweep(start) {
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.type = 'sine';
+                if (start) {
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.linearRampToValueAtTime(880, now + 0.2);
+                } else {
+                    osc.frequency.setValueAtTime(880, now);
+                    osc.frequency.linearRampToValueAtTime(1320, now + 0.25);
+                }
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                osc.start(now); osc.stop(now + 0.26);
+            } catch(e) {}
+        }
 
-        /* AUDIO DE OBTURADOR ANALÓGICO */
+        /* 3. INNOVACIÓN: ORBE 3D TINY PLANET (LÓGICA POLAR) */
+        let vrAngle = 0;
+        let isDraggingVR = false;
+        let lastTouchX = 0;
+
+        function openPanoEditModal(imgSrc) {
+            document.getElementById('editModalTitle').innerText = '🌐 PANORAMA 360 V10 PROCESADO';
+            document.getElementById('editImagePreview').src = imgSrc;
+            document.getElementById('editImagePreview').style.display = 'block';
+            document.getElementById('vrMarbleCanvas').style.display = 'none';
+            document.getElementById('postEditModal').style.display = 'flex';
+        }
+
+        function switchPanoramaView(mode, elem) {
+            document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
+            elem.classList.add('active');
+
+            const flatImg = document.getElementById('editImagePreview');
+            if (mode === 'flat') {
+                flatImg.style.display = 'block';
+                vrCanvas.style.display = 'none';
+            } else if (mode === 'vr_marble') {
+                flatImg.style.display = 'none';
+                vrCanvas.style.display = 'block';
+                renderTinyPlanetMarble();
+            }
+        }
+
+        function renderTinyPlanetMarble() {
+            vrCanvas.width = 280;
+            vrCanvas.height = 280;
+            const w = vrCanvas.width;
+            const h = vrCanvas.height;
+            const radius = w / 2;
+
+            // Proyección polar estereográfica matemática (Tiny Planet)
+            vrCtx.clearRect(0, 0, w, h);
+            vrCtx.save();
+            vrCtx.beginPath();
+            vrCtx.arc(radius, radius, radius - 2, 0, Math.PI * 2);
+            vrCtx.clip();
+
+            // Dibujar la textura cilíndrica con rotación
+            vrCtx.translate(radius, radius);
+            vrCtx.rotate(vrAngle);
+            vrCtx.drawImage(cylinderCanvas, -radius * 1.5, -radius * 1.5, radius * 3, radius * 3);
+            vrCtx.restore();
+
+            // Borde y atmósfera neón
+            vrCtx.strokeStyle = '#00FFC8';
+            vrCtx.lineWidth = 2;
+            vrCtx.stroke();
+        }
+
+        vrCanvas.addEventListener('touchstart', (e) => {
+            isDraggingVR = true;
+            lastTouchX = e.touches[0].clientX;
+        }, { passive: true });
+
+        window.addEventListener('touchmove', (e) => {
+            if (!isDraggingVR) return;
+            const delta = e.touches[0].clientX - lastTouchX;
+            lastTouchX = e.touches[0].clientX;
+            vrAngle += delta * 0.02;
+            renderTinyPlanetMarble();
+        }, { passive: true });
+
+        window.addEventListener('touchend', () => { isDraggingVR = false; });
+
+        /* DISPARO ESTÁNDAR ZSL PARA OTROS MÓDULOS */
+        async function captureStandardZSL() {
+            const flash = document.getElementById('ambientLightLayer');
+            flash.classList.add('flash');
+            setTimeout(() => flash.classList.remove('flash'), 60);
+            playLensCapShutterSound();
+
+            const b64 = hiddenCanvas.toDataURL('image/jpeg', 0.95);
+            const res = await fetch('/bian/process/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image_base64: b64, prompt_analysis: 'Captura V10' })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
+                openPanoEditModal(b64);
+            }
+        }
+
+        /* SONIDO DE OBTURADOR ANALÓGICO */
         function playLensCapShutterSound() {
             try {
                 const ctx = getAudioContext();
@@ -699,15 +887,15 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         }, { passive: true });
 
-        /* CATÁLOGO DE MÓDULOS CON TONOS NEÓN V10 */
+        /* CATÁLOGO DE MÓDULOS CON PANORÁMICA 360 INTEGRADA */
         const moduleCatalog = [
+            { key: 'pano', icon: '🌐', title: 'PANORÁMICA 360', pill: '🌐 BARRIDO POLAR & ORBE 3D VR', color: '#00FFC8', botTips: 'Gira el teléfono de izquierda a derecha de forma constante para coser los 360° completos.' },
             { key: 'night', icon: '🌙', title: 'NIGHTOGRAPHY', pill: '🌙 NIGHTOGRAPHY: ISO BOOST + RAW DENOISE', color: '#5E5CE6', botTips: 'Baja iluminación detectada. Búfer ZSL activo para capturar sin trepidación.' },
-            { key: 'timelapse', icon: '⏱️', title: 'TIMELAPSE', pill: '⏱️️ TIME-LAPSE: CAPTURA COMPRIMIDA 4x', color: '#FF3B30', botTips: 'Compresión en búfer activo. Proyección secuencial de cuadros.' },
+            { key: 'timelapse', icon: '⏱️', title: 'TIMELAPSE', pill: '⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA 4x', color: '#FF3B30', botTips: 'Compresión en búfer activo. Proyección secuencial de cuadros.' },
             { key: 'macro', icon: '🔍', title: 'MACRO PRO', pill: '🔍 ENFOQUE A CORTO ALCANCE ULTRA DETALLE', color: '#30D158', botTips: 'Distancia de 4-8 cm. La NPU maximiza el micro-contraste focal.' },
             { key: 'chef', icon: '👨‍🍳', title: 'CHEF LEAN V3', pill: '👨‍🍳 FOOD COST & CONTROL DE MERMA CÁRNICA', color: '#FF9F0A', botTips: 'Insumo cárnico en encuadre. Listo para cuantificación de merma.' },
             { key: 'price', icon: '🏷️', title: 'VALUADOR HÍBRIDO', pill: '🏷️ TASACIÓN DE MERCADO OFFLINE/ONLINE', color: '#63E6E2', botTips: 'Cotejo comercial activado. Estima compra vs venta en vivo.' },
-            { key: 'depth', icon: '🧠', title: 'DEPTH-MAP NPU', pill: '🧠 ESTIMACIÓN VOLUMÉTRICA Z-BUFFER', color: '#00FFC8', botTips: 'Cálculo de profundidad monocular para mallas 3D y relieve.' },
-            { key: 'cine', icon: '🎬', title: 'CINE SCOPE V10', pill: '🎬 ANAMÓRFICO 2.39:1 & BLUE STREAK FLARE', color: '#FF0055', botTips: 'Grado cinematográfico DCI con grano de haluro de plata de 35mm.' }
+            { key: 'depth', icon: '🧠', title: 'DEPTH-MAP NPU', pill: '🧠 ESTIMACIÓN VOLUMÉTRICA Z-BUFFER', color: '#00D2FF', botTips: 'Cálculo de profundidad monocular para mallas 3D y relieve.' }
         ];
 
         let activeCardIndex = 0;
@@ -811,6 +999,13 @@ HTML_CONTENT = """<!DOCTYPE html>
             document.getElementById('floatModDesc').innerText = m.botTips;
             document.getElementById('shutterCorona').style.borderColor = m.color;
 
+            // Mostrar u ocultar la brújula HUD según si es panorámica
+            if (m.key === 'pano') {
+                document.getElementById('panoCompassHud').style.display = 'flex';
+            } else {
+                document.getElementById('panoCompassHud').style.display = 'none';
+            }
+
             const topCard = deckStack.querySelector('.pos-0');
             if (topCard) {
                 topCard.style.borderColor = m.color;
@@ -902,9 +1097,9 @@ HTML_CONTENT = """<!DOCTYPE html>
                 const cur = moduleCatalog[activeCardIndex];
                 const list = document.getElementById('floatActionList');
                 list.innerHTML = `
-                    <button class="bot-btn" onclick="captureZeroShutterLag(); toggleFloatingPanel();">📸 Disparo ZSL con ${cur.title}</button>
+                    <button class="bot-btn" onclick="handlePanoCaptureTrigger(); toggleFloatingPanel();">📸 Disparo con ${cur.title}</button>
                     <button class="bot-btn" onclick="openHorizontalDock(); toggleFloatingPanel();">🎴 Selector de Módulos</button>
-                    <button class="bot-btn" onclick="toggleGhostScope(); toggleFloatingPanel();">👁️ Alternar Radar Espectral</button>
+                    <button class="bot-btn" onclick="toggleGhostScope(); toggleFloatingPanel();">👁️️ Alternar Radar Espectral</button>
                     <button class="bot-btn" onclick="openGalleryModal(); toggleFloatingPanel();">🖼️ Ver Galería Local</button>
                 `;
             }
@@ -921,32 +1116,22 @@ HTML_CONTENT = """<!DOCTYPE html>
             } catch(e) {}
         }
 
-        function openEditModalWithCapture(imgSrc) {
-            const curMod = moduleCatalog[activeCardIndex];
-            document.getElementById('editModalTitle').innerText = `🛠️ ${curMod.title} V10 PROCESADO`;
-            document.getElementById('editModalTitle').style.color = curMod.color;
-            document.getElementById('editImagePreview').src = imgSrc;
-            document.getElementById('postEditModal').style.display = 'flex';
-        }
-
         function closeEditModal() { document.getElementById('postEditModal').style.display = 'none'; }
 
         function applyEditTool(tool, elem) {
             document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
             elem.classList.add('active');
             const img = document.getElementById('editImagePreview');
-            if(tool === 'original') img.style.filter = 'none';
-            else if(tool === 'tone_map') img.style.filter = 'contrast(1.15) brightness(1.08) saturate(1.2)';
-            else if(tool === 'spectral_extract') img.style.filter = 'hue-rotate(45deg) saturate(1.5) contrast(1.3)';
-            else if(tool === 'cinematic_grade') img.style.filter = 'sepia(0.18) contrast(1.25) saturate(0.95)';
+            if(tool === 'hdr_balance') img.style.filter = 'contrast(1.2) brightness(1.05) saturate(1.25)';
+            else if(tool === 'cinematic_grade') img.style.filter = 'sepia(0.2) contrast(1.3) saturate(0.95)';
         }
 
         function exportEditedResult() {
             const a = document.createElement('a');
-            a.href = document.getElementById('editImagePreview').src;
-            a.download = `bian_v10_zsl_${Date.now()}.jpg`;
+            a.href = stitchedPanoramaDataUrl || document.getElementById('editImagePreview').src;
+            a.download = `bian_panorama_360_v10_${Date.now()}.jpg`;
             a.click();
-            alert("✔ Activo V10 exportado con éxito a la memoria interna.");
+            alert("✔ Panorama 360 V10 exportado con éxito a la memoria interna.");
         }
 
         async function openGalleryModal() {
@@ -968,7 +1153,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                     card.className = 'gallery-card';
                     card.onclick = () => {
                         closeGalleryModal();
-                        openEditModalWithCapture(img.image_path);
+                        openPanoEditModal(img.image_path);
                     };
                     card.innerHTML = `
                         <img src="${img.image_path}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\' viewBox=\\'0 0 100 100\\'><rect width=\\'100\\' height=\\'100\\' fill=\\'%23222\\'/><text x=\\'50\\' y=\\'55\\' fill=\\'%23666\\' font-size=\\'11\\' text-anchor=\\'middle\\'>Sin Vista</text></svg>'"/>
@@ -997,10 +1182,9 @@ HTML_CONTENT = """<!DOCTYPE html>
             `;
 
             act.innerHTML = `
-                <button class="bot-btn" onclick="executeBotAction('calibrate')">⚡ Calibrar Sensor & Tone Mapping</button>
+                <button class="bot-btn" onclick="executeBotAction('calibrate')">⚡ Calibrar Giroscopio & Sensor Polar</button>
                 <button class="bot-btn" onclick="executeBotAction('ghost')">👁️ Activar Radar Espectral</button>
-                <button class="bot-btn" onclick="executeBotAction('focus')">🎯 Centrar AF Aeroespacial</button>
-                <button class="bot-btn" onclick="executeBotAction('gallery')">🖼️ Ver Galería de este Modo</button>
+                <button class="bot-btn" onclick="executeBotAction('gallery')">🖼️ Ver Panoramas Guardados</button>
             `;
 
             modal.style.display = 'flex';
@@ -1012,16 +1196,9 @@ HTML_CONTENT = """<!DOCTYPE html>
             closeNanobot();
             if(action === 'calibrate') {
                 applyActiveCardTheme(moduleCatalog[activeCardIndex]);
-                alert("✔ Sensor V10 y curva de luminancia calibrados.");
+                alert("✔ Ejes acimutales y costura cilíndrica calibrados.");
             } else if(action === 'ghost') {
                 toggleGhostScope();
-            } else if(action === 'focus') {
-                focusRing.style.left = "50%";
-                focusRing.style.top = "50%";
-                focusRing.classList.remove('active');
-                void focusRing.offsetWidth;
-                focusRing.classList.add('active');
-                setTimeout(() => focusRing.classList.remove('active'), 2500);
             } else if(action === 'gallery') {
                 openGalleryModal();
             }
