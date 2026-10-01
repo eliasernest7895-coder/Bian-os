@@ -16,14 +16,15 @@ router.mount("/storage", StaticFiles(directory="storage"), name="storage")
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Captura Wallpaper Sticker V10"
+    prompt_analysis: str = "Captura Imprenta PDF V10"
 
 HTML_CONTENT = """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>BIAN MASTER SUITE V10 PRO - WALLPAPERS & STICKERS</title>
+    <title>BIAN MASTER SUITE V10 PRO - IMPRENTA PDF</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', Roboto, monospace; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; width: 100vw; overflow: hidden; position: fixed; }
@@ -71,7 +72,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             position: relative; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .lens-cap-center { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #BF5AF2; }
+        .lens-cap-center { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #FF2D85; }
         .lens-cap-sub { font-size: 7px; color: #777; margin-top: 2px; }
         .lens-cap-hint { font-size: 10px; font-weight: 800; color: #aaa; margin-top: 10px; letter-spacing: 1px; }
 
@@ -86,26 +87,31 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         #ghostScopeCanvas.active { opacity: 0.75; }
 
-        /* 1. HUD ESPECÍFICO WALLPAPERS & STICKERS */
-        .wp-hud-container {
+        /* 1. RETÍCULA PREPRENSA & CRUCETAS DE REGISTRO */
+        #prepressOverlayCanvas {
+            position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 55;
+        }
+
+        /* 1. HUD IMPRENTA PDF V10 */
+        .print-hud-container {
             display: none; position: absolute; top: 120px; left: 16px; right: 16px;
             z-index: 60; flex-direction: column; align-items: center; gap: 8px; pointer-events: auto;
         }
-        .wp-status-pill {
-            display: flex; gap: 10px; align-items: center; background: rgba(22, 12, 28, 0.88);
-            border: 1px solid rgba(191, 90, 242, 0.45); border-radius: 20px; padding: 5px 14px;
-            backdrop-filter: blur(14px); font-size: 11px; font-weight: 800; color: #BF5AF2;
+        .print-measure-pill {
+            display: flex; gap: 8px; align-items: center; background: rgba(28, 10, 20, 0.88);
+            border: 1px solid rgba(255, 45, 133, 0.45); border-radius: 20px; padding: 5px 14px;
+            backdrop-filter: blur(14px); font-size: 11px; font-weight: 800; color: #FF2D85;
         }
-        .wp-format-selector {
-            display: flex; gap: 6px; background: rgba(18, 10, 24, 0.8);
+        .print-format-selector {
+            display: flex; gap: 6px; background: rgba(20, 10, 16, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; padding: 4px 8px;
             backdrop-filter: blur(12px);
         }
-        .wp-chip-btn {
+        .print-chip-btn {
             padding: 3px 9px; font-size: 10px; font-weight: 800; border-radius: 12px;
             color: #888; background: transparent; border: none; cursor: pointer; transition: all 0.2s;
         }
-        .wp-chip-btn.active { background: #BF5AF2; color: #fff; box-shadow: 0 0 8px rgba(191,90,242,0.6); }
+        .print-chip-btn.active { background: #FF2D85; color: #fff; box-shadow: 0 0 8px rgba(255,45,133,0.6); }
 
         .aero-hud-overlay {
             position: absolute; inset: 0; pointer-events: none; z-index: 50;
@@ -113,7 +119,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .horizon-line {
             position: absolute; top: 50%; left: 25%; width: 50%; height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(191, 90, 242, 0.6), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 45, 133, 0.6), transparent);
         }
         .hud-telemetry-corner {
             display: flex; justify-content: space-between; font-family: monospace;
@@ -134,30 +140,30 @@ HTML_CONTENT = """<!DOCTYPE html>
             color: #fff; font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 20px;
             backdrop-filter: blur(10px); display: flex; align-items: center; gap: 6px;
         }
-        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #BF5AF2; display: inline-block; }
+        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #FF2D85; display: inline-block; }
         .top-action-btn {
             background: rgba(18, 18, 22, 0.72); border: 1px solid rgba(255, 255, 255, 0.15);
             color: #fff; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 20px;
             backdrop-filter: blur(10px); cursor: pointer; display: flex; align-items: center; gap: 4px;
         }
         #botToggleBtn {
-            border-color: rgba(191,90,242,0.4); color: #BF5AF2; transition: all 0.4s ease; min-width: 155px; justify-content: center;
+            border-color: rgba(255,45,133,0.4); color: #FF2D85; transition: all 0.4s ease; min-width: 155px; justify-content: center;
         }
 
         .ghost-scope-btn {
-            background: rgba(18, 18, 22, 0.75); border: 1px solid rgba(191, 90, 242, 0.35);
-            color: #BF5AF2; font-size: 10px; font-weight: 800; padding: 6px 11px; border-radius: 18px;
+            background: rgba(18, 18, 22, 0.75); border: 1px solid rgba(255, 45, 133, 0.35);
+            color: #FF2D85; font-size: 10px; font-weight: 800; padding: 6px 11px; border-radius: 18px;
             cursor: pointer; backdrop-filter: blur(8px);
         }
-        .ghost-scope-btn.active { background: #BF5AF2; color: #fff; box-shadow: 0 0 14px rgba(191,90,242,0.6); }
+        .ghost-scope-btn.active { background: #FF2D85; color: #fff; box-shadow: 0 0 14px rgba(255,45,133,0.6); }
 
         .center-hud-overlay {
             position: absolute; top: 68px; left: 0; right: 0; z-index: 95;
             display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none;
         }
         .context-pill {
-            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(191, 90, 242, 0.4);
-            color: #BF5AF2; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
+            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(255, 45, 133, 0.4);
+            color: #FF2D85; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
             padding: 4px 14px; border-radius: 20px; backdrop-filter: blur(10px); text-transform: uppercase;
         }
 
@@ -173,7 +179,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         .hud-zoom-tag {
             position: absolute; bottom: 155px; left: 24px; z-index: 100;
             background: rgba(20, 20, 24, 0.82); border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 18px; padding: 5px 12px; font-size: 12px; font-weight: 800; color: #BF5AF2;
+            border-radius: 18px; padding: 5px 12px; font-size: 12px; font-weight: 800; color: #FF2D85;
             cursor: pointer; backdrop-filter: blur(12px);
         }
 
@@ -214,7 +220,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .dock-item-btn.active .dock-dot-indicator { display: block; }
 
-        /* OBTURADOR */
+        /* OBTURADOR IMPRENTA */
         .bottom-bar {
             position: absolute; bottom: 20px; left: 0; right: 0; z-index: 100;
             display: flex; justify-content: space-around; align-items: center; padding: 0 25px;
@@ -225,8 +231,8 @@ HTML_CONTENT = """<!DOCTYPE html>
             border: 2px dashed rgba(255,255,255,0.3); pointer-events: none;
         }
         .shutter-btn {
-            width: 72px; height: 72px; border-radius: 50%; background: #BF5AF2;
-            border: 4px solid #fff; box-shadow: 0 0 22px rgba(191, 90, 242, 0.55); cursor: pointer;
+            width: 72px; height: 72px; border-radius: 50%; background: #FF2D85;
+            border: 4px solid #fff; box-shadow: 0 0 22px rgba(255, 45, 133, 0.55); cursor: pointer;
         }
         .lens-switch-btn {
             width: 46px; height: 46px; border-radius: 50%; background: rgba(30, 30, 35, 0.75);
@@ -241,24 +247,24 @@ HTML_CONTENT = """<!DOCTYPE html>
         /* GADGET Y PANELES */
         #floatingGadget {
             position: fixed; top: 180px; left: 14px; width: 48px; height: 48px;
-            border-radius: 50%; background: #0c0d12; border: 2px solid #BF5AF2;
-            box-shadow: 0 6px 18px rgba(191, 90, 242, 0.4); z-index: 250;
+            border-radius: 50%; background: #0c0d12; border: 2px solid #FF2D85;
+            box-shadow: 0 6px 18px rgba(255, 45, 133, 0.4); z-index: 250;
             display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: grab;
         }
         #floatingPanel {
             display: none; position: fixed; inset: 100px 18px 120px 18px; z-index: 260;
-            background: rgba(10, 12, 16, 0.96); border: 1px solid #BF5AF2; border-radius: 20px;
+            background: rgba(10, 12, 16, 0.96); border: 1px solid #FF2D85; border-radius: 20px;
             backdrop-filter: blur(25px); flex-direction: column; padding: 16px;
         }
         .float-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 
-        /* MESA DE EDICIÓN POST-WALLPAPER & STICKER */
+        /* MESA DE EDICIÓN POST-IMPRENTA & INSPECTOR CMYK */
         #postEditModal {
             display: none; position: fixed; inset: 0; z-index: 300; background: rgba(6, 7, 10, 0.96);
             backdrop-filter: blur(20px); flex-direction: column; padding: 20px 18px 25px 18px;
         }
         .edit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .edit-title { font-size: 14px; font-weight: 800; color: #BF5AF2; }
+        .edit-title { font-size: 14px; font-weight: 800; color: #FF2D85; }
         .edit-close-btn { background: #222; border: 1px solid #444; color: #fff; padding: 5px 12px; border-radius: 14px; font-size: 11px; cursor: pointer; }
         
         .edit-preview-box {
@@ -273,9 +279,9 @@ HTML_CONTENT = """<!DOCTYPE html>
             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
             padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #ddd; cursor: pointer;
         }
-        .tool-chip.active { border-color: #BF5AF2; color: #BF5AF2; background: rgba(191,90,242,0.12); }
+        .tool-chip.active { border-color: #FF2D85; color: #FF2D85; background: rgba(255,45,133,0.12); }
         .btn-export-master {
-            background: linear-gradient(90deg, #BF5AF2, #5E5CE6); color: #fff; font-size: 13px;
+            background: linear-gradient(90deg, #FF2D85, #00E5FF); color: #000; font-size: 13px;
             font-weight: 900; padding: 13px; border-radius: 14px; border: none; cursor: pointer;
             width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
         }
@@ -293,7 +299,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: none; position: fixed; inset: 0; z-index: 330; background: rgba(5, 6, 8, 0.95);
             backdrop-filter: blur(25px); flex-direction: column; padding: 20px; justify-content: space-between;
         }
-        .bot-bubble { background: #121318; border: 1px solid rgba(191,90,242,0.3); border-radius: 16px; padding: 16px; font-size: 13px; line-height: 1.5; color: #eee; margin-top: 15px; }
+        .bot-bubble { background: #121318; border: 1px solid rgba(255,45,133,0.3); border-radius: 16px; padding: 16px; font-size: 13px; line-height: 1.5; color: #eee; margin-top: 15px; }
         .bot-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
         .bot-btn {
             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff;
@@ -310,15 +316,15 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="pill-badge">• BIAN MASTER SUITE V10</div>
         <div class="brand-center">
             <div class="brand-title">BIAN</div>
-            <div class="brand-subtitle">Wallpapers & Stickers V10</div>
+            <div class="brand-subtitle">Imprenta PDF V10 Ultra</div>
             <div style="font-size:11px; color:#777; max-width:280px; margin:0 auto; line-height:1.4;">
-                Corte Die-Cut 3D • Fondo AMOLED Puro • Acabado Holográfico
+                Separación CMYK • FOGRA39 Proof • CutContour Troquel
             </div>
         </div>
         <div class="lens-cap-assembly" id="lensCapUnlockBtn">
             <div class="lens-cap-disk" id="lensCapDisk">
-                <div class="lens-cap-center">BIAN STICKER</div>
-                <div class="lens-cap-sub">F/1.4 • 35MM DIE-CUT</div>
+                <div class="lens-cap-center">BIAN OFFSET</div>
+                <div class="lens-cap-sub">F/1.4 • 35MM CMYK PROOF</div>
             </div>
             <div class="lens-cap-hint">🔓 DESTAPAR LENTE</div>
         </div>
@@ -330,51 +336,56 @@ HTML_CONTENT = """<!DOCTYPE html>
     <!-- PANEL FLOTANTE -->
     <div id="floatingPanel">
         <div class="float-header">
-            <div style="font-size:13px; font-weight:800; color:#BF5AF2;">⚡ TALLER TÁCTICO FLOTANTE</div>
+            <div style="font-size:13px; font-weight:800; color:#FF2D85;">⚡ TALLER TÁCTICO FLOTANTE</div>
             <button class="edit-close-btn" onclick="toggleFloatingPanel()">✖ Cerrar</button>
         </div>
         <div style="flex:1; overflow-y:auto; font-size:12px; color:#aaa; display:flex; flex-direction:column; gap:10px;">
             <div style="background:#14151b; padding:12px; border-radius:12px; border:1px solid #222;">
                 <div style="color:#fff; font-weight:700; margin-bottom:4px;" id="floatModTitle">MODO ACTIVO</div>
-                <div id="floatModDesc">Herramientas de troquelado y wallpapers AMOLED listos.</div>
+                <div id="floatModDesc">Mesa de preprensa industrial y separación de placas CMYK listos.</div>
             </div>
             <div class="bot-actions" id="floatActionList"></div>
         </div>
     </div>
 
-    <!-- VIEWPORT CON RETÍCULA AERO HUD Y RADAR ESPECTRAL -->
+    <!-- VIEWPORT CON RETÍCULA DE PREPRENSA -->
     <div class="suite-view" id="viewportArea">
         <div id="videoContainer">
             <video id="webcam" autoplay playsinline></video>
             <canvas id="ghostScopeCanvas"></canvas>
+            <!-- 1. RETÍCULA PREPRENSA & CRUCETAS DE REGISTRO EN TIEMPO REAL -->
+            <canvas id="prepressOverlayCanvas"></canvas>
         </div>
 
-        <!-- 1. HUD SELECTOR FORMATO WALLPAPER O STICKER -->
-        <div class="wp-hud-container" id="wpformatHud">
-            <div class="wp-status-pill">
-                <span>🎨 MODO: STICKER DIE-CUT</span>
+        <!-- 1. HUD PREPRENSA Y MEDIDAS DE PLIEGO -->
+        <div class="print-hud-container" id="printHud">
+            <div class="print-measure-pill">
+                <span id="printPliegoLabel">📄 TABLOIDE EXTRA (12" x 18")</span>
                 <span style="color:#888;">|</span>
-                <span id="wpAmoledPix">AMOLED BLACK: 100%</span>
+                <span>BLEED: 3mm</span>
+                <span style="color:#888;">|</span>
+                <span style="color:#00E5FF;">300 DPI OFFSET</span>
             </div>
-            <div class="wp-format-selector">
-                <button class="wp-chip-btn active" onclick="setWpMode('sticker', this)">Sticker Troquelado</button>
-                <button class="wp-chip-btn" onclick="setWpMode('wallpaper_amoled', this)">Wallpaper AMOLED 19.5:9</button>
+            <div class="print-format-selector">
+                <button class="print-chip-btn active" onclick="setPliegoPreset('tabloide', '12x18 pulg', this)">Tabloide 12x18"</button>
+                <button class="print-chip-btn" onclick="setPliegoPreset('carta', '8.5x11 pulg', this)">Carta 8.5x11"</button>
+                <button class="print-chip-btn" onclick="setPliegoPreset('a4', '210x297 mm', this)">A4 ISO 216</button>
             </div>
         </div>
 
         <!-- HUD AEROESPACIAL -->
         <div class="aero-hud-overlay">
             <div class="hud-telemetry-corner">
-                <div class="telemetry-tag" id="telRatio">RATIO: 19.5:9 NATIVE</div>
-                <div class="telemetry-tag" id="telMatte">ALPHA MATTE: ACTIVE</div>
+                <div class="telemetry-tag" id="telFogra">PROOF: FOGRA39 CMYK</div>
+                <div class="telemetry-tag" id="telTAC">TAC: 280% OK</div>
                 <div class="telemetry-tag" id="telISO">ISO: 100 AUTO</div>
-                <div class="telemetry-tag" id="telShutter">SS: 1/400s</div>
+                <div class="telemetry-tag" id="telShutter">SS: 1/500s</div>
             </div>
 
             <div class="horizon-line" id="horizonGyro"></div>
 
             <div class="hud-telemetry-corner" style="justify-content: flex-end; gap: 8px;">
-                <div class="telemetry-tag" style="color:#BF5AF2;" id="telCutStatus">DIE-CUT: READY</div>
+                <div class="telemetry-tag" style="color:#FF2D85;" id="telRipStatus">RIP CMYK: READY</div>
                 <div class="telemetry-tag">SNAPDRAGON 8G2 NPU</div>
             </div>
         </div>
@@ -387,7 +398,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="top-dock">
             <div class="hud-status-badge" id="moduleTitleBadge">
                 <span class="dot" id="statusDot"></span>
-                <span id="moduleNameText">WALLPAPERS & STICKERS</span>
+                <span id="moduleNameText">IMPRENTA PDF V10</span>
             </div>
             <div style="display: flex; gap: 6px;">
                 <button class="ghost-scope-btn" id="scopeToggleBtn" onclick="toggleGhostScope()">
@@ -399,7 +410,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
 
         <div class="center-hud-overlay" id="centerHud">
-            <div class="context-pill" id="contextPillText">🎨 WALLPAPERS & STICKERS: TROQUELADO 3D</div>
+            <div class="context-pill" id="contextPillText">🖨️ PREPRENSA CMYK: SANGRADO & REGISTRO INDUSTRIAL</div>
         </div>
 
         <div class="hud-zoom-tag" id="zoomChip" onclick="cycleZoomLevel()">
@@ -412,35 +423,36 @@ HTML_CONTENT = """<!DOCTYPE html>
         <!-- DOCK HORIZONTAL FLOTANTE -->
         <div id="horizontalDockBar"></div>
 
-        <!-- OBTURADOR -->
+        <!-- OBTURADOR DE PREPRENSA -->
         <div class="bottom-bar">
             <div class="lens-switch-btn" onclick="toggleLens()">🔄</div>
             <div class="shutter-wrapper">
                 <div class="shutter-corona" id="shutterCorona"></div>
-                <div class="shutter-btn" id="wpShutterBtn" onclick="handleWpCaptureTrigger()"></div>
+                <div class="shutter-btn" id="printShutterBtn" onclick="handlePrintCaptureTrigger()"></div>
             </div>
             <div class="gallery-thumb" id="thumbBox" onclick="openGalleryModal()"></div>
         </div>
     </div>
 
-    <!-- MESA DE EDICIÓN POST-CAPTURA -->
+    <!-- MESA DE EDICIÓN POST-IMPRENTA & SEPARADOR CMYK -->
     <div id="postEditModal">
         <div class="edit-header">
-            <div class="edit-title" id="editModalTitle">🎨 STICKER / WALLPAPER V10 RENDER</div>
+            <div class="edit-title" id="editModalTitle">🖨️ IMPRENTA PDF V10 PREPRENSA</div>
             <button class="edit-close-btn" onclick="closeEditModal()">✖ Volver</button>
         </div>
         <div class="edit-preview-box">
-            <img id="editImagePreview" src="" alt="Wallpaper Preview" />
+            <img id="editImagePreview" src="" alt="Prueba de Color CMYK" />
         </div>
         <div class="edit-tools-panel">
             <div class="tool-row" id="moduleToolRow">
-                <div class="tool-chip active" onclick="applyStickerEffect('white_border', this)">⚪ Troquelado Blanco 3D</div>
-                <div class="tool-chip" onclick="applyStickerEffect('neon_holo', this)">🌈 Borde Holográfico</div>
-                <div class="tool-chip" onclick="applyStickerEffect('amoled_deep', this)">🌑 Fondo AMOLED Puro</div>
-                <div class="tool-chip" onclick="applyStickerEffect('vintage_grain', this)">🎞️ Grano Retro</div>
+                <div class="tool-chip active" onclick="applyPlateFilter('full_cmyk', this)">🌈 Color Compuesto CMYK</div>
+                <div class="tool-chip" onclick="applyPlateFilter('plate_c', this)">🔵 Placa Cyan (C)</div>
+                <div class="tool-chip" onclick="applyPlateFilter('plate_m', this)">🔴 Placa Magenta (M)</div>
+                <div class="tool-chip" onclick="applyPlateFilter('plate_y', this)">🟡 Placa Yellow (Y)</div>
+                <div class="tool-chip" onclick="applyPlateFilter('plate_k', this)">⚫ Placa Key/Black (K)</div>
             </div>
-            <button class="btn-export-master" onclick="exportEditedResult()">
-                💾 EXPORTAR ASSET HD ULTRA (PNG/JPG)
+            <button class="btn-export-master" onclick="exportPrintReadyPDF()">
+                💾 EXPORTAR MASTER PDF/X INDUSTRIAL (300 DPI)
             </button>
         </div>
     </div>
@@ -461,23 +473,25 @@ HTML_CONTENT = """<!DOCTYPE html>
                 <div class="edit-title" style="color:#00FFC8;">✨ NANO-BOT TÁCTICO V10</div>
                 <button class="edit-close-btn" onclick="closeNanobot()">✖ Cerrar</button>
             </div>
-            <div class="bot-bubble" id="botMessageText">Analizando composición gráfica...</div>
+            <div class="bot-bubble" id="botMessageText">Analizando parámetros de preprensa...</div>
             <div class="bot-actions" id="botActionList"></div>
         </div>
         <div style="font-size:10px; color:#555; text-align:center;">IA Soberana local operando en Snapdragon 8 Gen 2</div>
     </div>
 
     <canvas id="hiddenBufferCanvas" style="display:none;"></canvas>
-    <!-- CANVAS DE COMPOSICIÓN GRÁFICA -->
-    <canvas id="wpRenderCanvas" style="display:none;"></canvas>
+    <!-- CANVAS DE PREPRENSA INDUSTRIAL -->
+    <canvas id="prepressProofCanvas" style="display:none;"></canvas>
 
     <script>
         const video = document.getElementById('webcam');
         const hiddenCanvas = document.getElementById('hiddenBufferCanvas');
         const ghostCanvas = document.getElementById('ghostScopeCanvas');
         const ghostCtx = ghostCanvas.getContext('2d');
-        const wpCanvas = document.getElementById('wpRenderCanvas');
-        const wpCtx = wpCanvas.getContext('2d');
+        const prepressWireCanvas = document.getElementById('prepressOverlayCanvas');
+        const prepressWireCtx = prepressWireCanvas.getContext('2d');
+        const proofCanvas = document.getElementById('prepressProofCanvas');
+        const proofCtx = proofCanvas.getContext('2d');
         const focusRing = document.getElementById('focusRing');
         let audioCtx = null;
         let facingMode = 'environment';
@@ -485,9 +499,10 @@ HTML_CONTENT = """<!DOCTYPE html>
         const zoomLevels = [0.6, 1.0, 2.0];
         let isGhostScopeOn = false;
 
-        /* ESTADO WALLPAPERS & STICKERS */
-        let activeWpMode = 'sticker';
-        let processedWpDataUrl = null;
+        /* ESTADO IMPRENTA PDF V10 */
+        let pliegoPreset = 'tabloide';
+        let pliegoDimText = '12x18 pulg';
+        let processedProofDataUrl = null;
 
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -529,15 +544,17 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         });
 
-        /* PIPELINE EN TIEMPO REAL */
+        /* 1. PIPELINE DE RETÍCULA DE PREPRENSA LITOGRÁFICA EN VIVO */
         let frameCount = 0;
         function processVideoPipeline() {
             if (video.readyState >= 2) {
                 if (hiddenCanvas.width !== video.videoWidth) {
                     hiddenCanvas.width = video.videoWidth || 640;
                     hiddenCanvas.height = video.videoHeight || 480;
-                    wpCanvas.width = 1080;
-                    wpCanvas.height = 2340; // Formato vertical nativo 19.5:9
+                    proofCanvas.width = 1800; // Alta resolución para preprensa
+                    proofCanvas.height = 2400;
+                    prepressWireCanvas.width = window.innerWidth;
+                    prepressWireCanvas.height = window.innerHeight;
                     ghostCanvas.width = 320;
                     ghostCanvas.height = 240;
                 }
@@ -561,8 +578,64 @@ HTML_CONTENT = """<!DOCTYPE html>
                     }
                     ghostCtx.putImageData(imgData, 0, 0);
                 }
+
+                // Renderizar marcas de corte y crucetas si Imprenta PDF está activo
+                const curMod = moduleCatalog[activeCardIndex];
+                if (curMod.key === 'imprenta') {
+                    renderPrepressReticle();
+                } else {
+                    prepressWireCtx.clearRect(0, 0, prepressWireCanvas.width, prepressWireCanvas.height);
+                }
             }
             requestAnimationFrame(processVideoPipeline);
+        }
+
+        function renderPrepressReticle() {
+            prepressWireCtx.clearRect(0, 0, prepressWireCanvas.width, prepressWireCanvas.height);
+            const w = prepressWireCanvas.width;
+            const h = prepressWireCanvas.height;
+
+            const padX = w * 0.12;
+            const padY = h * 0.22;
+            const rw = w - padX * 2;
+            const rh = h - padY * 2;
+
+            // Línea de corte de guillotina
+            prepressWireCtx.strokeStyle = "#FF2D85";
+            prepressWireCtx.lineWidth = 1.5;
+            prepressWireCtx.strokeRect(padX, padY, rw, rh);
+
+            // Línea de sangrado (Bleed 3mm)
+            prepressWireCtx.strokeStyle = "rgba(0, 229, 255, 0.5)";
+            prepressWireCtx.lineWidth = 1;
+            prepressWireCtx.setLineDash([4, 4]);
+            prepressWireCtx.strokeRect(padX - 8, padY - 8, rw + 16, rh + 16);
+            prepressWireCtx.setLineDash([]);
+
+            // Crucetas micrométricas de registro litográfico en 4 esquinas
+            const corners = [
+                { x: padX, y: padY },
+                { x: padX + rw, y: padY },
+                { x: padX, y: padY + rh },
+                { x: padX + rw, y: padY + rh }
+            ];
+
+            corners.forEach(c => {
+                prepressWireCtx.strokeStyle = "#00E5FF";
+                prepressWireCtx.lineWidth = 1.5;
+                prepressWireCtx.beginPath();
+                prepressWireCtx.arc(c.x, c.y, 7, 0, Math.PI * 2);
+                prepressWireCtx.moveTo(c.x - 12, c.y); prepressWireCtx.lineTo(c.x + 12, c.y);
+                prepressWireCtx.moveTo(c.x, c.y - 12); prepressWireCtx.lineTo(c.x, c.y + 12);
+                prepressWireCtx.stroke();
+            });
+
+            // Tira densitométrica CMYK procedural superior
+            const colorsCMYK = ['#00E5FF', '#FF2D85', '#FFEE00', '#000000'];
+            colorsCMYK.forEach((col, idx) => {
+                prepressWireCtx.fillStyle = col;
+                prepressWireCtx.fillRect(padX + (idx * 22), padY - 20, 18, 8);
+            });
         }
 
         function toggleGhostScope() {
@@ -579,141 +652,134 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         }
 
-        /* 2. TRABAJO PESADO: RENDER STICKER DIE-CUT O WALLPAPER VERTICAL */
-        function setWpMode(mode, elem) {
-            activeWpMode = mode;
-            document.querySelectorAll('.wp-chip-btn').forEach(b => b.classList.remove('active'));
+        /* 2. TRABAJO PESADO: RENDER LITOGRÁFICO DE PRUEBA DE COLOR EN RAM */
+        function setPliegoPreset(preset, dim, elem) {
+            pliegoPreset = preset;
+            pliegoDimText = dim;
+            document.querySelectorAll('.print-chip-btn').forEach(b => b.classList.remove('active'));
             elem.classList.add('active');
-            document.getElementById('telCutStatus').innerText = (mode === 'sticker') ? 'DIE-CUT: READY' : 'AMOLED: 19.5:9';
+            document.getElementById('printPliegoLabel').innerText = `📄 ${preset.toUpperCase()} (${dim})`;
         }
 
-        async function handleWpCaptureTrigger() {
+        async function handlePrintCaptureTrigger() {
             const curMod = moduleCatalog[activeCardIndex];
-            if (curMod.key === 'stickers') {
-                executeWpCapture();
+            if (curMod.key === 'imprenta') {
+                executePrepressProofCapture();
             } else {
                 captureStandardZSL();
             }
         }
 
-        async function executeWpCapture() {
+        async function executePrepressProofCapture() {
             const flash = document.getElementById('ambientLightLayer');
             flash.classList.add('flash');
             setTimeout(() => flash.classList.remove('flash'), 60);
-            playPopSound();
+            playPressSound();
 
-            const w = wpCanvas.width;
-            const h = wpCanvas.height;
+            document.getElementById('telRipStatus').innerText = 'RIP CMYK: SEPARATING';
 
-            if (activeWpMode === 'wallpaper_amoled') {
-                // Fondo negro profundo absoluto AMOLED (#000000)
-                wpCtx.fillStyle = "#000000";
-                wpCtx.fillRect(0, 0, w, h);
+            // Lienzo de preprensa: fondo blanco de papel estucado
+            proofCtx.fillStyle = "#ffffff";
+            proofCtx.fillRect(0, 0, proofCanvas.width, proofCanvas.height);
 
-                // Dibujar foto en el tercio superior/central con degradado suave
-                const cropH = w * (hiddenCanvas.height / hiddenCanvas.width);
-                const startY = (h - cropH) / 2;
-                wpCtx.drawImage(hiddenCanvas, 0, startY, w, cropH);
+            const bleedMargin = 120;
+            const pw = proofCanvas.width - bleedMargin * 2;
+            const ph = proofCanvas.height - bleedMargin * 2;
 
-                // Viñeta AMOLED suave hacia negro
-                const grad = wpCtx.createRadialGradient(w/2, h/2, w*0.3, w/2, h/2, w*0.8);
-                grad.addColorStop(0, "transparent");
-                grad.addColorStop(1, "#000000");
-                wpCtx.fillStyle = grad;
-                wpCtx.fillRect(0, 0, w, h);
-            } else {
-                // Modo Sticker Die-Cut con silueta y borde troquelado
-                wpCtx.clearRect(0, 0, w, h);
-                wpCtx.fillStyle = "#0a0a0e";
-                wpCtx.fillRect(0, 0, w, h);
+            // Dibujar arte al centro con sangrado completo
+            proofCtx.drawImage(hiddenCanvas, bleedMargin, bleedMargin, pw, ph);
 
-                const sw = w * 0.75;
-                const sh = sw * (hiddenCanvas.height / hiddenCanvas.width);
-                const sx = (w - sw) / 2;
-                const sy = (h - sh) / 2;
+            // Tira densitométrica FOGRA39 en margen superior
+            const swatchWidth = 50;
+            const swatches = ['#00ffff', '#ff00ff', '#ffff00', '#000000', '#777777', '#cccccc'];
+            swatches.forEach((sw, idx) => {
+                proofCtx.fillStyle = sw;
+                proofCtx.fillRect(bleedMargin + idx * (swatchWidth + 10), bleedMargin - 50, swatchWidth, 25);
+            });
 
-                // Sombra proyectada 3D del sticker
-                wpCtx.shadowColor = "rgba(0,0,0,0.8)";
-                wpCtx.shadowBlur = 30;
-                wpCtx.shadowOffsetY = 15;
+            // Marcas de registro litográfico industriales
+            proofCtx.strokeStyle = "#000000";
+            proofCtx.lineWidth = 2;
+            proofCtx.strokeRect(bleedMargin, bleedMargin, pw, ph);
 
-                // Borde troquelado blanco grueso (Die-cut outline)
-                wpCtx.fillStyle = "#ffffff";
-                wpCtx.beginPath();
-                wpCtx.roundRect(sx - 12, sy - 12, sw + 24, sh + 24, 28);
-                wpCtx.fill();
-                wpCtx.shadowColor = "transparent";
+            // Pie de ficha técnica de prensa
+            proofCtx.fillStyle = "#000000";
+            proofCtx.font = "bold 20px monospace";
+            proofCtx.fillText(`BIAN PREPRESS V10 • ${pliegoPreset.toUpperCase()} • FOGRA39 CMYK • 300 DPI OFFSET`, bleedMargin, proofCanvas.height - 45);
 
-                // Imagen central insertada
-                wpCtx.save();
-                wpCtx.beginPath();
-                wpCtx.roundRect(sx, sy, sw, sh, 18);
-                wpCtx.clip();
-                wpCtx.drawImage(hiddenCanvas, sx, sy, sw, sh);
-                wpCtx.restore();
-            }
-
-            processedWpDataUrl = wpCanvas.toDataURL('image/jpeg', 0.95);
+            processedProofDataUrl = proofCanvas.toDataURL('image/jpeg', 0.95);
 
             const res = await fetch('/bian/process/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: processedWpDataUrl, prompt_analysis: `Asset ${activeWpMode} V10` })
+                body: JSON.stringify({ image_base64: processedProofDataUrl, prompt_analysis: `Imprenta PDF ${pliegoPreset} V10` })
             });
 
             if (res.ok) {
                 const data = await res.json();
                 document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
-                openWpEditModal(processedWpDataUrl);
+                openPrintEditModal(processedProofDataUrl);
+                document.getElementById('telRipStatus').innerText = 'RIP CMYK: READY';
             }
         }
 
-        function playPopSound() {
+        function playPressSound() {
             try {
                 const ctx = getAudioContext();
                 const now = ctx.currentTime;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.connect(gain); gain.connect(ctx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(400, now);
-                osc.frequency.exponentialRampToValueAtTime(800, now + 0.12);
-                gain.gain.setValueAtTime(0.3, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-                osc.start(now); osc.stop(now + 0.13);
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(140, now);
+                osc.frequency.exponentialRampToValueAtTime(45, now + 0.15);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                osc.start(now); osc.stop(now + 0.16);
             } catch(e) {}
         }
 
-        /* 3. INNOVACIÓN: EFECTO HOLOGRÁFICO Y RELIEVE */
-        function openWpEditModal(imgSrc) {
-            document.getElementById('editModalTitle').innerText = `🎨 ${activeWpMode.toUpperCase()} V10 PROCESADO`;
+        /* 3. INNOVACIÓN: INSPECTOR DE PLACAS LITOGRÁFICAS CMYK */
+        function openPrintEditModal(imgSrc) {
+            document.getElementById('editModalTitle').innerText = `🖨️ PRUEBA DE PRENSA (${pliegoPreset.toUpperCase()}) V10`;
             document.getElementById('editImagePreview').src = imgSrc;
             document.getElementById('postEditModal').style.display = 'flex';
         }
 
         function closeEditModal() { document.getElementById('postEditModal').style.display = 'none'; }
 
-        function applyStickerEffect(mode, elem) {
+        function applyPlateFilter(plate, elem) {
             document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
             elem.classList.add('active');
             const img = document.getElementById('editImagePreview');
-            if (mode === 'white_border') {
-                img.style.filter = 'drop-shadow(0 0 15px rgba(255,255,255,0.6)) contrast(1.1)';
-            } else if (mode === 'neon_holo') {
-                img.style.filter = 'drop-shadow(0 0 20px #BF5AF2) hue-rotate(45deg) saturate(1.4)';
-            } else if (mode === 'amoled_deep') {
-                img.style.filter = 'contrast(1.3) brightness(1.05)';
-            } else if (mode === 'vintage_grain') {
-                img.style.filter = 'sepia(0.2) contrast(1.2) brightness(0.95)';
+
+            if (plate === 'full_cmyk') {
+                img.style.filter = 'contrast(1.1) saturate(1.15)';
+            } else if (plate === 'plate_c') {
+                img.style.filter = 'grayscale(1) drop-shadow(0 0 10px rgba(0, 229, 255, 0.7)) contrast(1.3)';
+            } else if (plate === 'plate_m') {
+                img.style.filter = 'grayscale(1) drop-shadow(0 0 10px rgba(255, 45, 133, 0.7)) contrast(1.3)';
+            } else if (plate === 'plate_y') {
+                img.style.filter = 'grayscale(1) drop-shadow(0 0 10px rgba(255, 238, 0, 0.7)) contrast(1.3)';
+            } else if (plate === 'plate_k') {
+                img.style.filter = 'grayscale(1) contrast(1.8) brightness(0.9)';
             }
         }
 
-        function exportEditedResult() {
-            const a = document.createElement('a');
-            a.href = processedWpDataUrl || document.getElementById('editImagePreview').src;
-            a.download = `bian_${activeWpMode}_v10_${Date.now()}.jpg`;
-            a.click();
-            alert('✔ Asset gráfico exportado a la memoria local.');
+        function exportPrintReadyPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: (pliegoPreset === 'tabloide') ? [305, 457] : 'a4'
+            });
+
+            const formatW = (pliegoPreset === 'tabloide') ? 305 : 210;
+            const formatH = (pliegoPreset === 'tabloide') ? 457 : 297;
+
+            doc.addImage(processedProofDataUrl, 'JPEG', 0, 0, formatW, formatH);
+            doc.save(`bian_master_prepress_${pliegoPreset}_v10_${Date.now()}.pdf`);
+            alert('✔ Master PDF/X Industrial generado y descargado a memoria.');
         }
 
         /* DISPARO ESTÁNDAR ZSL */
@@ -732,7 +798,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             if (res.ok) {
                 const data = await res.json();
                 document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
-                openWpEditModal(b64);
+                openPrintEditModal(b64);
             }
         }
 
@@ -795,9 +861,10 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         }, { passive: true });
 
-        /* CATÁLOGO DE MÓDULOS CON WALLPAPERS & STICKERS */
+        /* CATÁLOGO DE MÓDULOS CON IMPRENTA PDF */
         const moduleCatalog = [
-            { key: 'stickers', icon: '🎨', title: 'WALLPAPERS STICKERS', pill: '🎨 TROQUELADO 3D & AMOLED BLACK', color: '#BF5AF2', botTips: 'Centra el objeto para generar el contorno troquelado blanco o fondo AMOLED puro.' },
+            { key: 'imprenta', icon: '🖨️️', title: 'IMPRENTA PDF', pill: '🖨️ PREPRENSA CMYK & FOGRA39 PROOF', color: '#FF2D85', botTips: 'Mesa de preprensa industrial. Revisa crucetas de registro y sangrado de 3mm.' },
+            { key: 'stickers', icon: '🎨', title: 'WALLPAPERS STICKERS', pill: '🎨 TROQUELADO 3D & AMOLED BLACK', color: '#BF5AF2', botTips: 'Centra el objeto para generar troquelado.' },
             { key: 'lonas', icon: '🎪', title: 'LONAS 3D', pill: '🎪 BASTIDOR PTR & TÚNEL DE VIENTO 110 km/h', color: '#FFD60A', botTips: 'Alinea la estructura en el encuadre.' },
             { key: 'bokeh', icon: '🎭', title: 'RETRATO BOKEH', pill: '🎭 APERTURA ÓPTICA & IRIS SHAPER', color: '#FF2D55', botTips: 'Mantén al sujeto a 1-2 metros del fondo.' },
             { key: 'night', icon: '🌙', title: 'NIGHTOGRAPHY', pill: '🌙 MULTI-FRAME STACK & DEEP-SKY BOOST', color: '#5E5CE6', botTips: 'Baja iluminación detectada.' },
@@ -805,7 +872,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             { key: 'scan', icon: '📄', title: 'SCAN DOC PRO', pill: '📄 AUTO-ENCUADRE HOMOGRÁFICO & OCR', color: '#00D2FF', botTips: 'Alinea el documento dentro del cuadrilátero.' },
             { key: 'timelapse', icon: '⏱️', title: 'TIMELAPSE V10', pill: '⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA 4x', color: '#FF3B30', botTips: 'Gimbal Virtual OIS activo.' },
             { key: 'pano', icon: '🌐', title: 'PANORÁMICA 360', pill: '🌐 BARRIDO POLAR & ORBE 3D VR', color: '#00FFC8', botTips: 'Gira el teléfono de izquierda a derecha.' },
-            { key: 'chef', icon: '👨‍🍳', title: 'CHEF LEAN V3', pill: '👨‍‍🍳 FOOD COST & CONTROL DE MERMA CÁRNICA', color: '#FF9F0A', botTips: 'Insumo cárnico en encuadre.' },
+            { key: 'chef', icon: '👨‍🍳', title: 'CHEF LEAN V3', pill: '👨‍🍳 FOOD COST & CONTROL DE MERMA CÁRNICA', color: '#FF9F0A', botTips: 'Insumo cárnico en encuadre.' },
             { key: 'price', icon: '🏷️', title: 'VALUADOR HÍBRIDO', pill: '🏷️ TASACIÓN DE MERCADO OFFLINE/ONLINE', color: '#63E6E2', botTips: 'Cotejo comercial activado.' }
         ];
 
@@ -910,11 +977,11 @@ HTML_CONTENT = """<!DOCTYPE html>
             document.getElementById('floatModDesc').innerText = m.botTips;
             document.getElementById('shutterCorona').style.borderColor = m.color;
 
-            // Mostrar u ocultar controles específicos
-            if (m.key === 'stickers') {
-                document.getElementById('wpformatHud').style.display = 'flex';
+            // Mostrar u ocultar controles de Imprenta
+            if (m.key === 'imprenta') {
+                document.getElementById('printHud').style.display = 'flex';
             } else {
-                document.getElementById('wpformatHud').style.display = 'none';
+                document.getElementById('printHud').style.display = 'none';
             }
 
             const topCard = deckStack.querySelector('.pos-0');
@@ -1008,7 +1075,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                 const cur = moduleCatalog[activeCardIndex];
                 const list = document.getElementById('floatActionList');
                 list.innerHTML = `
-                    <button class="bot-btn" onclick="handleWpCaptureTrigger(); toggleFloatingPanel();">📸 Disparo con ${cur.title}</button>
+                    <button class="bot-btn" onclick="handlePrintCaptureTrigger(); toggleFloatingPanel();">📸 Disparo con ${cur.title}</button>
                     <button class="bot-btn" onclick="openHorizontalDock(); toggleFloatingPanel();">🎴 Selector de Módulos</button>
                     <button class="bot-btn" onclick="toggleGhostScope(); toggleFloatingPanel();">👁️ Alternar Radar Espectral</button>
                     <button class="bot-btn" onclick="openGalleryModal(); toggleFloatingPanel();">🖼️ Ver Galería Local</button>
@@ -1046,7 +1113,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                     card.className = 'gallery-card';
                     card.onclick = () => {
                         closeGalleryModal();
-                        openWpEditModal(img.image_path);
+                        openPrintEditModal(img.image_path);
                     };
                     card.innerHTML = `
                         <img src="${img.image_path}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\' viewBox=\\'0 0 100 100\\'><rect width=\\'100\\' height=\\'100\\' fill=\\'%23222\\'/><text x=\\'50\\' y=\\'55\\' fill=\\'%23666\\' font-size=\\'11\\' text-anchor=\\'middle\\'>Sin Vista</text></svg>'"/>
@@ -1070,14 +1137,14 @@ HTML_CONTENT = """<!DOCTYPE html>
             const act = document.getElementById('botActionList');
 
             msg.innerHTML = `
-                <div style="color:#BF5AF2; font-weight:800; margin-bottom:6px;">🤖 Diagnóstico V10 para ${curMod.title}:</div>
+                <div style="color:#FF2D85; font-weight:800; margin-bottom:6px;">🤖 Diagnóstico V10 para ${curMod.title}:</div>
                 <div>${curMod.botTips}</div>
             `;
 
             act.innerHTML = `
-                <button class="bot-btn" onclick="executeBotAction('calibrate')">⚡ Calibrar Troquelado Die-Cut & Alpha</button>
+                <button class="bot-btn" onclick="executeBotAction('calibrate')">⚡ Calibrar Registro Litográfico & Placas CMYK</button>
                 <button class="bot-btn" onclick="executeBotAction('ghost')">👁️ Activar Radar Espectral</button>
-                <button class="bot-btn" onclick="executeBotAction('gallery')">🖼️ Ver Stickers y Wallpapers</button>
+                <button class="bot-btn" onclick="executeBotAction('gallery')">🖼️️ Ver Masters Guardados</button>
             `;
 
             modal.style.display = 'flex';
@@ -1089,7 +1156,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             closeNanobot();
             if(action === 'calibrate') {
                 applyActiveCardTheme(moduleCatalog[activeCardIndex]);
-                alert("✔ Troquelado Die-Cut y matriz AMOLED calibrados.");
+                alert("✔ Marcas de registro y separación CMYK calibradas.");
             } else if(action === 'ghost') {
                 toggleGhostScope();
             } else if(action === 'gallery') {
