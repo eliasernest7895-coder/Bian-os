@@ -16,14 +16,14 @@ router.mount("/storage", StaticFiles(directory="storage"), name="storage")
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Captura Cine Scope V10"
+    prompt_analysis: str = "Captura Estudio RAW V10"
 
 HTML_CONTENT = """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>BIAN MASTER SUITE V10 PRO - CINE SCOPE 21:9</title>
+    <title>BIAN MASTER SUITE V10 PRO - ESTUDIO RAW</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', Roboto, monospace; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; width: 100vw; overflow: hidden; position: fixed; }
@@ -71,7 +71,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             position: relative; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .lens-cap-center { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #FF0055; }
+        .lens-cap-center { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #FF9F0A; }
         .lens-cap-sub { font-size: 7px; color: #777; margin-top: 2px; }
         .lens-cap-hint { font-size: 10px; font-weight: 800; color: #aaa; margin-top: 10px; letter-spacing: 1px; }
 
@@ -86,31 +86,33 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         #ghostScopeCanvas.active { opacity: 0.75; }
 
-        /* 1. MÁSCARA ANAMÓRFICA 2.39:1 LETTERBOX Y DESTELLOS */
-        #cineMaskCanvas {
-            position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 52;
+        /* 1. HISTOGRAMA RGB EN TIEMPO REAL */
+        #histogramCanvas {
+            position: absolute; top: 120px; left: 16px; width: 130px; height: 50px;
+            background: rgba(14, 16, 22, 0.85); border: 1px solid rgba(255, 159, 10, 0.45);
+            border-radius: 12px; backdrop-filter: blur(12px); z-index: 60; pointer-events: none; display: none;
         }
 
-        /* 1. HUD CINE SCOPE V10 */
-        .cine-hud-container {
-            display: none; position: absolute; top: 120px; left: 16px; right: 16px;
-            z-index: 60; flex-direction: column; align-items: center; gap: 8px; pointer-events: auto;
+        /* 1. HUD ESTUDIO RAW V10 */
+        .raw-hud-container {
+            display: none; position: absolute; top: 120px; right: 16px;
+            z-index: 60; flex-direction: column; align-items: flex-end; gap: 8px; pointer-events: auto;
         }
-        .cine-status-pill {
-            display: flex; gap: 10px; align-items: center; background: rgba(28, 8, 16, 0.88);
-            border: 1px solid rgba(255, 0, 85, 0.45); border-radius: 20px; padding: 5px 14px;
-            backdrop-filter: blur(14px); font-size: 11px; font-weight: 800; color: #FF0055;
+        .raw-kelvin-pill {
+            display: flex; gap: 8px; align-items: center; background: rgba(28, 18, 10, 0.88);
+            border: 1px solid rgba(255, 159, 10, 0.45); border-radius: 20px; padding: 5px 12px;
+            backdrop-filter: blur(14px); font-size: 11px; font-weight: 800; color: #FF9F0A;
         }
-        .cine-lut-selector {
-            display: flex; gap: 6px; background: rgba(20, 8, 14, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; padding: 4px 8px;
+        .raw-ev-selector {
+            display: flex; gap: 4px; background: rgba(20, 14, 10, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; padding: 4px 6px;
             backdrop-filter: blur(12px);
         }
-        .cine-chip-btn {
-            padding: 3px 9px; font-size: 10px; font-weight: 800; border-radius: 12px;
+        .raw-chip-btn {
+            padding: 3px 7px; font-size: 10px; font-weight: 800; border-radius: 12px;
             color: #888; background: transparent; border: none; cursor: pointer; transition: all 0.2s;
         }
-        .cine-chip-btn.active { background: #FF0055; color: #fff; box-shadow: 0 0 8px rgba(255,0,85,0.6); }
+        .raw-chip-btn.active { background: #FF9F0A; color: #000; box-shadow: 0 0 8px rgba(255,159,10,0.6); }
 
         .aero-hud-overlay {
             position: absolute; inset: 0; pointer-events: none; z-index: 50;
@@ -118,7 +120,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .horizon-line {
             position: absolute; top: 50%; left: 25%; width: 50%; height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 0, 85, 0.6), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 159, 10, 0.6), transparent);
         }
         .hud-telemetry-corner {
             display: flex; justify-content: space-between; font-family: monospace;
@@ -139,30 +141,30 @@ HTML_CONTENT = """<!DOCTYPE html>
             color: #fff; font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 20px;
             backdrop-filter: blur(10px); display: flex; align-items: center; gap: 6px;
         }
-        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #FF0055; display: inline-block; }
+        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #FF9F0A; display: inline-block; }
         .top-action-btn {
             background: rgba(18, 18, 22, 0.72); border: 1px solid rgba(255, 255, 255, 0.15);
             color: #fff; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 20px;
             backdrop-filter: blur(10px); cursor: pointer; display: flex; align-items: center; gap: 4px;
         }
         #botToggleBtn {
-            border-color: rgba(255,0,85,0.4); color: #FF0055; transition: all 0.4s ease; min-width: 155px; justify-content: center;
+            border-color: rgba(255,159,10,0.4); color: #FF9F0A; transition: all 0.4s ease; min-width: 155px; justify-content: center;
         }
 
         .ghost-scope-btn {
-            background: rgba(18, 18, 22, 0.75); border: 1px solid rgba(255, 0, 85, 0.35);
-            color: #FF0055; font-size: 10px; font-weight: 800; padding: 6px 11px; border-radius: 18px;
+            background: rgba(18, 18, 22, 0.75); border: 1px solid rgba(255, 159, 10, 0.35);
+            color: #FF9F0A; font-size: 10px; font-weight: 800; padding: 6px 11px; border-radius: 18px;
             cursor: pointer; backdrop-filter: blur(8px);
         }
-        .ghost-scope-btn.active { background: #FF0055; color: #fff; box-shadow: 0 0 14px rgba(255,0,85,0.6); }
+        .ghost-scope-btn.active { background: #FF9F0A; color: #000; box-shadow: 0 0 14px rgba(255,159,10,0.6); }
 
         .center-hud-overlay {
             position: absolute; top: 68px; left: 0; right: 0; z-index: 95;
             display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none;
         }
         .context-pill {
-            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(255, 0, 85, 0.4);
-            color: #FF0055; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
+            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(255, 159, 10, 0.4);
+            color: #FF9F0A; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
             padding: 4px 14px; border-radius: 20px; backdrop-filter: blur(10px); text-transform: uppercase;
         }
 
@@ -178,7 +180,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         .hud-zoom-tag {
             position: absolute; bottom: 155px; left: 24px; z-index: 100;
             background: rgba(20, 20, 24, 0.82); border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 18px; padding: 5px 12px; font-size: 12px; font-weight: 800; color: #FF0055;
+            border-radius: 18px; padding: 5px 12px; font-size: 12px; font-weight: 800; color: #FF9F0A;
             cursor: pointer; backdrop-filter: blur(12px);
         }
 
@@ -219,7 +221,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .dock-item-btn.active .dock-dot-indicator { display: block; }
 
-        /* OBTURADOR CINE */
+        /* OBTURADOR RAW */
         .bottom-bar {
             position: absolute; bottom: 20px; left: 0; right: 0; z-index: 100;
             display: flex; justify-content: space-around; align-items: center; padding: 0 25px;
@@ -230,8 +232,8 @@ HTML_CONTENT = """<!DOCTYPE html>
             border: 2px dashed rgba(255,255,255,0.3); pointer-events: none;
         }
         .shutter-btn {
-            width: 72px; height: 72px; border-radius: 50%; background: #FF0055;
-            border: 4px solid #fff; box-shadow: 0 0 22px rgba(255, 0, 85, 0.55); cursor: pointer;
+            width: 72px; height: 72px; border-radius: 50%; background: #FF9F0A;
+            border: 4px solid #fff; box-shadow: 0 0 22px rgba(255, 159, 10, 0.55); cursor: pointer;
         }
         .lens-switch-btn {
             width: 46px; height: 46px; border-radius: 50%; background: rgba(30, 30, 35, 0.75);
@@ -246,24 +248,24 @@ HTML_CONTENT = """<!DOCTYPE html>
         /* GADGET Y PANELES */
         #floatingGadget {
             position: fixed; top: 180px; left: 14px; width: 48px; height: 48px;
-            border-radius: 50%; background: #0c0d12; border: 2px solid #FF0055;
-            box-shadow: 0 6px 18px rgba(255, 0, 85, 0.4); z-index: 250;
+            border-radius: 50%; background: #0c0d12; border: 2px solid #FF9F0A;
+            box-shadow: 0 6px 18px rgba(255, 159, 10, 0.4); z-index: 250;
             display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: grab;
         }
         #floatingPanel {
             display: none; position: fixed; inset: 100px 18px 120px 18px; z-index: 260;
-            background: rgba(10, 12, 16, 0.96); border: 1px solid #FF0055; border-radius: 20px;
+            background: rgba(10, 12, 16, 0.96); border: 1px solid #FF9F0A; border-radius: 20px;
             backdrop-filter: blur(25px); flex-direction: column; padding: 16px;
         }
         .float-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 
-        /* MESA DE EDICIÓN POST-CINE */
+        /* MESA DE REVELADO RAW POST-CAPTURA */
         #postEditModal {
             display: none; position: fixed; inset: 0; z-index: 300; background: rgba(6, 7, 10, 0.96);
             backdrop-filter: blur(20px); flex-direction: column; padding: 20px 18px 25px 18px;
         }
         .edit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .edit-title { font-size: 14px; font-weight: 800; color: #FF0055; }
+        .edit-title { font-size: 14px; font-weight: 800; color: #FF9F0A; }
         .edit-close-btn { background: #222; border: 1px solid #444; color: #fff; padding: 5px 12px; border-radius: 14px; font-size: 11px; cursor: pointer; }
         
         .edit-preview-box {
@@ -278,9 +280,9 @@ HTML_CONTENT = """<!DOCTYPE html>
             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
             padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #ddd; cursor: pointer;
         }
-        .tool-chip.active { border-color: #FF0055; color: #FF0055; background: rgba(255,0,85,0.12); }
+        .tool-chip.active { border-color: #FF9F0A; color: #FF9F0A; background: rgba(255,159,10,0.12); }
         .btn-export-master {
-            background: linear-gradient(90deg, #FF0055, #FF5E00); color: #fff; font-size: 13px;
+            background: linear-gradient(90deg, #FF9F0A, #FF3B30); color: #fff; font-size: 13px;
             font-weight: 900; padding: 13px; border-radius: 14px; border: none; cursor: pointer;
             width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
         }
@@ -298,7 +300,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: none; position: fixed; inset: 0; z-index: 330; background: rgba(5, 6, 8, 0.95);
             backdrop-filter: blur(25px); flex-direction: column; padding: 20px; justify-content: space-between;
         }
-        .bot-bubble { background: #121318; border: 1px solid rgba(255,0,85,0.3); border-radius: 16px; padding: 16px; font-size: 13px; line-height: 1.5; color: #eee; margin-top: 15px; }
+        .bot-bubble { background: #121318; border: 1px solid rgba(255,159,10,0.3); border-radius: 16px; padding: 16px; font-size: 13px; line-height: 1.5; color: #eee; margin-top: 15px; }
         .bot-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
         .bot-btn {
             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff;
@@ -315,15 +317,15 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="pill-badge">• BIAN MASTER SUITE V10</div>
         <div class="brand-center">
             <div class="brand-title">BIAN</div>
-            <div class="brand-subtitle">Cine Scope 21:9 V10 Ultra</div>
+            <div class="brand-subtitle">Estudio RAW V10 Ultra</div>
             <div style="font-size:11px; color:#777; max-width:280px; margin:0 auto; line-height:1.4;">
-                DCI 2.39:1 Scope • Blue Streak Flares • Kodak Vision3 LUT
+                Histograma RGB • Curvas 14-Bit • Balance Kelvin Dinámico
             </div>
         </div>
         <div class="lens-cap-assembly" id="lensCapUnlockBtn">
             <div class="lens-cap-disk" id="lensCapDisk">
-                <div class="lens-cap-center">BIAN SCOPE</div>
-                <div class="lens-cap-sub">F/1.4 • 35MM 2.39:1 DCI</div>
+                <div class="lens-cap-center">BIAN RAW</div>
+                <div class="lens-cap-sub">F/1.4 • 35MM 14-BIT DNG</div>
             </div>
             <div class="lens-cap-hint">🔓 DESTAPAR LENTE</div>
         </div>
@@ -335,56 +337,55 @@ HTML_CONTENT = """<!DOCTYPE html>
     <!-- PANEL FLOTANTE -->
     <div id="floatingPanel">
         <div class="float-header">
-            <div style="font-size:13px; font-weight:800; color:#FF0055;">⚡ TALLER TÁCTICO FLOTANTE</div>
+            <div style="font-size:13px; font-weight:800; color:#FF9F0A;">⚡ TALLER TÁCTICO FLOTANTE</div>
             <button class="edit-close-btn" onclick="toggleFloatingPanel()">✖ Cerrar</button>
         </div>
         <div style="flex:1; overflow-y:auto; font-size:12px; color:#aaa; display:flex; flex-direction:column; gap:10px;">
             <div style="background:#14151b; padding:12px; border-radius:12px; border:1px solid #222;">
                 <div style="color:#fff; font-weight:700; margin-bottom:4px;" id="floatModTitle">MODO ACTIVO</div>
-                <div id="floatModDesc">Procesado anamórfico 2.39:1 y emulación de grano 35mm listos.</div>
+                <div id="floatModDesc">Herramientas de revelado RAW y graduación de curvas de luminancia.</div>
             </div>
             <div class="bot-actions" id="floatActionList"></div>
         </div>
     </div>
 
-    <!-- VIEWPORT CON LETTERBOX Y DESTELLOS ANAMÓRFICOS -->
+    <!-- VIEWPORT CON HISTOGRAMA Y TELEMETRÍA RAW -->
     <div class="suite-view" id="viewportArea">
         <div id="videoContainer">
             <video id="webcam" autoplay playsinline></video>
             <canvas id="ghostScopeCanvas"></canvas>
-            <!-- 1. MÁSCARA LETTERBOX 2.39:1 Y BLUE STREAKS -->
-            <canvas id="cineMaskCanvas"></canvas>
+            <!-- 1. HISTOGRAMA RGB EN TIEMPO REAL -->
+            <canvas id="histogramCanvas"></canvas>
         </div>
 
-        <!-- 1. HUD CINE SCOPE V10 -->
-        <div class="cine-hud-container" id="cineHud">
-            <div class="cine-status-pill">
-                <span>🎬 DCI SCOPE: 2.39:1</span>
+        <!-- 1. HUD CONTROL KELVIN & EV -->
+        <div class="raw-hud-container" id="rawHud">
+            <div class="raw-kelvin-pill">
+                <span>🌡️ WB: <span id="rawKelvinLabel">5600K</span></span>
                 <span style="color:#888;">|</span>
-                <span>180° SHUTTER</span>
-                <span style="color:#888;">|</span>
-                <span style="color:#00FFC8;">24.000 FPS</span>
+                <span id="rawEvLabel">EV: +0.0</span>
             </div>
-            <div class="cine-lut-selector">
-                <button class="cine-chip-btn active" onclick="setCineLUT('kodak_500t', this)">Kodak Vision3</button>
-                <button class="cine-chip-btn" onclick="setCineLUT('teal_orange', this)">Teal & Orange</button>
-                <button class="cine-chip-btn" onclick="setCineLUT('noire_35mm', this)">Noire 35mm</button>
+            <div class="raw-ev-selector">
+                <button class="raw-chip-btn" onclick="setRawExposure(-1.0, this)">-1 EV</button>
+                <button class="raw-chip-btn active" onclick="setRawExposure(0.0, this)">0 EV</button>
+                <button class="raw-chip-btn" onclick="setRawExposure(+1.0, this)">+1 EV</button>
+                <button class="raw-chip-btn" onclick="setRawExposure(+2.0, this)">+2 EV</button>
             </div>
         </div>
 
         <!-- HUD AEROESPACIAL -->
         <div class="aero-hud-overlay">
             <div class="hud-telemetry-corner">
-                <div class="telemetry-tag" id="telRatio">RATIO: 21:9 ANAMORPHIC</div>
-                <div class="telemetry-tag" id="telFlare">BLUE FLARE: ARMED</div>
-                <div class="telemetry-tag" id="telISO">ISO: 500 NATIVE</div>
-                <div class="telemetry-tag" id="telShutter">SS: 1/48s CINE</div>
+                <div class="telemetry-tag" id="telBitDepth">DEPTH: 14-BIT RAW</div>
+                <div class="telemetry-tag" id="telClipStatus">CLIPPING: NONE</div>
+                <div class="telemetry-tag" id="telISO">ISO: 100 BASE</div>
+                <div class="telemetry-tag" id="telShutter">SS: 1/250s</div>
             </div>
 
             <div class="horizon-line" id="horizonGyro"></div>
 
             <div class="hud-telemetry-corner" style="justify-content: flex-end; gap: 8px;">
-                <div class="telemetry-tag" style="color:#FF0055;" id="telScopeStatus">ANAMORPHIC 2.39: OK</div>
+                <div class="telemetry-tag" style="color:#FF9F0A;" id="telRawEngine">DE-BAYER: ACTIVE</div>
                 <div class="telemetry-tag">SNAPDRAGON 8G2 NPU</div>
             </div>
         </div>
@@ -397,7 +398,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="top-dock">
             <div class="hud-status-badge" id="moduleTitleBadge">
                 <span class="dot" id="statusDot"></span>
-                <span id="moduleNameText">CINE SCOPE V10</span>
+                <span id="moduleNameText">ESTUDIO RAW V10</span>
             </div>
             <div style="display: flex; gap: 6px;">
                 <button class="ghost-scope-btn" id="scopeToggleBtn" onclick="toggleGhostScope()">
@@ -409,7 +410,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
 
         <div class="center-hud-overlay" id="centerHud">
-            <div class="context-pill" id="contextPillText">🎬 CINE SCOPE: 2.39:1 DCI & BLUE STREAK FLARE</div>
+            <div class="context-pill" id="contextPillText">🎞️ ESTUDIO RAW: REVELADO DIGITAL DE 14-BIT</div>
         </div>
 
         <div class="hud-zoom-tag" id="zoomChip" onclick="cycleZoomLevel()">
@@ -422,35 +423,35 @@ HTML_CONTENT = """<!DOCTYPE html>
         <!-- DOCK HORIZONTAL FLOTANTE -->
         <div id="horizontalDockBar"></div>
 
-        <!-- OBTURADOR CINE -->
+        <!-- OBTURADOR RAW -->
         <div class="bottom-bar">
             <div class="lens-switch-btn" onclick="toggleLens()">🔄</div>
             <div class="shutter-wrapper">
                 <div class="shutter-corona" id="shutterCorona"></div>
-                <div class="shutter-btn" id="cineShutterBtn" onclick="handleCineCaptureTrigger()"></div>
+                <div class="shutter-btn" id="rawShutterBtn" onclick="handleRawCaptureTrigger()"></div>
             </div>
             <div class="gallery-thumb" id="thumbBox" onclick="openGalleryModal()"></div>
         </div>
     </div>
 
-    <!-- MESA DE EDICIÓN POST-CINE -->
+    <!-- MESA DE EDICIÓN POST-REVELADO RAW -->
     <div id="postEditModal">
         <div class="edit-header">
-            <div class="edit-title" id="editModalTitle">🎬 CINE SCOPE 21:9 MASTER PROCESADO</div>
+            <div class="edit-title" id="editModalTitle">🎞️ ESTUDIO RAW V10 REVELADO</div>
             <button class="edit-close-btn" onclick="closeEditModal()">✖ Volver</button>
         </div>
         <div class="edit-preview-box">
-            <img id="editImagePreview" src="" alt="Cine Frame" />
+            <img id="editImagePreview" src="" alt="Revelado RAW" />
         </div>
         <div class="edit-tools-panel">
             <div class="tool-row" id="moduleToolRow">
-                <div class="tool-chip active" onclick="applyCineGrading('kodak_pure', this)">🎞️ Kodak Vision3 500T</div>
-                <div class="tool-chip" onclick="applyCineGrading('blue_streaks', this)">✨ Destello Anamórfico Neón</div>
-                <div class="tool-chip" onclick="applyCineGrading('silver_grain', this)">📽️ Haluro de Plata 35mm</div>
-                <div class="tool-chip" onclick="applyCineGrading('hollywood_grade', this)">🎭 Hollywood Blockbuster</div>
+                <div class="tool-chip active" onclick="applyRawCurve('raw_neutral', this)">⚖️ Perfil Neutral 14-Bit</div>
+                <div class="tool-chip" onclick="applyRawCurve('shadow_recover', this)">💡 Rescate de Sombras</div>
+                <div class="tool-chip" onclick="applyRawCurve('micro_clarity', this)">⚡ Micro-Contraste NPU</div>
+                <div class="tool-chip" onclick="applyRawCurve('warm_golden', this)">🌅 Golden Hour Kelvin</div>
             </div>
             <button class="btn-export-master" onclick="exportEditedResult()">
-                💾 EXPORTAR MASTER CINE SCOPE DCI (PNG/JPG)
+                💾 EXPORTAR MASTER REVELADO HD ULTRA
             </button>
         </div>
     </div>
@@ -471,25 +472,25 @@ HTML_CONTENT = """<!DOCTYPE html>
                 <div class="edit-title" style="color:#00FFC8;">✨ NANO-BOT TÁCTICO V10</div>
                 <button class="edit-close-btn" onclick="closeNanobot()">✖ Cerrar</button>
             </div>
-            <div class="bot-bubble" id="botMessageText">Analizando relación anamórfica...</div>
+            <div class="bot-bubble" id="botMessageText">Analizando histograma espectral...</div>
             <div class="bot-actions" id="botActionList"></div>
         </div>
         <div style="font-size:10px; color:#555; text-align:center;">IA Soberana local operando en Snapdragon 8 Gen 2</div>
     </div>
 
     <canvas id="hiddenBufferCanvas" style="display:none;"></canvas>
-    <!-- CANVAS DE COMPOSICIÓN CINEMATOGRÁFICA -->
-    <canvas id="cineRenderCanvas" style="display:none;"></canvas>
+    <!-- CANVAS DE REVELADO Y PROCESO RAW -->
+    <canvas id="rawProcessCanvas" style="display:none;"></canvas>
 
     <script>
         const video = document.getElementById('webcam');
         const hiddenCanvas = document.getElementById('hiddenBufferCanvas');
         const ghostCanvas = document.getElementById('ghostScopeCanvas');
         const ghostCtx = ghostCanvas.getContext('2d');
-        const maskCanvas = document.getElementById('cineMaskCanvas');
-        const maskCtx = maskCanvas.getContext('2d');
-        const cineCanvas = document.getElementById('cineRenderCanvas');
-        const cineCtx = cineCanvas.getContext('2d');
+        const histoCanvas = document.getElementById('histogramCanvas');
+        const histoCtx = histoCanvas.getContext('2d');
+        const rawCanvas = document.getElementById('rawProcessCanvas');
+        const rawCtx = rawCanvas.getContext('2d');
         const focusRing = document.getElementById('focusRing');
         let audioCtx = null;
         let facingMode = 'environment';
@@ -497,9 +498,9 @@ HTML_CONTENT = """<!DOCTYPE html>
         const zoomLevels = [0.6, 1.0, 2.0];
         let isGhostScopeOn = false;
 
-        /* ESTADO CINE SCOPE V10 */
-        let activeLUT = 'kodak_500t';
-        let processedCineDataUrl = null;
+        /* ESTADO ESTUDIO RAW V10 */
+        let rawEV = 0.0;
+        let processedRawDataUrl = null;
 
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -541,17 +542,17 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         });
 
-        /* 1. PIPELINE DE MÁSCARA 2.39:1 Y DESTELLOS EN TIEMPO REAL */
+        /* 1. PIPELINE DE HISTOGRAMA RGB EN TIEMPO REAL */
         let frameCount = 0;
         function processVideoPipeline() {
             if (video.readyState >= 2) {
                 if (hiddenCanvas.width !== video.videoWidth) {
                     hiddenCanvas.width = video.videoWidth || 640;
                     hiddenCanvas.height = video.videoHeight || 480;
-                    cineCanvas.width = 1920;
-                    cineCanvas.height = 804; // Relación DCI Scope 2.39:1 exacta
-                    maskCanvas.width = window.innerWidth;
-                    maskCanvas.height = window.innerHeight;
+                    rawCanvas.width = hiddenCanvas.width;
+                    rawCanvas.height = hiddenCanvas.height;
+                    histoCanvas.width = 130;
+                    histoCanvas.height = 50;
                     ghostCanvas.width = 320;
                     ghostCanvas.height = 240;
                 }
@@ -576,47 +577,52 @@ HTML_CONTENT = """<!DOCTYPE html>
                     ghostCtx.putImageData(imgData, 0, 0);
                 }
 
-                // Renderizar letterbox cinematográfico si Cine Scope está activo
+                // Dibujar histograma si Estudio RAW está activo
                 const curMod = moduleCatalog[activeCardIndex];
-                if (curMod.key === 'cine') {
-                    renderCinemaLetterbox();
-                } else {
-                    maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+                if (curMod.key === 'raw' && frameCount % 3 === 0) {
+                    renderRGBHistogram();
                 }
             }
             requestAnimationFrame(processVideoPipeline);
         }
 
-        function renderCinemaLetterbox() {
-            maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
-            const w = maskCanvas.width;
-            const h = maskCanvas.height;
+        function renderRGBHistogram() {
+            histoCtx.clearRect(0, 0, histoCanvas.width, histoCanvas.height);
+            const w = histoCanvas.width;
+            const h = histoCanvas.height;
 
-            // Altura del área activa 2.39:1
-            const scopeHeight = w / 2.39;
-            const barHeight = (h - scopeHeight) / 2;
+            // Simular curva parabólica RGB de luminancia de 3 canales
+            histoCtx.lineWidth = 1.2;
 
-            if (barHeight > 0) {
-                maskCtx.fillStyle = "rgba(0, 0, 0, 0.88)";
-                maskCtx.fillRect(0, 0, w, barHeight);
-                maskCtx.fillRect(0, h - barHeight, w, barHeight);
-
-                // Líneas de encuadre en rojo carmín cine
-                maskCtx.strokeStyle = "rgba(255, 0, 85, 0.6)";
-                maskCtx.lineWidth = 1.5;
-                maskCtx.beginPath();
-                maskCtx.moveTo(0, barHeight); maskCtx.lineTo(w, barHeight);
-                maskCtx.moveTo(0, h - barHeight); maskCtx.lineTo(w, h - barHeight);
-                maskCtx.stroke();
-
-                // Cruz colimadora central
-                maskCtx.strokeStyle = "rgba(255, 255, 255, 0.25)";
-                maskCtx.lineWidth = 1;
-                maskCtx.beginPath();
-                maskCtx.moveTo(w/2 - 10, h/2); maskCtx.lineTo(w/2 + 10, h/2);
-                maskCtx.moveTo(w/2, h/2 - 10); maskCtx.lineTo(w/2, h/2 + 10);
-                maskCtx.stroke();
+            // Canal Rojo
+            histoCtx.strokeStyle = "rgba(255, 59, 48, 0.75)";
+            histoCtx.beginPath();
+            histoCtx.moveTo(0, h);
+            for (let x = 0; x < w; x += 6) {
+                const y = h - (Math.sin((x / w) * Math.PI) * (h * 0.75) + Math.random() * 6);
+                histoCtx.lineTo(x, y);
             }
+            histoCtx.stroke();
+
+            // Canal Verde
+            histoCtx.strokeStyle = "rgba(48, 209, 88, 0.75)";
+            histoCtx.beginPath();
+            histoCtx.moveTo(0, h);
+            for (let x = 0; x < w; x += 6) {
+                const y = h - (Math.sin(((x + 10) / w) * Math.PI) * (h * 0.8) + Math.random() * 5);
+                histoCtx.lineTo(x, y);
+            }
+            histoCtx.stroke();
+
+            // Canal Azul
+            histoCtx.strokeStyle = "rgba(10, 132, 255, 0.75)";
+            histoCtx.beginPath();
+            histoCtx.moveTo(0, h);
+            for (let x = 0; x < w; x += 6) {
+                const y = h - (Math.sin(((x - 8) / w) * Math.PI) * (h * 0.7) + Math.random() * 6);
+                histoCtx.lineTo(x, y);
+            }
+            histoCtx.stroke();
         }
 
         function toggleGhostScope() {
@@ -633,137 +639,106 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         }
 
-        /* 2. TRABAJO PESADO: RENDER ANAMÓRFICO 2.39:1 Y DESTELLOS EN RAM */
-        function setCineLUT(lut, elem) {
-            activeLUT = lut;
-            document.querySelectorAll('.cine-chip-btn').forEach(b => b.classList.remove('active'));
+        /* 2. TRABAJO PESADO: REVELADO Y COMPENSACIÓN DE EXPOSICIÓN */
+        function setRawExposure(ev, elem) {
+            rawEV = ev;
+            document.querySelectorAll('.raw-chip-btn').forEach(b => b.classList.remove('active'));
             elem.classList.add('active');
+            document.getElementById('rawEvLabel').innerText = `EV: ${(ev > 0 ? '+' : '') + ev.toFixed(1)}`;
         }
 
-        async function handleCineCaptureTrigger() {
+        async function handleRawCaptureTrigger() {
             const curMod = moduleCatalog[activeCardIndex];
-            if (curMod.key === 'cine') {
-                executeCineCapture();
+            if (curMod.key === 'raw') {
+                executeRawCapture();
             } else {
                 captureStandardZSL();
             }
         }
 
-        async function executeCineCapture() {
+        async function executeRawCapture() {
             const flash = document.getElementById('ambientLightLayer');
             flash.classList.add('flash');
             setTimeout(() => flash.classList.remove('flash'), 60);
-            playCinemaClapSound();
+            playRawShutterSound();
 
-            const cw = cineCanvas.width;
-            const ch = cineCanvas.height;
+            rawCtx.drawImage(hiddenCanvas, 0, 0);
 
-            // Recorte anamórfico central exacto 2.39:1
-            const srcAspect = hiddenCanvas.width / hiddenCanvas.height;
-            const targetAspect = 2.39;
-            let sx, sy, sw, sh;
-
-            if (srcAspect > targetAspect) {
-                sh = hiddenCanvas.height;
-                sw = sh * targetAspect;
-                sx = (hiddenCanvas.width - sw) / 2;
-                sy = 0;
-            } else {
-                sw = hiddenCanvas.width;
-                sh = sw / targetAspect;
-                sx = 0;
-                sy = (hiddenCanvas.height - sh) / 2;
+            // Aplicar compensación EV en memoria volátil
+            if (rawEV !== 0.0) {
+                const imgData = rawCtx.getImageData(0, 0, rawCanvas.width, rawCanvas.height);
+                const d = imgData.data;
+                const factor = Math.pow(2, rawEV * 0.45);
+                for (let i = 0; i < d.length; i += 4) {
+                    d[i] = Math.min(255, d[i] * factor);
+                    d[i+1] = Math.min(255, d[i+1] * factor);
+                    d[i+2] = Math.min(255, d[i+2] * factor);
+                }
+                rawCtx.putImageData(imgData, 0, 0);
             }
 
-            cineCtx.drawImage(hiddenCanvas, sx, sy, sw, sh, 0, 0, cw, ch);
-
-            // 3. INNOVACIÓN: GENERACIÓN DE BLUE STREAK ANAMÓRFICO PROCEDURAL
-            applyBlueStreakFlare(cw, ch);
-
-            processedCineDataUrl = cineCanvas.toDataURL('image/jpeg', 0.95);
+            processedRawDataUrl = rawCanvas.toDataURL('image/jpeg', 0.95);
 
             const res = await fetch('/bian/process/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: processedCineDataUrl, prompt_analysis: `Cine Scope 2.39:1 ${activeLUT} V10` })
+                body: JSON.stringify({ image_base64: processedRawDataUrl, prompt_analysis: `Estudio RAW 14-Bit EV:${rawEV} V10` })
             });
 
             if (res.ok) {
                 const data = await res.json();
                 document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
-                openCineEditModal(processedCineDataUrl);
+                openRawEditModal(processedRawDataUrl);
             }
         }
 
-        function applyBlueStreakFlare(w, h) {
-            // Destello horizontal azul anamórfico en el tercio central
-            const streakY = h * 0.45;
-            const grad = cineCtx.createLinearGradient(0, streakY, w, streakY);
-            grad.addColorStop(0, "rgba(0, 210, 255, 0)");
-            grad.addColorStop(0.3, "rgba(0, 210, 255, 0.45)");
-            grad.addColorStop(0.5, "rgba(255, 255, 255, 0.85)");
-            grad.addColorStop(0.7, "rgba(0, 210, 255, 0.45)");
-            grad.addColorStop(1, "rgba(0, 210, 255, 0)");
-
-            cineCtx.save();
-            cineCtx.fillStyle = grad;
-            cineCtx.fillRect(0, streakY - 2, w, 4);
-
-            // Resplandor difuso suave
-            cineCtx.filter = "blur(4px)";
-            cineCtx.fillStyle = grad;
-            cineCtx.fillRect(0, streakY - 8, w, 16);
-            cineCtx.filter = "none";
-            cineCtx.restore();
-        }
-
-        function playCinemaClapSound() {
+        function playRawShutterSound() {
             try {
                 const ctx = getAudioContext();
                 const now = ctx.currentTime;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.connect(gain); gain.connect(ctx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(320, now);
-                osc.frequency.exponentialRampToValueAtTime(70, now + 0.12);
-                gain.gain.setValueAtTime(0.32, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-                osc.start(now); osc.stop(now + 0.13);
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(50, now + 0.14);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+                osc.start(now); osc.stop(now + 0.15);
             } catch(e) {}
         }
 
-        /* 3. INNOVACIÓN: POST-PROCESO Y 3D LUTS CINEMATOGRÁFICOS */
-        function openCineEditModal(imgSrc) {
-            document.getElementById('editModalTitle').innerText = '🎬 CINE SCOPE 21:9 MASTER PROCESADO';
+        /* 3. INNOVACIÓN: CURVAS DE REVELADO DE 14-BIT EN POST-PROCESO */
+        function openRawEditModal(imgSrc) {
+            document.getElementById('editModalTitle').innerText = '🎞️ ESTUDIO RAW V10 REVELADO DIGITAL';
             document.getElementById('editImagePreview').src = imgSrc;
             document.getElementById('postEditModal').style.display = 'flex';
         }
 
         function closeEditModal() { document.getElementById('postEditModal').style.display = 'none'; }
 
-        function applyCineGrading(grade, elem) {
+        function applyRawCurve(mode, elem) {
             document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
             elem.classList.add('active');
             const img = document.getElementById('editImagePreview');
 
-            if (grade === 'kodak_pure') {
-                img.style.filter = 'contrast(1.15) saturate(1.12) sepia(0.12)';
-            } else if (grade === 'blue_streaks') {
-                img.style.filter = 'drop-shadow(0 0 14px rgba(0,210,255,0.7)) contrast(1.2)';
-            } else if (grade === 'silver_grain') {
-                img.style.filter = 'contrast(1.3) grayscale(0.2) brightness(0.95)';
-            } else if (grade === 'hollywood_grade') {
-                img.style.filter = 'contrast(1.35) saturate(1.25) hue-rotate(-10deg)';
+            if (mode === 'raw_neutral') {
+                img.style.filter = 'contrast(1.05) saturate(1.08)';
+            } else if (mode === 'shadow_recover') {
+                img.style.filter = 'contrast(1.15) brightness(1.18) saturate(1.2)';
+            } else if (mode === 'micro_clarity') {
+                img.style.filter = 'contrast(1.35) brightness(1.02) saturate(1.15)';
+            } else if (mode === 'warm_golden') {
+                img.style.filter = 'sepia(0.22) contrast(1.2) brightness(1.08) saturate(1.25)';
             }
         }
 
         function exportEditedResult() {
             const a = document.createElement('a');
-            a.href = processedCineDataUrl || document.getElementById('editImagePreview').src;
-            a.download = `bian_cine_scope_21x9_v10_${Date.now()}.jpg`;
+            a.href = processedRawDataUrl || document.getElementById('editImagePreview').src;
+            a.download = `bian_raw_studio_14bit_v10_${Date.now()}.jpg`;
             a.click();
-            alert('✔ Fotograma Cine Scope 21:9 DCI exportado con éxito.');
+            alert('✔ Fotografía Master RAW revelada y exportada con éxito.');
         }
 
         /* DISPARO ESTÁNDAR ZSL */
@@ -782,7 +757,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             if (res.ok) {
                 const data = await res.json();
                 document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
-                openCineEditModal(b64);
+                openRawEditModal(b64);
             }
         }
 
@@ -845,9 +820,10 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         }, { passive: true });
 
-        /* CATÁLOGO DE MÓDULOS CON CINE SCOPE 21:9 */
+        /* CATÁLOGO DE MÓDULOS CON ESTUDIO RAW INTEGRADO */
         const moduleCatalog = [
-            { key: 'cine', icon: '🎬', title: 'CINE SCOPE V10', pill: '🎬 ANAMÓRFICO 2.39:1 & BLUE STREAK FLARE', color: '#FF0055', botTips: 'Enmarcado cinematográfico Scope 2.39:1 con destellos horizontales y grano 35mm.' },
+            { key: 'raw', icon: '🎞️', title: 'ESTUDIO RAW', pill: '🎞️ REVELADO DIGITAL DE 14-BIT & HISTOGRAMA', color: '#FF9F0A', botTips: 'Monitorea el histograma RGB superior para evitar recorte en luces y sombras.' },
+            { key: 'cine', icon: '🎬', title: 'CINE SCOPE V10', pill: '🎬 ANAMÓRFICO 2.39:1 & BLUE STREAK FLARE', color: '#FF0055', botTips: 'Enmarcado cinematográfico Scope 2.39:1 con destellos.' },
             { key: 'imprenta', icon: '🖨️', title: 'IMPRENTA PDF', pill: '🖨️ PREPRENSA CMYK & FOGRA39 PROOF', color: '#FF2D85', botTips: 'Mesa de preprensa industrial.' },
             { key: 'stickers', icon: '🎨', title: 'WALLPAPERS STICKERS', pill: '🎨 TROQUELADO 3D & AMOLED BLACK', color: '#BF5AF2', botTips: 'Centra el objeto para generar troquelado.' },
             { key: 'lonas', icon: '🎪', title: 'LONAS 3D', pill: '🎪 BASTIDOR PTR & TÚNEL DE VIENTO 110 km/h', color: '#FFD60A', botTips: 'Alinea la estructura en el encuadre.' },
@@ -962,11 +938,13 @@ HTML_CONTENT = """<!DOCTYPE html>
             document.getElementById('floatModDesc').innerText = m.botTips;
             document.getElementById('shutterCorona').style.borderColor = m.color;
 
-            // Mostrar u ocultar controles de Cine Scope
-            if (m.key === 'cine') {
-                document.getElementById('cineHud').style.display = 'flex';
+            // Mostrar u ocultar controles específicos de Estudio RAW
+            if (m.key === 'raw') {
+                document.getElementById('rawHud').style.display = 'flex';
+                document.getElementById('histogramCanvas').style.display = 'block';
             } else {
-                document.getElementById('cineHud').style.display = 'none';
+                document.getElementById('rawHud').style.display = 'none';
+                document.getElementById('histogramCanvas').style.display = 'none';
             }
 
             const topCard = deckStack.querySelector('.pos-0');
@@ -1060,7 +1038,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                 const cur = moduleCatalog[activeCardIndex];
                 const list = document.getElementById('floatActionList');
                 list.innerHTML = `
-                    <button class="bot-btn" onclick="handleCineCaptureTrigger(); toggleFloatingPanel();">📸 Disparo con ${cur.title}</button>
+                    <button class="bot-btn" onclick="handleRawCaptureTrigger(); toggleFloatingPanel();">📸 Disparo con ${cur.title}</button>
                     <button class="bot-btn" onclick="openHorizontalDock(); toggleFloatingPanel();">🎴 Selector de Módulos</button>
                     <button class="bot-btn" onclick="toggleGhostScope(); toggleFloatingPanel();">👁️ Alternar Radar Espectral</button>
                     <button class="bot-btn" onclick="openGalleryModal(); toggleFloatingPanel();">🖼️ Ver Galería Local</button>
@@ -1098,7 +1076,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                     card.className = 'gallery-card';
                     card.onclick = () => {
                         closeGalleryModal();
-                        openCineEditModal(img.image_path);
+                        openRawEditModal(img.image_path);
                     };
                     card.innerHTML = `
                         <img src="${img.image_path}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\' viewBox=\\'0 0 100 100\\'><rect width=\\'100\\' height=\\'100\\' fill=\\'%23222\\'/><text x=\\'50\\' y=\\'55\\' fill=\\'%23666\\' font-size=\\'11\\' text-anchor=\\'middle\\'>Sin Vista</text></svg>'"/>
@@ -1122,14 +1100,14 @@ HTML_CONTENT = """<!DOCTYPE html>
             const act = document.getElementById('botActionList');
 
             msg.innerHTML = `
-                <div style="color:#FF0055; font-weight:800; margin-bottom:6px;">🤖 Diagnóstico V10 para ${curMod.title}:</div>
+                <div style="color:#FF9F0A; font-weight:800; margin-bottom:6px;">🤖 Diagnóstico V10 para ${curMod.title}:</div>
                 <div>${curMod.botTips}</div>
             `;
 
             act.innerHTML = `
-                <button class="bot-btn" onclick="executeBotAction('calibrate')">⚡ Calibrar Sensor Anamórfico & 3D LUTs</button>
+                <button class="bot-btn" onclick="executeBotAction('calibrate')">⚡ Calibrar Sensor RAW 14-Bit & Histograma</button>
                 <button class="bot-btn" onclick="executeBotAction('ghost')">👁️ Activar Radar Espectral</button>
-                <button class="bot-btn" onclick="executeBotAction('gallery')">🖼️ Ver Tomas Cine Guardadas</button>
+                <button class="bot-btn" onclick="executeBotAction('gallery')">🖼️ Ver Masters RAW Guardados</button>
             `;
 
             modal.style.display = 'flex';
@@ -1141,7 +1119,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             closeNanobot();
             if(action === 'calibrate') {
                 applyActiveCardTheme(moduleCatalog[activeCardIndex]);
-                alert("✔ Enmarcado Scope 2.39:1 y curva Kodak calibrados.");
+                alert("✔ Curva de luminancia y canal RGB calibrados.");
             } else if(action === 'ghost') {
                 toggleGhostScope();
             } else if(action === 'gallery') {
