@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from sqlmodel import Session, select
 from core.database import get_session
@@ -11,12 +11,21 @@ from datetime import datetime
 
 router = APIRouter(prefix="/bian", tags=["Bian Master Suite V10"])
 
-os.makedirs("storage/bian", exist_ok=True)
-router.mount("/storage", StaticFiles(directory="storage"), name="storage")
+# Directorio físico asegurado
+STORAGE_DIR = os.path.abspath("storage/bian")
+os.makedirs(STORAGE_DIR, exist_ok=True)
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
     prompt_analysis: str = "Captura Master Suite V10"
+
+# Endpoint directo y seguro para servir imágenes sin fallos de montaje
+@router.get("/asset/{filename}")
+async def get_asset(filename: str):
+    file_path = os.path.join(STORAGE_DIR, filename)
+    if not os.path.isfile(file_path):
+        raise HTTPException(status_code=404, detail="Archivo no encontrado")
+    return FileResponse(file_path)
 
 HTML_CONTENT = """<!DOCTYPE html>
 <html lang="es">
@@ -70,7 +79,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             position: relative; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s;
         }
-        .lens-cap-center { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #00E5FF; transition: color 0.3s; }
+        .lens-cap-center { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #00E5FF; }
         .lens-cap-sub { font-size: 7.5px; color: #888; margin-top: 2px; }
         .lens-cap-hint { font-size: 10px; font-weight: 800; color: #aaa; margin-top: 10px; letter-spacing: 1px; }
 
@@ -84,7 +93,6 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         #ghostScopeCanvas.active { opacity: 0.75; }
 
-        /* 🌟 CANVAS DE ESPORAS CON DESVANECIMIENTO EXACTO DE 0.8s 🌟 */
         #sporesMatrixCanvas {
             position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 52;
             opacity: 0; transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
@@ -147,9 +155,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer;
         }
         .dock-item-btn.active { background: rgba(255, 255, 255, 0.18); transform: scale(1.12); }
-        .dock-dot-indicator {
-            position: absolute; bottom: -3px; width: 6px; height: 6px; border-radius: 50%; display: none;
-        }
+        .dock-dot-indicator { position: absolute; bottom: -3px; width: 6px; height: 6px; border-radius: 50%; display: none; }
         .dock-item-btn.active .dock-dot-indicator { display: block; }
 
         .bottom-bar {
@@ -157,10 +163,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: flex; justify-content: space-around; align-items: center; padding: 0 25px;
         }
         .shutter-wrapper { position: relative; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; }
-        .shutter-corona {
-            position: absolute; inset: -4px; border-radius: 50%;
-            border: 2px dashed rgba(255,255,255,0.3); pointer-events: none;
-        }
+        .shutter-corona { position: absolute; inset: -4px; border-radius: 50%; border: 2px dashed rgba(255,255,255,0.3); pointer-events: none; }
         .shutter-btn {
             width: 72px; height: 72px; border-radius: 50%; background: #00E5FF;
             border: 4px solid #fff; box-shadow: 0 0 22px rgba(0, 229, 255, 0.55); cursor: pointer;
@@ -170,25 +173,12 @@ HTML_CONTENT = """<!DOCTYPE html>
             border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; font-size: 19px; cursor: pointer;
         }
         .gallery-thumb {
-            width: 46px; height: 46px; border-radius: 50%; border: 2px solid rgba(0, 229, 255, 0.5);
-            background: #111; overflow: hidden; cursor: pointer; box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+            width: 46px; height: 46px; border-radius: 50%; border: 2px solid rgba(0, 229, 255, 0.6);
+            background: #111; overflow: hidden; cursor: pointer; box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
         }
         .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
-        #floatingGadget {
-            position: fixed; top: 180px; left: 14px; width: 48px; height: 48px;
-            border-radius: 50%; background: #0c0d12; border: 2px solid #00E5FF;
-            box-shadow: 0 6px 18px rgba(0, 229, 255, 0.4); z-index: 250;
-            display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: grab;
-        }
-        #floatingPanel {
-            display: none; position: fixed; inset: 100px 18px 120px 18px; z-index: 260;
-            background: rgba(10, 12, 16, 0.96); border: 1px solid #00E5FF; border-radius: 20px;
-            backdrop-filter: blur(25px); flex-direction: column; padding: 16px;
-        }
-        .float-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-
-        /* 🌟 ALMACÉN & GALERÍA SOBERANA V3 ULTRA 🌟 */
+        /* MODAL BÓVEDA & GALERÍA V3 */
         #galleryModal {
             display: none; position: fixed; inset: 0; z-index: 320; background: rgba(5, 7, 10, 0.98);
             backdrop-filter: blur(25px); flex-direction: column; padding: 18px;
@@ -198,32 +188,36 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: flex; gap: 8px; font-family: monospace; font-size: 10px; color: #888;
             background: #090c10; padding: 6px 12px; border-radius: 12px; border: 1px solid #1c2430; margin-bottom: 12px;
         }
-        .vault-filter-bar {
-            display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-bottom: 12px;
-        }
+        .vault-filter-bar { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-bottom: 12px; }
         .vault-chip {
-            padding: 4px 10px; font-size: 10px; font-weight: 800; border-radius: 14px;
+            padding: 5px 12px; font-size: 10px; font-weight: 800; border-radius: 14px;
             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
             color: #ccc; cursor: pointer; white-space: nowrap;
         }
         .vault-chip.active { background: #00E5FF; color: #000; border-color: #00E5FF; box-shadow: 0 0 8px rgba(0,229,255,0.5); }
         .gallery-grid {
-            display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; overflow-y: auto; flex: 1;
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; overflow-y: auto; flex: 1; padding-bottom: 10px;
         }
         .gallery-card {
-            background: #0f1218; border: 1px solid #1a2230; border-radius: 12px; overflow: hidden;
-            cursor: pointer; position: relative; display: flex; flex-direction: column;
+            background: #0d1117; border: 1px solid #1f2838; border-radius: 14px; overflow: hidden;
+            cursor: pointer; position: relative; display: flex; flex-direction: column; min-height: 145px;
         }
-        .gallery-card img { width: 100%; height: 110px; object-fit: cover; }
-        .gallery-card-info { padding: 6px 8px; font-size: 9.5px; color: #888; background: #0b0e14; display: flex; justify-content: space-between; align-items: center; }
+        .gallery-card-img-wrapper {
+            width: 100%; height: 115px; background: #05070a; overflow: hidden; display: flex; align-items: center; justify-content: center;
+        }
+        .gallery-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .gallery-card-info {
+            padding: 7px 9px; font-size: 9.5px; color: #888; background: #090c12;
+            display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #161e2a;
+        }
 
-        /* VISOR FORENSE INDIVIDUAL */
+        /* MODAL FORENSE DETALLADO */
         #assetDetailModal {
             display: none; position: fixed; inset: 0; z-index: 340; background: rgba(3, 5, 8, 0.98);
             backdrop-filter: blur(25px); flex-direction: column; padding: 18px;
         }
         .asset-preview-box {
-            flex: 1; border-radius: 14px; overflow: hidden; background: #000; border: 1px solid #222;
+            flex: 1; border-radius: 14px; overflow: hidden; background: #000; border: 1px solid #1a2230;
             display: flex; align-items: center; justify-content: center; position: relative; margin: 10px 0;
         }
         .asset-preview-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
@@ -232,23 +226,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             font-family: monospace; font-size: 11px; color: #00E5FF; display: flex; flex-direction: column; gap: 4px;
         }
         .asset-action-row { display: flex; gap: 8px; margin-top: 10px; }
-        .btn-asset-action {
-            flex: 1; padding: 11px; border-radius: 12px; font-size: 11px; font-weight: 800; border: none; cursor: pointer;
-        }
-
-        #nanobotModal {
-            display: none; position: fixed; inset: 0; z-index: 330; background: rgba(5, 7, 10, 0.96);
-            backdrop-filter: blur(25px); flex-direction: column; padding: 22px 18px; justify-content: space-between;
-        }
-        .bot-terminal-card {
-            background: #080c10; border: 1px solid rgba(0, 255, 200, 0.35); border-radius: 16px;
-            padding: 14px; font-family: monospace; font-size: 11px; color: #00FFC8; margin-top: 10px;
-        }
-        .bot-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
-        .bot-btn {
-            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff;
-            padding: 10px 14px; border-radius: 12px; font-size: 11px; font-weight: 700; text-align: left; cursor: pointer;
-        }
+        .btn-asset-action { flex: 1; padding: 11px; border-radius: 12px; font-size: 11px; font-weight: 800; border: none; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -256,63 +234,39 @@ HTML_CONTENT = """<!DOCTYPE html>
     <div class="ambient-fade-light" id="ambientLightLayer"></div>
 
     <div id="lockscreen">
-        <div class="pill-badge" id="lockscreenBadge">• ALMACÉN & GALERÍA V3</div>
+        <div class="pill-badge">• ALMACÉN & GALERÍA V3</div>
         <div class="brand-center">
             <div class="brand-title">BIAN</div>
-            <div class="brand-subtitle" id="lockscreenSub">Vault Storage V3 Ultra</div>
-            <div style="font-size:11px; color:#777; max-width:280px; margin:0 auto; line-height:1.4;" id="lockscreenDesc">
-                Bóveda SQLite Local • Metadatos Forenses • Purgado Atómico
-            </div>
+            <div class="brand-subtitle">Vault Storage V3 Ultra</div>
         </div>
         <div class="lens-cap-assembly" id="lensCapUnlockBtn">
             <div class="lens-cap-disk" id="lensCapDisk">
-                <div class="lens-cap-center" id="lensCapCenterText">ALMACÉN</div>
-                <div class="lens-cap-sub" id="lensCapSubText">F/1.4 • VAULT STORAGE</div>
+                <div class="lens-cap-center">ALMACÉN</div>
+                <div class="lens-cap-sub">F/1.4 • VAULT STORAGE</div>
             </div>
             <div class="lens-cap-hint">🔓 DESTAPAR LENTE</div>
         </div>
     </div>
 
-    <div id="floatingGadget" title="Taller Táctico">⚡</div>
-
-    <div id="floatingPanel">
-        <div class="float-header">
-            <div style="font-size:13px; font-weight:800; color:#00E5FF;" id="floatHeaderTitle">⚡ TALLER TÁCTICO FLOTANTE</div>
-            <button class="edit-close-btn" onclick="toggleFloatingPanel()">✖ Cerrar</button>
-        </div>
-        <div style="flex:1; overflow-y:auto; font-size:12px; color:#aaa; display:flex; flex-direction:column; gap:10px;">
-            <div style="background:#14151b; padding:12px; border-radius:12px; border:1px solid #222;">
-                <div style="color:#fff; font-weight:700; margin-bottom:4px;" id="floatModTitle">MODO ACTIVO</div>
-                <div id="floatModDesc">Herramientas optimizadas en RAM y Snapdragon 8 Gen 2.</div>
-            </div>
-            <div class="bot-actions" id="floatActionList"></div>
-        </div>
-    </div>
-
-    <div class="suite-view" id="viewportArea">
+    <div class="suite-view">
         <div id="videoContainer">
             <video id="webcam" autoplay playsinline></video>
             <canvas id="ghostScopeCanvas"></canvas>
-            <!-- 🌟 CANVAS DE ESPORAS: DESVANECIMIENTO EN 0.8 SEGUNDOS 🌟 -->
             <canvas id="sporesMatrixCanvas"></canvas>
         </div>
 
         <div class="top-dock">
-            <div class="hud-status-badge" id="moduleTitleBadge">
-                <span class="dot" id="statusDot"></span>
+            <div class="hud-status-badge">
+                <span class="dot"></span>
                 <span id="moduleNameText">ALMACÉN & GALERÍA V3</span>
             </div>
             <div style="display: flex; gap: 6px;">
-                <button class="ghost-scope-btn" id="scopeToggleBtn" onclick="toggleGhostScope()">
-                    👁️ ESPECTRO
-                </button>
                 <button class="top-action-btn" onclick="lockSuite()">🔒</button>
                 <button class="top-action-btn" onclick="openGalleryModal()">🖼️ Almacén</button>
-                <button class="top-action-btn" id="botToggleBtn" onclick="openNanobot()">✨ Nano-Bot</button>
             </div>
         </div>
 
-        <div class="center-hud-overlay" id="centerHud">
+        <div class="center-hud-overlay">
             <div class="context-pill" id="contextPillText">BÓVEDA DE ACTIVOS V3 READY</div>
         </div>
 
@@ -322,14 +276,14 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="bottom-bar">
             <div class="lens-switch-btn" onclick="toggleLens()">🔄</div>
             <div class="shutter-wrapper">
-                <div class="shutter-corona" id="shutterCorona"></div>
+                <div class="shutter-corona"></div>
                 <div class="shutter-btn" id="masterShutterBtn" onclick="handleMasterCapture()"></div>
             </div>
             <div class="gallery-thumb" id="thumbBox" onclick="openGalleryModal()"></div>
         </div>
     </div>
 
-    <!-- 🌟 MODAL ALMACÉN & GALERÍA SOBERANA V3 🌟 -->
+    <!-- MODAL BÓVEDA & GALERÍA V3 -->
     <div id="galleryModal">
         <div class="vault-header">
             <div style="font-size:14px; font-weight:900; color:#00E5FF;">🏛️ BÓVEDA & ALMACÉN SOBERANO V3</div>
@@ -338,21 +292,18 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="vault-telemetry">
             <div>ASSETS: <strong id="vaultCountLabel" style="color:#fff;">0</strong></div>
             <div>|</div>
-            <div>ALMACÉN: <strong id="vaultSizeLabel" style="color:#00E5FF;">SQLITE LOCAL</strong></div>
-            <div>|</div>
-            <div>STATUS: <strong style="color:#30D158;">ZERO-CLOUD</strong></div>
+            <div>STATUS: <strong style="color:#30D158;">SQLITE ONLINE</strong></div>
         </div>
         <div class="vault-filter-bar">
             <button class="vault-chip active" onclick="filterGallery('todos', this)">Todos los Activos</button>
-            <button class="vault-chip" onclick="filterGallery('imprenta', this)">Imprenta PDF</button>
-            <button class="vault-chip" onclick="filterGallery('despacho', this)">Despacho Logístico</button>
+            <button class="vault-chip" onclick="filterGallery('despacho', this)">Despacho</button>
             <button class="vault-chip" onclick="filterGallery('chef', this)">Chef Lean</button>
-            <button class="vault-chip" onclick="filterGallery('valuador', this)">Valuador Comercial</button>
+            <button class="vault-chip" onclick="filterGallery('valuador', this)">Valuador</button>
         </div>
         <div class="gallery-grid" id="galleryGridContent"></div>
     </div>
 
-    <!-- 🌟 MODAL VISOR FORENSE DETALLADO 🌟 -->
+    <!-- MODAL INSPECCIÓN FORENSE -->
     <div id="assetDetailModal">
         <div class="vault-header">
             <div style="font-size:13px; font-weight:800; color:#00E5FF;" id="assetDetailTitle">INSPECCIÓN FORENSE</div>
@@ -361,31 +312,10 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="asset-preview-box">
             <img id="assetDetailImg" src="" alt="Asset Detail" />
         </div>
-        <div class="asset-metadata-card" id="assetDetailMeta">
-            <div>ID ASSET: #104</div>
-            <div>TIPO: Captura Master Suite</div>
-            <div>ALMACENAMIENTO: storage/bian/photo_2026.jpg</div>
-        </div>
+        <div class="asset-metadata-card" id="assetDetailMeta"></div>
         <div class="asset-action-row">
             <button class="btn-asset-action" style="background:#00E5FF; color:#000;" onclick="downloadActiveAsset()">📥 Exportar HD</button>
             <button class="btn-asset-action" style="background:#FF3B30; color:#fff;" onclick="deleteActiveAsset()">🗑️ Eliminar Registro</button>
-        </div>
-    </div>
-
-    <div id="nanobotModal">
-        <div>
-            <div class="vault-header">
-                <div style="color:#00FFC8; font-size:13px; font-weight:800;">✨ NANO-BOT TÁCTICO V2</div>
-                <button class="top-action-btn" onclick="closeNanobot()">✖ Cerrar</button>
-            </div>
-            <div class="bot-terminal-card" id="botTerminalOutput">
-                > BÓVEDA V3 INDEXADA EN TERMINAL...<br>
-                > BASE DE DATOS SQLITE LISTA EN TERMUX
-            </div>
-            <div class="bot-actions" id="botActionList">
-                <button class="bot-btn" onclick="closeNanobot(); openGalleryModal();">🏛️ Abrir Bóveda de Activos V3</button>
-                <button class="bot-btn" onclick="executeBotMacro('clear_ram')">🧹 Limpiar Búfer de RAM en Termux</button>
-            </div>
         </div>
     </div>
 
@@ -394,20 +324,14 @@ HTML_CONTENT = """<!DOCTYPE html>
     <script>
         const video = document.getElementById('webcam');
         const hiddenCanvas = document.getElementById('hiddenBufferCanvas');
-        const ghostCanvas = document.getElementById('ghostScopeCanvas');
-        const ghostCtx = ghostCanvas.getContext('2d');
         const sporesCanvas = document.getElementById('sporesMatrixCanvas');
         const sporesCtx = sporesCanvas.getContext('2d');
         let audioCtx = null;
         let facingMode = 'environment';
-        let currentZoomIndex = 1;
-        const zoomLevels = [0.6, 1.0, 2.0];
-        let isGhostScopeOn = false;
         let sporesTimeout = null;
         let allGalleryItems = [];
         let activeAssetItem = null;
 
-        /* SISTEMA DE ESPORAS */
         let spores = [];
         const NUM_SPORES = 26;
 
@@ -425,7 +349,6 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         }
         initSpores();
-        window.addEventListener('resize', initSpores);
 
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -435,15 +358,12 @@ HTML_CONTENT = """<!DOCTYPE html>
 
         function startCamera() {
             if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
-            navigator.mediaDevices.getUserMedia({
-                video: { facingMode, width: { ideal: 1920 }, height: { ideal: 1080 } }
-            })
+            navigator.mediaDevices.getUserMedia({ video: { facingMode, width: { ideal: 1920 }, height: { ideal: 1080 } } })
             .then(stream => {
                 video.srcObject = stream;
                 updateThumb();
                 requestAnimationFrame(processPipeline);
-            })
-            .catch(err => console.warn("Error cámara:", err));
+            }).catch(err => console.warn(err));
         }
         startCamera();
 
@@ -452,7 +372,6 @@ HTML_CONTENT = """<!DOCTYPE html>
             startCamera();
         }
 
-        let frameCount = 0;
         function processPipeline() {
             if (video.readyState >= 2) {
                 if (hiddenCanvas.width !== video.videoWidth) {
@@ -460,30 +379,9 @@ HTML_CONTENT = """<!DOCTYPE html>
                     hiddenCanvas.height = video.videoHeight || 480;
                     sporesCanvas.width = window.innerWidth;
                     sporesCanvas.height = window.innerHeight;
-                    ghostCanvas.width = 320;
-                    ghostCanvas.height = 240;
                 }
                 const hCtx = hiddenCanvas.getContext('2d');
                 hCtx.drawImage(video, 0, 0, hiddenCanvas.width, hiddenCanvas.height);
-
-                frameCount++;
-                if (isGhostScopeOn && frameCount % 3 === 0) {
-                    ghostCtx.drawImage(hiddenCanvas, 0, 0, 320, 240);
-                    const imgData = ghostCtx.getImageData(0, 0, 320, 240);
-                    const d = imgData.data;
-                    for (let i = 0; i < d.length; i += 4) {
-                        const luma = (d[i] * 0.299 + d[i+1] * 0.587 + d[i+2] * 0.114);
-                        if (luma < 30) {
-                            d[i] = 255; d[i+1] = 0; d[i+2] = 180;
-                        } else if (luma > 235) {
-                            d[i] = 0; d[i+1] = 255; d[i+2] = 200;
-                        } else {
-                            d[i+3] = 0;
-                        }
-                    }
-                    ghostCtx.putImageData(imgData, 0, 0);
-                }
-
                 renderSporesFrame();
             }
             requestAnimationFrame(processPipeline);
@@ -493,56 +391,34 @@ HTML_CONTENT = """<!DOCTYPE html>
             sporesCtx.clearRect(0, 0, sporesCanvas.width, sporesCanvas.height);
             const w = sporesCanvas.width;
             const h = sporesCanvas.height;
-            const curMod = moduleCatalog[activeCardIndex];
-            const col = curMod.color;
+            const col = "#00E5FF";
 
             sporesCtx.strokeStyle = `${col}28`;
             sporesCtx.lineWidth = 0.8;
             sporesCtx.setLineDash([2, 8]);
-            const step = 45;
-            for (let x = 0; x < w; x += step) {
+            for (let x = 0; x < w; x += 45) {
                 sporesCtx.beginPath(); sporesCtx.moveTo(x, 0); sporesCtx.lineTo(x, h); sporesCtx.stroke();
             }
-            for (let y = 0; y < h; y += step) {
+            for (let y = 0; y < h; y += 45) {
                 sporesCtx.beginPath(); sporesCtx.moveTo(0, y); sporesCtx.lineTo(w, y); sporesCtx.stroke();
             }
             sporesCtx.setLineDash([]);
 
-            const cornerSize = 16;
-            sporesCtx.strokeStyle = col;
-            sporesCtx.lineWidth = 1.8;
-            sporesCtx.beginPath(); sporesCtx.moveTo(25, 25 + cornerSize); sporesCtx.lineTo(25, 25); sporesCtx.lineTo(25 + cornerSize, 25); sporesCtx.stroke();
-            sporesCtx.beginPath(); sporesCtx.moveTo(w - 25 - cornerSize, 25); sporesCtx.lineTo(w - 25, 25); sporesCtx.lineTo(w - 25, 25 + cornerSize); sporesCtx.stroke();
-            sporesCtx.beginPath(); sporesCtx.moveTo(25, h - 25 - cornerSize); sporesCtx.lineTo(25, h - 25); sporesCtx.lineTo(25 + cornerSize, h - 25); sporesCtx.stroke();
-            sporesCtx.beginPath(); sporesCtx.moveTo(w - 25 - cornerSize, h - 25); sporesCtx.lineTo(w - 25, h - 25); sporesCtx.lineTo(w - 25, h - 25 - cornerSize); sporesCtx.stroke();
-
             spores.forEach(sp => {
-                sp.x += sp.vx;
-                sp.y += sp.vy;
-                sp.pulse += 0.05;
-
-                if (sp.x < 0) sp.x = w;
-                if (sp.x > w) sp.x = 0;
-                if (sp.y < 0) sp.y = h;
-                if (sp.y > h) sp.y = 0;
-
+                sp.x += sp.vx; sp.y += sp.vy; sp.pulse += 0.05;
+                if (sp.x < 0) sp.x = w; if (sp.x > w) sp.x = 0;
+                if (sp.y < 0) sp.y = h; if (sp.y > h) sp.y = 0;
                 const currentR = sp.radius + Math.sin(sp.pulse) * 0.8;
-                const alpha = 0.5 + Math.sin(sp.pulse) * 0.4;
-
                 sporesCtx.fillStyle = col;
                 sporesCtx.shadowColor = col;
-                sporesCtx.shadowBlur = 10;
-                sporesCtx.globalAlpha = Math.max(0.1, alpha);
+                sporesCtx.shadowBlur = 8;
                 sporesCtx.beginPath();
                 sporesCtx.arc(sp.x, sp.y, Math.max(0.5, currentR), 0, Math.PI * 2);
                 sporesCtx.fill();
             });
-
-            sporesCtx.globalAlpha = 1.0;
             sporesCtx.shadowBlur = 0;
         }
 
-        /* 🌟 PROTOCOLO UNIVERSAL: ESPORAS A 0.8 SEGUNDOS EXACTOS 🌟 */
         function triggerUniversalEntryProtocol(color) {
             const border = document.getElementById('screenEdgeBorder');
             const ambient = document.getElementById('ambientLightLayer');
@@ -556,19 +432,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             ambient.classList.remove('flash');
             void ambient.offsetWidth;
             ambient.classList.add('flash');
-
             sCanvas.classList.add('active');
-
-            const cx = window.innerWidth / 2;
-            const cy = window.innerHeight / 2;
-            spores.forEach(sp => {
-                const angle = Math.atan2(sp.y - cy, sp.x - cx);
-                const speed = 4.8 + Math.random() * 4;
-                sp.vx = Math.cos(angle) * speed;
-                sp.vy = Math.sin(angle) * speed;
-            });
-
-            playTacticalEntrySound(color);
 
             setTimeout(() => {
                 border.style.transition = 'border-color 0.8s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
@@ -577,267 +441,63 @@ HTML_CONTENT = """<!DOCTYPE html>
                 ambient.classList.remove('flash');
             }, 120);
 
-            // 🌟 0.8 SEGUNDOS: DESVANECIMIENTO AL INSTANTE 🌟
             clearTimeout(sporesTimeout);
             sporesTimeout = setTimeout(() => {
                 sCanvas.classList.remove('active');
-                setTimeout(() => {
-                    spores.forEach(sp => {
-                        sp.vx = (Math.random() - 0.5) * 1.6;
-                        sp.vy = (Math.random() - 0.5) * 1.6;
-                    });
-                }, 300);
             }, 800);
-        }
-
-        function playTacticalEntrySound(color) {
-            try {
-                const ctx = getAudioContext();
-                const now = ctx.currentTime;
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain); gain.connect(ctx.destination);
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(260, now);
-                osc.frequency.exponentialRampToValueAtTime(980, now + 0.15);
-                gain.gain.setValueAtTime(0.3, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-                osc.start(now); osc.stop(now + 0.16);
-            } catch(e) {}
-        }
-
-        function toggleGhostScope() {
-            isGhostScopeOn = !isGhostScopeOn;
-            const btn = document.getElementById('scopeToggleBtn');
-            const gCanvas = document.getElementById('ghostScopeCanvas');
-            if (isGhostScopeOn) {
-                btn.classList.add('active');
-                gCanvas.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-                gCanvas.classList.remove('active');
-                ghostCtx.clearRect(0, 0, ghostCanvas.width, ghostCanvas.height);
-            }
-        }
-
-        /* CATÁLOGO DE MÓDULOS DE LA MASTER SUITE */
-        const moduleCatalog = [
-            { key: 'vault', icon: '🏛️', title: 'ALMACÉN & GALERÍA V3', pill: '🏛️ BÓVEDA SQLITE LOCAL & METADATOS FORENSES', color: '#00E5FF', capText: 'ALMACÉN', capSub: 'F/1.4 • VAULT STORAGE V3', botTips: 'Bóveda local SQLite, metadatos forenses y purgado atómico.' },
-            { key: 'dispatch', icon: '📦', title: 'DESPACHO COMERCIAL V2', pill: '📦 CUBICAJE IATA & MANIFIESTO LOGÍSTICO', color: '#00E676', capText: 'DESPACHO', capSub: 'F/1.4 • WAYBILL MATRIX', botTips: 'Calcula cubicaje CBM y genera manifiestos de salida.' },
-            { key: 'ai', icon: '✨', title: 'GENERADOR AI V8', pill: '✨ DIFUSIÓN LATENTE & MORFOLOGÍA NEURONAL', color: '#FF007A', capText: 'NEURAL AI', capSub: 'F/1.4 • LATENT SYNTHESIS', botTips: 'Transformación neuronal guiada por cámara.' },
-            { key: 'price', icon: '🏷️', title: 'VALUADOR HÍBRIDO V10', pill: '🏷️ TASACIÓN DE MERCADO & PÓLIZA COMERCIAL', color: '#63E6E2', capText: 'VALUADOR', capSub: 'F/1.4 • COMMERCIAL SCAN', botTips: 'Tasación comercial y márgenes.' },
-            { key: 'chef', icon: '👨‍🍳', title: 'CHEF LEAN V10', pill: '👨‍🍳 BÁSCULA NPU & AUDITORÍA DE MERMA', color: '#FF9500', capText: 'CHEF LEAN', capSub: 'F/1.4 • MEAT YIELD MATRIX', botTips: 'Báscula volumétrica y merma cárnica.' },
-            { key: 'depth', icon: '🛰️', title: 'DEPTH-MAP NPU', pill: '🛰️ Z-BUFFER 16-BIT & NUBE LIDAR', color: '#00F2FE', capText: 'DEPTH NPU', capSub: 'F/1.4 • DISPARITY 16-BIT', botTips: 'Disparidad de 16-bit y Wiggle 3D.' },
-            { key: 'motion', icon: '⚡', title: 'VIDEO MOTION', pill: '⚡ FLUJO ÓPTICO & ESTELAS 60 FPS', color: '#FF9500', capText: 'MOTION V9', capSub: 'F/1.4 • OPTICAL FLOW 60FPS', botTips: 'Rastreo kinético de vectores.' },
-            { key: 'svg', icon: '📐', title: 'SVG LOGOS', pill: '📐 VECTORIZADOR CAD & CÓDIGO XML', color: '#00FFC8', capText: 'SVG CAD', capSub: 'F/1.4 • BEZIER AUTOTRACE', botTips: 'Vectorización paramétrica y exportación XML.' },
-            { key: 'raw', icon: '🎞️', title: 'ESTUDIO RAW', pill: '🎞️ REVELADO DIGITAL DE 14-BIT & HISTOGRAMA', color: '#FF9F0A', capText: 'RAW STUDIO', capSub: 'F/1.4 • 14-BIT DNG PROFILE', botTips: 'Histograma espectral RGB.' },
-            { key: 'cine', icon: '🎬', title: 'CINE SCOPE V10', pill: '🎬 ANAMÓRFICO 2.39:1 & BLUE STREAK FLARE', color: '#FF0055', capText: 'SCOPE 2.39', capSub: 'F/1.4 • ANAMORPHIC DCI', botTips: 'Enmarcado cinematográfico Scope 2.39:1.' },
-            { key: 'imprenta', icon: '🖨️', title: 'IMPRENTA PDF', pill: '🖨️ PREPRENSA CMYK & FOGRA39 PROOF', color: '#FF2D85', capText: 'PREPRESS', capSub: 'F/1.4 • CMYK FOGRA39', botTips: 'Mesa de preprensa industrial.' },
-            { key: 'stickers', icon: '🎨', title: 'WALLPAPERS STICKERS', pill: '🎨 TROQUELADO 3D & AMOLED BLACK', color: '#BF5AF2', capText: 'DIE-CUT 3D', capSub: 'F/1.4 • AMOLED 19.5:9', botTips: 'Stickers troquelados y wallpapers.' },
-            { key: 'lonas', icon: '🎪', title: 'LONAS 3D', pill: '🎪 BASTIDOR PTR & TÚNEL DE VIENTO 110 km/h', color: '#FFD60A', capText: 'LONAS 3D', capSub: 'F/1.4 • PTR WIND TUNNEL', botTips: 'Bastidor PTR y túnel de viento.' },
-            { key: 'bokeh', icon: '🎭', title: 'RETRATO BOKEH', pill: '🎭 APERTURA ÓPTICA & IRIS SHAPER', color: '#FF2D55', capText: 'BOKEH f/1.2', capSub: 'F/1.2 • 85MM CINEMA IRIS', botTips: 'Convolución gaussiana y desenfoque.' },
-            { key: 'night', icon: '🌙', title: 'NIGHTOGRAPHY', pill: '🌙 MULTI-FRAME STACK & DEEP-SKY BOOST', color: '#5E5CE6', capText: 'NIGHT PRO', capSub: 'F/1.4 • MULTI-FRAME RAW', botTips: 'Fotómetro cuántico y apilado.' },
-            { key: 'macro', icon: '🔍', title: 'MACRO PRO', pill: '🔍 FOCUS PEAKING & DEEP FOCUS STACK', color: '#30D158', capText: 'MACRO PRO', capSub: 'F/1.4 • FOCUS PEAKING', botTips: 'Focus Peaking verde y lupa 10x.' },
-            { key: 'scan', icon: '📄', title: 'SCAN DOC PRO', pill: '📄 AUTO-ENCUADRE HOMOGRÁFICO & OCR', color: '#00D2FF', capText: 'SCAN DOC', capSub: 'F/1.4 • HOMOGRAPHY OCR', botTips: 'Enderezado homográfico y OCR.' },
-            { key: 'timelapse', icon: '⏱️', title: 'TIMELAPSE V10', pill: '⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA 4x', color: '#FF3B30', capText: 'CHRONO OIS', capSub: 'F/1.4 • QUANTUM TRAILS', botTips: 'Gimbal virtual OIS.' },
-            { key: 'pano', icon: '🌐', title: 'PANORÁMICA 360', pill: '🌐 BARRIDO POLAR & ORBE 3D VR', color: '#00FFC8', capText: 'PANO 360', capSub: 'F/1.4 • POLAR SPHERE', botTips: 'Barrido cilíndrico y render VR.' }
-        ];
-
-        let activeCardIndex = 0;
-        const deckStack = document.getElementById('deckStack');
-        const horizontalDock = document.getElementById('horizontalDockBar');
-        let lastClickedModuleIndex = -1;
-        let lastModuleClickTime = 0;
-
-        function renderDeckStack() {
-            deckStack.innerHTML = '';
-            for (let i = 0; i < 5; i++) {
-                const idx = (activeCardIndex + i) % moduleCatalog.length;
-                const m = moduleCatalog[idx];
-                const card = document.createElement('div');
-                card.className = `deck-card-item pos-${i}`;
-                card.innerText = m.icon;
-                card.setAttribute('data-key', m.key);
-                deckStack.appendChild(card);
-            }
-        }
-        renderDeckStack();
-
-        function renderHorizontalDock() {
-            horizontalDock.innerHTML = '';
-            moduleCatalog.forEach((m, idx) => {
-                const btn = document.createElement('div');
-                btn.className = `dock-item-btn ${(idx === activeCardIndex) ? 'active' : ''}`;
-                btn.innerHTML = `
-                    <span>${m.icon}</span>
-                    <span class="dock-dot-indicator" style="background:${m.color}; box-shadow:0 0 6px ${m.color};"></span>
-                `;
-                if(idx === activeCardIndex) {
-                    btn.style.borderColor = m.color;
-                    btn.style.boxShadow = `0 0 12px ${m.color}88`;
-                }
-
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    const now = Date.now();
-                    const isDoubleClick = (lastClickedModuleIndex === idx) && (now - lastModuleClickTime < 650);
-
-                    if (idx === activeCardIndex || isDoubleClick) {
-                        activeCardIndex = idx;
-                        closeHorizontalDock();
-                        renderDeckStack();
-                        applyActiveCardTheme(moduleCatalog[activeCardIndex], true);
-                        lastClickedModuleIndex = -1;
-                    } else {
-                        activeCardIndex = idx;
-                        lastClickedModuleIndex = idx;
-                        lastModuleClickTime = now;
-                        renderHorizontalDock();
-                        applyActiveCardTheme(moduleCatalog[activeCardIndex], true);
-                    }
-                };
-                horizontalDock.appendChild(btn);
-            });
-        }
-
-        function openHorizontalDock() {
-            renderHorizontalDock();
-            deckStack.style.display = 'none';
-            horizontalDock.classList.add('active');
-        }
-
-        function closeHorizontalDock() {
-            horizontalDock.classList.remove('active');
-            deckStack.style.display = 'block';
-        }
-
-        let deckTouchStartY = 0;
-        deckStack.addEventListener('touchstart', (e) => { deckTouchStartY = e.touches[0].clientY; }, { passive: true });
-        deckStack.addEventListener('touchend', (e) => {
-            const deltaY = deckTouchStartY - e.changedTouches[0].clientY;
-            if (deltaY > 20) shiftCard(1, 'slide-up');
-            else if (deltaY < -20) shiftCard(-1, 'slide-down');
-        }, { passive: true });
-
-        function shiftCard(dir, animClass) {
-            const topCard = deckStack.querySelector('.pos-0');
-            if (topCard) topCard.classList.add(animClass);
-
-            setTimeout(() => {
-                activeCardIndex = (activeCardIndex + dir + moduleCatalog.length) % moduleCatalog.length;
-                renderDeckStack();
-                applyActiveCardTheme(moduleCatalog[activeCardIndex], true);
-            }, 180);
-        }
-
-        function applyActiveCardTheme(m, triggerEntryEffect = false) {
-            document.getElementById('moduleNameText').innerText = m.title;
-            document.getElementById('statusDot').style.background = m.color;
-            document.getElementById('contextPillText').innerText = m.pill;
-            document.getElementById('contextPillText').style.color = m.color;
-            document.getElementById('contextPillText').style.borderColor = `${m.color}66`;
-
-            document.getElementById('masterShutterBtn').style.background = m.color;
-            document.getElementById('masterShutterBtn').style.boxShadow = `0 0 22px ${m.color}88`;
-            document.getElementById('shutterCorona').style.borderColor = m.color;
-
-            document.getElementById('floatingGadget').innerText = m.icon;
-            document.getElementById('floatingGadget').style.borderColor = m.color;
-            document.getElementById('floatModTitle').innerText = m.title;
-            document.getElementById('floatModTitle').style.color = m.color;
-            document.getElementById('floatModDesc').innerText = m.botTips;
-
-            document.getElementById('lockscreenBadge').innerText = `• ${m.title}`;
-            document.getElementById('lockscreenBadge').style.color = m.color;
-            document.getElementById('lockscreenBadge').style.borderColor = `${m.color}55`;
-            document.getElementById('lensCapCenterText').innerText = m.capText;
-            document.getElementById('lensCapCenterText').style.color = m.color;
-            document.getElementById('lensCapSubText').innerText = m.capSub;
-
-            const topCard = deckStack.querySelector('.pos-0');
-            if (topCard) {
-                topCard.style.borderColor = m.color;
-                topCard.style.background = m.color;
-                topCard.style.boxShadow = `0 0 22px ${m.color}`;
-                setTimeout(() => {
-                    topCard.style.borderColor = 'rgba(255, 255, 255, 0.25)';
-                    topCard.style.background = 'rgba(24, 25, 30, 0.92)';
-                    topCard.style.boxShadow = '0 8px 24px rgba(0,0,0,0.7)';
-                }, 1200);
-            }
-
-            if (triggerEntryEffect) {
-                triggerUniversalEntryProtocol(m.color);
-            }
         }
 
         let unlocked = false;
         function unlockSuite() {
             if (unlocked) return;
             unlocked = true;
-            const curMod = moduleCatalog[activeCardIndex];
-            const cap = document.getElementById('lensCapDisk');
-            cap.style.transform = 'rotate(-45deg) scale(1.18)';
-
-            setTimeout(() => {
-                document.getElementById('lockscreen').classList.add('unlocked');
-                applyActiveCardTheme(curMod, true);
-            }, 160);
+            document.getElementById('lockscreen').classList.add('unlocked');
+            triggerUniversalEntryProtocol('#00E5FF');
         }
 
         function lockSuite() {
             unlocked = false;
             document.getElementById('lockscreen').classList.remove('unlocked');
-            document.getElementById('lensCapDisk').style.transform = 'none';
-            const border = document.getElementById('screenEdgeBorder');
-            border.style.borderColor = 'transparent';
-            border.style.boxShadow = 'none';
+        }
+        document.getElementById('lensCapUnlockBtn').addEventListener('click', unlockSuite);
+
+        // Extractor unificado del nombre de archivo físico
+        function getSafeAssetUrl(rawPath) {
+            if (!rawPath) return '';
+            const filename = rawPath.split('/').pop();
+            return `/bian/asset/${filename}`;
         }
 
-        const lensCapBtn = document.getElementById('lensCapUnlockBtn');
-        let touchStartY = 0;
-        lensCapBtn.addEventListener('click', unlockSuite);
-        lensCapBtn.addEventListener('touchstart', (e) => { touchStartY = e.touches[0].clientY; }, { passive: true });
-        lensCapBtn.addEventListener('touchend', (e) => {
-            const deltaY = touchStartY - e.changedTouches[0].clientY;
-            if (deltaY > 20 || Math.abs(deltaY) < 10) unlockSuite();
-        }, { passive: true });
-
-        /* DISPARO GENERAL */
         async function handleMasterCapture() {
-            const curMod = moduleCatalog[activeCardIndex];
-            triggerUniversalEntryProtocol(curMod.color);
-
+            triggerUniversalEntryProtocol('#00E5FF');
             const b64 = hiddenCanvas.toDataURL('image/jpeg', 0.95);
 
             const res = await fetch('/bian/process/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: b64, prompt_analysis: `Captura ${curMod.title}` })
+                body: JSON.stringify({ image_base64: b64, prompt_analysis: 'Captura Almacén V3' })
             });
 
             if (res.ok) {
                 const data = await res.json();
-                document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
+                document.getElementById('thumbBox').innerHTML = `<img src="${getSafeAssetUrl(data.image_path)}" />`;
                 openAssetDetail(data);
             }
         }
 
-        /* 🌟 GESTIÓN FORENSE DE BÓVEDA & GALERÍA V3 🌟 */
         async function updateThumb() {
             try {
                 const res = await fetch('/bian/images/');
                 const list = await res.json();
-                if(list.length > 0) {
+                if (list.length > 0) {
                     const last = list[list.length - 1];
-                    document.getElementById('thumbBox').innerHTML = `<img src="${last.image_path}" />`;
+                    document.getElementById('thumbBox').innerHTML = `<img src="${getSafeAssetUrl(last.image_path)}" />`;
                 }
             } catch(e) {}
         }
 
         async function openGalleryModal() {
-            const modal = document.getElementById('galleryModal');
-            modal.style.display = 'flex';
+            document.getElementById('galleryModal').style.display = 'flex';
             await loadVaultAssets();
         }
 
@@ -845,24 +505,23 @@ HTML_CONTENT = """<!DOCTYPE html>
 
         async function loadVaultAssets() {
             const container = document.getElementById('galleryGridContent');
-            container.innerHTML = '<div style="color:#aaa; font-size:11px;">Indexando SQLite Local...</div>';
+            container.innerHTML = '<div style="color:#aaa; font-size:11px; padding:20px 0; text-align:center; grid-column:span 2;">Conectando a la bóveda...</div>';
 
             try {
                 const res = await fetch('/bian/images/');
                 allGalleryItems = await res.json();
                 document.getElementById('vaultCountLabel').innerText = allGalleryItems.length;
-
                 renderGalleryList(allGalleryItems);
             } catch(e) {
-                container.innerHTML = '<div style="color:#FF3B30;">Error accediendo a la bóveda.</div>';
+                container.innerHTML = '<div style="color:#FF3B30; padding:20px 0; text-align:center; grid-column:span 2;">Error en base de datos.</div>';
             }
         }
 
         function renderGalleryList(items) {
             const container = document.getElementById('galleryGridContent');
             container.innerHTML = '';
-            if(items.length === 0) {
-                container.innerHTML = '<div style="color:#666; font-size:11px; grid-column:span 2; text-align:center; padding:30px 0;">Bóveda vacía. No hay activos guardados.</div>';
+            if (items.length === 0) {
+                container.innerHTML = '<div style="color:#666; font-size:11px; grid-column:span 2; text-align:center; padding:30px 0;">No hay activos registrados.</div>';
                 return;
             }
 
@@ -870,11 +529,15 @@ HTML_CONTENT = """<!DOCTYPE html>
                 const card = document.createElement('div');
                 card.className = 'gallery-card';
                 card.onclick = () => openAssetDetail(img);
+                const assetUrl = getSafeAssetUrl(img.image_path);
+
                 card.innerHTML = `
-                    <img src="${img.image_path}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\'><rect fill=\\'%23111\\'/></svg>'"/>
+                    <div class="gallery-card-img-wrapper">
+                        <img src="${assetUrl}" loading="lazy" />
+                    </div>
                     <div class="gallery-card-info">
-                        <strong>#${img.id}</strong>
-                        <span>${(img.prompt_analysis || 'Asset').slice(0, 18)}</span>
+                        <strong style="color:#00E5FF;">#${img.id}</strong>
+                        <span>${(img.prompt_analysis || 'Asset').slice(0, 16)}</span>
                     </div>
                 `;
                 container.appendChild(card);
@@ -885,7 +548,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             document.querySelectorAll('.vault-chip').forEach(c => c.classList.remove('active'));
             elem.classList.add('active');
 
-            if(category === 'todos') {
+            if (category === 'todos') {
                 renderGalleryList(allGalleryItems);
             } else {
                 const filtered = allGalleryItems.filter(item => 
@@ -897,13 +560,15 @@ HTML_CONTENT = """<!DOCTYPE html>
 
         function openAssetDetail(item) {
             activeAssetItem = item;
-            document.getElementById('assetDetailTitle').innerText = `INSPECCIÓN ASSET #${item.id}`;
-            document.getElementById('assetDetailImg').src = item.image_path;
+            const assetUrl = getSafeAssetUrl(item.image_path);
+
+            document.getElementById('assetDetailTitle').innerText = `INSPECCIÓN FORENSE #${item.id}`;
+            document.getElementById('assetDetailImg').src = assetUrl;
             document.getElementById('assetDetailMeta').innerHTML = `
                 <div>ID EN REGISTRO: #${item.id}</div>
-                <div>ANÁLISIS: ${item.prompt_analysis || 'Captura Master Suite'}</div>
-                <div>RUTA FÍSICA: ${item.image_path}</div>
-                <div>CREADO: ${item.created_at || 'Registro Reciente'}</div>
+                <div>ANÁLISIS: ${item.prompt_analysis || 'Captura'}</div>
+                <div>ARCHIVO FÍSICO: ${item.image_path.split('/').pop()}</div>
+                <div>ESTADO: ALMACENAMIENTO VERIFICADO (TERMUX)</div>
             `;
             document.getElementById('assetDetailModal').style.display = 'flex';
         }
@@ -911,22 +576,20 @@ HTML_CONTENT = """<!DOCTYPE html>
         function closeAssetDetail() { document.getElementById('assetDetailModal').style.display = 'none'; }
 
         function downloadActiveAsset() {
-            if(!activeAssetItem) return;
+            if (!activeAssetItem) return;
             const a = document.createElement('a');
-            a.href = activeAssetItem.image_path;
-            a.download = `bian_vault_asset_${activeAssetItem.id}.jpg`;
+            a.href = getSafeAssetUrl(activeAssetItem.image_path);
+            a.download = `bian_asset_${activeAssetItem.id}.jpg`;
             a.click();
-            alert(`✔ Asset #${activeAssetItem.id} descargado a memoria.`);
         }
 
         async function deleteActiveAsset() {
-            if(!activeAssetItem) return;
-            if(!confirm(`¿Deseas purgar permanentemente el Asset #${activeAssetItem.id}?`)) return;
+            if (!activeAssetItem) return;
+            if (!confirm(`¿Eliminar permanentemente el Asset #${activeAssetItem.id}?`)) return;
 
             try {
                 const res = await fetch(`/bian/images/${activeAssetItem.id}`, { method: 'DELETE' });
-                if(res.ok) {
-                    alert(`✔ Asset #${activeAssetItem.id} purgado de SQLite y almacenamiento físico.`);
+                if (res.ok) {
                     closeAssetDetail();
                     await loadVaultAssets();
                     updateThumb();
@@ -934,23 +597,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                     alert('Error al intentar eliminar el activo.');
                 }
             } catch(e) {
-                alert('Fallo de conexión al purgar registro.');
-            }
-        }
-
-        function openNanobot() {
-            document.getElementById('nanobotModal').style.display = 'flex';
-        }
-
-        function closeNanobot() { document.getElementById('nanobotModal').style.display = 'none'; }
-
-        function executeBotMacro(macro) {
-            closeNanobot();
-            if(macro === 'clear_ram') {
-                spores = [];
-                initSpores();
-                triggerUniversalEntryProtocol('#00E5FF');
-                alert("✔ Búfer purgado. RAM optimizada.");
+                alert('Fallo de conexión.');
             }
         }
     </script>
@@ -963,13 +610,16 @@ async def get_ui():
 
 @router.post("/process/", response_model=ProcessedImage)
 def process_image(payload: ImageCaptureRequest, session: Session = Depends(get_session)):
-    os.makedirs("storage/bian", exist_ok=True)
-    filename = f"storage/bian/photo_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
+    filename = f"photo_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
+    full_path = os.path.join(STORAGE_DIR, filename)
+
     header, encoded = payload.image_base64.split(",", 1) if "," in payload.image_base64 else ("", payload.image_base64)
     data = base64.b64decode(encoded)
-    with open(filename, "wb") as f:
+    with open(full_path, "wb") as f:
         f.write(data)
-    db_image = ProcessedImage(image_path=f"/bian/{filename}", prompt_analysis=payload.prompt_analysis)
+
+    # Guardar ruta relativa estandarizada
+    db_image = ProcessedImage(image_path=f"storage/bian/{filename}", prompt_analysis=payload.prompt_analysis)
     session.add(db_image)
     session.commit()
     session.refresh(db_image)
@@ -984,10 +634,15 @@ def delete_image(image_id: int, session: Session = Depends(get_session)):
     db_image = session.get(ProcessedImage, image_id)
     if not db_image:
         raise HTTPException(status_code=404, detail="Imagen no encontrada")
-    # Limpiar archivo físico si existe
-    clean_path = db_image.image_path.lstrip("/bian/")
-    if os.path.exists(clean_path):
-        os.remove(clean_path)
+
+    filename = os.path.basename(db_image.image_path)
+    file_path = os.path.join(STORAGE_DIR, filename)
+    if os.path.exists(file_path):
+        try:
+            os.remove(file_path)
+        except Exception:
+            pass
+
     session.delete(db_image)
     session.commit()
     return {"status": "success", "deleted_id": image_id}
