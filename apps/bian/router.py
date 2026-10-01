@@ -16,14 +16,14 @@ router.mount("/storage", StaticFiles(directory="storage"), name="storage")
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Captura Macro Pro V10"
+    prompt_analysis: str = "Captura Retrato Bokeh V10"
 
 HTML_CONTENT = """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>BIAN MASTER SUITE V10 PRO - MACRO PRO</title>
+    <title>BIAN MASTER SUITE V10 PRO - RETRATO BOKEH</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', Roboto, monospace; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; width: 100vw; overflow: hidden; position: fixed; }
@@ -71,7 +71,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             position: relative; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .lens-cap-center { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #30D158; }
+        .lens-cap-center { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #FF2D55; }
         .lens-cap-sub { font-size: 7px; color: #777; margin-top: 2px; }
         .lens-cap-hint { font-size: 10px; font-weight: 800; color: #aaa; margin-top: 10px; letter-spacing: 1px; }
 
@@ -86,35 +86,26 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         #ghostScopeCanvas.active { opacity: 0.75; }
 
-        /* 1. HUD FOCUS PEAKING & REGLA MICROMÉTRICA MACRO V10 */
-        #macroPeakingCanvas {
-            position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 48;
-        }
-        .macro-scale-ruler {
-            display: none; position: absolute; right: 18px; top: 30%; bottom: 30%; width: 22px;
-            border-left: 2px dashed rgba(48, 209, 88, 0.7); pointer-events: none; z-index: 52;
-            flex-direction: column; justify-content: space-between; font-size: 8px; color: #30D158;
-            font-weight: 800; font-family: monospace; padding-left: 4px;
-        }
-        .macro-hud-container {
+        /* 1. HUD BOKEH IRIS & CONTROL F-STOP */
+        .bokeh-hud-container {
             display: none; position: absolute; top: 120px; left: 16px; right: 16px;
             z-index: 60; flex-direction: column; align-items: center; gap: 8px; pointer-events: auto;
         }
-        .macro-status-pill {
-            display: flex; gap: 10px; align-items: center; background: rgba(14, 24, 18, 0.88);
-            border: 1px solid rgba(48, 209, 88, 0.45); border-radius: 20px; padding: 5px 14px;
-            backdrop-filter: blur(14px); font-size: 11px; font-weight: 800; color: #30D158;
+        .bokeh-iris-pill {
+            display: flex; gap: 10px; align-items: center; background: rgba(26, 12, 16, 0.88);
+            border: 1px solid rgba(255, 45, 85, 0.45); border-radius: 20px; padding: 5px 14px;
+            backdrop-filter: blur(14px); font-size: 11px; font-weight: 800; color: #FF2D55;
         }
-        .macro-mode-selector {
-            display: flex; gap: 6px; background: rgba(12, 20, 14, 0.8);
+        .bokeh-fstop-selector {
+            display: flex; gap: 6px; background: rgba(20, 10, 14, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; padding: 4px 8px;
             backdrop-filter: blur(12px);
         }
-        .macro-chip-btn {
+        .fstop-chip-btn {
             padding: 3px 9px; font-size: 10px; font-weight: 800; border-radius: 12px;
             color: #888; background: transparent; border: none; cursor: pointer; transition: all 0.2s;
         }
-        .macro-chip-btn.active { background: #30D158; color: #000; box-shadow: 0 0 8px rgba(48,209,88,0.6); }
+        .fstop-chip-btn.active { background: #FF2D55; color: #fff; box-shadow: 0 0 8px rgba(255,45,85,0.6); }
 
         .aero-hud-overlay {
             position: absolute; inset: 0; pointer-events: none; z-index: 50;
@@ -122,7 +113,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .horizon-line {
             position: absolute; top: 50%; left: 25%; width: 50%; height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(48, 209, 88, 0.6), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 45, 85, 0.6), transparent);
         }
         .hud-telemetry-corner {
             display: flex; justify-content: space-between; font-family: monospace;
@@ -143,30 +134,30 @@ HTML_CONTENT = """<!DOCTYPE html>
             color: #fff; font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 20px;
             backdrop-filter: blur(10px); display: flex; align-items: center; gap: 6px;
         }
-        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #30D158; display: inline-block; }
+        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #FF2D55; display: inline-block; }
         .top-action-btn {
             background: rgba(18, 18, 22, 0.72); border: 1px solid rgba(255, 255, 255, 0.15);
             color: #fff; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 20px;
             backdrop-filter: blur(10px); cursor: pointer; display: flex; align-items: center; gap: 4px;
         }
         #botToggleBtn {
-            border-color: rgba(48,209,88,0.4); color: #30D158; transition: all 0.4s ease; min-width: 155px; justify-content: center;
+            border-color: rgba(255,45,85,0.4); color: #FF2D55; transition: all 0.4s ease; min-width: 155px; justify-content: center;
         }
 
         .ghost-scope-btn {
-            background: rgba(18, 18, 22, 0.75); border: 1px solid rgba(48, 209, 88, 0.35);
-            color: #30D158; font-size: 10px; font-weight: 800; padding: 6px 11px; border-radius: 18px;
+            background: rgba(18, 18, 22, 0.75); border: 1px solid rgba(255, 45, 85, 0.35);
+            color: #FF2D55; font-size: 10px; font-weight: 800; padding: 6px 11px; border-radius: 18px;
             cursor: pointer; backdrop-filter: blur(8px);
         }
-        .ghost-scope-btn.active { background: #30D158; color: #000; box-shadow: 0 0 14px rgba(48,209,88,0.6); }
+        .ghost-scope-btn.active { background: #FF2D55; color: #fff; box-shadow: 0 0 14px rgba(255,45,85,0.6); }
 
         .center-hud-overlay {
             position: absolute; top: 68px; left: 0; right: 0; z-index: 95;
             display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none;
         }
         .context-pill {
-            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(48, 209, 88, 0.4);
-            color: #30D158; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
+            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(255, 45, 85, 0.4);
+            color: #FF2D55; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
             padding: 4px 14px; border-radius: 20px; backdrop-filter: blur(10px); text-transform: uppercase;
         }
 
@@ -182,7 +173,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         .hud-zoom-tag {
             position: absolute; bottom: 155px; left: 24px; z-index: 100;
             background: rgba(20, 20, 24, 0.82); border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 18px; padding: 5px 12px; font-size: 12px; font-weight: 800; color: #30D158;
+            border-radius: 18px; padding: 5px 12px; font-size: 12px; font-weight: 800; color: #FF2D55;
             cursor: pointer; backdrop-filter: blur(12px);
         }
 
@@ -223,7 +214,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .dock-item-btn.active .dock-dot-indicator { display: block; }
 
-        /* OBTURADOR MACRO */
+        /* OBTURADOR BOKEH */
         .bottom-bar {
             position: absolute; bottom: 20px; left: 0; right: 0; z-index: 100;
             display: flex; justify-content: space-around; align-items: center; padding: 0 25px;
@@ -234,8 +225,8 @@ HTML_CONTENT = """<!DOCTYPE html>
             border: 2px dashed rgba(255,255,255,0.3); pointer-events: none;
         }
         .shutter-btn {
-            width: 72px; height: 72px; border-radius: 50%; background: #30D158;
-            border: 4px solid #fff; box-shadow: 0 0 22px rgba(48, 209, 88, 0.55); cursor: pointer;
+            width: 72px; height: 72px; border-radius: 50%; background: #FF2D55;
+            border: 4px solid #fff; box-shadow: 0 0 22px rgba(255, 45, 85, 0.55); cursor: pointer;
         }
         .lens-switch-btn {
             width: 46px; height: 46px; border-radius: 50%; background: rgba(30, 30, 35, 0.75);
@@ -250,39 +241,31 @@ HTML_CONTENT = """<!DOCTYPE html>
         /* GADGET Y PANELES */
         #floatingGadget {
             position: fixed; top: 180px; left: 14px; width: 48px; height: 48px;
-            border-radius: 50%; background: #0c0d12; border: 2px solid #30D158;
-            box-shadow: 0 6px 18px rgba(48, 209, 88, 0.4); z-index: 250;
+            border-radius: 50%; background: #0c0d12; border: 2px solid #FF2D55;
+            box-shadow: 0 6px 18px rgba(255, 45, 85, 0.4); z-index: 250;
             display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: grab;
         }
         #floatingPanel {
             display: none; position: fixed; inset: 100px 18px 120px 18px; z-index: 260;
-            background: rgba(10, 12, 16, 0.96); border: 1px solid #30D158; border-radius: 20px;
+            background: rgba(10, 12, 16, 0.96); border: 1px solid #FF2D55; border-radius: 20px;
             backdrop-filter: blur(25px); flex-direction: column; padding: 16px;
         }
         .float-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 
-        /* MESA DE EDICIÓN POST-MACRO & LUPA NPU */
+        /* MESA DE EDICIÓN POST-RETRATO */
         #postEditModal {
             display: none; position: fixed; inset: 0; z-index: 300; background: rgba(6, 7, 10, 0.96);
             backdrop-filter: blur(20px); flex-direction: column; padding: 20px 18px 25px 18px;
         }
         .edit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .edit-title { font-size: 14px; font-weight: 800; color: #30D158; }
+        .edit-title { font-size: 14px; font-weight: 800; color: #FF2D55; }
         .edit-close-btn { background: #222; border: 1px solid #444; color: #fff; padding: 5px 12px; border-radius: 14px; font-size: 11px; cursor: pointer; }
         
         .edit-preview-box {
             flex: 1; border-radius: 16px; overflow: hidden; background: #000; border: 1px solid #222;
-            display: flex; align-items: center; justify-content: center; position: relative; touch-action: none;
+            display: flex; align-items: center; justify-content: center; position: relative;
         }
         .edit-preview-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
-
-        /* 3. INNOVACIÓN: LUPA MICROSCÓPICA FLOTANTE NPU 10x */
-        #microscopeLoupe {
-            display: none; position: absolute; width: 140px; height: 140px; border-radius: 50%;
-            border: 3px solid #30D158; box-shadow: 0 0 25px rgba(48,209,88,0.7), inset 0 0 15px rgba(0,0,0,0.8);
-            pointer-events: none; z-index: 310; overflow: hidden; background: #000;
-        }
-        #loupeCanvas { width: 100%; height: 100%; object-fit: cover; }
 
         .edit-tools-panel { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
         .tool-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
@@ -290,9 +273,9 @@ HTML_CONTENT = """<!DOCTYPE html>
             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
             padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #ddd; cursor: pointer;
         }
-        .tool-chip.active { border-color: #30D158; color: #30D158; background: rgba(48,209,88,0.12); }
+        .tool-chip.active { border-color: #FF2D55; color: #FF2D55; background: rgba(255,45,85,0.12); }
         .btn-export-master {
-            background: linear-gradient(90deg, #30D158, #00FFC8); color: #000; font-size: 13px;
+            background: linear-gradient(90deg, #FF2D55, #FF375F); color: #fff; font-size: 13px;
             font-weight: 900; padding: 13px; border-radius: 14px; border: none; cursor: pointer;
             width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
         }
@@ -310,7 +293,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: none; position: fixed; inset: 0; z-index: 330; background: rgba(5, 6, 8, 0.95);
             backdrop-filter: blur(25px); flex-direction: column; padding: 20px; justify-content: space-between;
         }
-        .bot-bubble { background: #121318; border: 1px solid rgba(48,209,88,0.3); border-radius: 16px; padding: 16px; font-size: 13px; line-height: 1.5; color: #eee; margin-top: 15px; }
+        .bot-bubble { background: #121318; border: 1px solid rgba(255,45,85,0.3); border-radius: 16px; padding: 16px; font-size: 13px; line-height: 1.5; color: #eee; margin-top: 15px; }
         .bot-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
         .bot-btn {
             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff;
@@ -327,15 +310,15 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="pill-badge">• BIAN MASTER SUITE V10</div>
         <div class="brand-center">
             <div class="brand-title">BIAN</div>
-            <div class="brand-subtitle">Macro Pro V10 Ultra</div>
+            <div class="brand-subtitle">Retrato Bokeh V10 Ultra</div>
             <div style="font-size:11px; color:#777; max-width:280px; margin:0 auto; line-height:1.4;">
-                Focus Stacking NPU • Focus Peaking Neón • Lupa Microscópica 10x
+                Iris f/1.2 • Convolución Gaussiana Progresiva • Shaper Anamórfico
             </div>
         </div>
         <div class="lens-cap-assembly" id="lensCapUnlockBtn">
             <div class="lens-cap-disk" id="lensCapDisk">
-                <div class="lens-cap-center">BIAN MACRO</div>
-                <div class="lens-cap-sub">F/1.4 • 35MM 1:1 REPRO</div>
+                <div class="lens-cap-center">BIAN BOKEH</div>
+                <div class="lens-cap-sub">F/1.2 • 85MM CINEMA IRIS</div>
             </div>
             <div class="lens-cap-hint">🔓 DESTAPAR LENTE</div>
         </div>
@@ -347,63 +330,54 @@ HTML_CONTENT = """<!DOCTYPE html>
     <!-- PANEL FLOTANTE -->
     <div id="floatingPanel">
         <div class="float-header">
-            <div style="font-size:13px; font-weight:800; color:#30D158;">⚡ TALLER TÁCTICO FLOTANTE</div>
+            <div style="font-size:13px; font-weight:800; color:#FF2D55;">⚡ TALLER TÁCTICO FLOTANTE</div>
             <button class="edit-close-btn" onclick="toggleFloatingPanel()">✖ Cerrar</button>
         </div>
         <div style="flex:1; overflow-y:auto; font-size:12px; color:#aaa; display:flex; flex-direction:column; gap:10px;">
             <div style="background:#14151b; padding:12px; border-radius:12px; border:1px solid #222;">
                 <div style="color:#fff; font-weight:700; margin-bottom:4px;" id="floatModTitle">MODO ACTIVO</div>
-                <div id="floatModDesc">Focus Stacking y micro-gradiente por NPU listos.</div>
+                <div id="floatModDesc">Simulador de apertura óptica e iris bokeh listos.</div>
             </div>
             <div class="bot-actions" id="floatActionList"></div>
         </div>
     </div>
 
-    <!-- VIEWPORT CON RETÍCULA FOCUS PEAKING Y REGLA MICROMÉTRICA -->
+    <!-- VIEWPORT CON RETÍCULA AERO HUD Y RADAR ESPECTRAL -->
     <div class="suite-view" id="viewportArea">
         <div id="videoContainer">
             <video id="webcam" autoplay playsinline></video>
             <canvas id="ghostScopeCanvas"></canvas>
-            <!-- 1. RETÍCULA DE FOCUS PEAKING NEÓN EN VIVO -->
-            <canvas id="macroPeakingCanvas"></canvas>
         </div>
 
-        <!-- REGLA MICROMÉTRICA DIGITAL -->
-        <div class="macro-scale-ruler" id="macroRuler">
-            <div>10mm</div>
-            <div>8mm</div>
-            <div>6mm</div>
-            <div>4mm</div>
-            <div>2mm</div>
-            <div>0mm</div>
-        </div>
-
-        <!-- 1. HUD ESPECÍFICO MACRO PRO V10 -->
-        <div class="macro-hud-container" id="macroHud">
-            <div class="macro-status-pill">
-                <span>🔍 FOCAL: 2-8 cm</span>
+        <!-- 1. HUD BOKEH IRIS & SELECTOR F-STOP EN VIVO -->
+        <div class="bokeh-hud-container" id="bokehHud">
+            <div class="bokeh-iris-pill">
+                <span>🎯 APERTURA: f/1.2</span>
                 <span style="color:#888;">|</span>
-                <span id="macroDofStatus">FOCUS PEAKING: ON</span>
+                <span id="bokehRadiusLabel">DESENFOQUE: 18px</span>
             </div>
-            <div class="macro-mode-selector">
-                <button class="macro-chip-btn active" onclick="setMacroFocusMode('stacking', this)">Focus Stacking (Deep DOF)</button>
-                <button class="macro-chip-btn" onclick="setMacroFocusMode('direct', this)">Single Macro</button>
+            <div class="bokeh-fstop-selector">
+                <button class="fstop-chip-btn active" onclick="setBokehFStop(1.2, 18, this)">f/1.2</button>
+                <button class="fstop-chip-btn" onclick="setBokehFStop(1.8, 12, this)">f/1.8</button>
+                <button class="fstop-chip-btn" onclick="setBokehFStop(2.8, 8, this)">f/2.8</button>
+                <button class="fstop-chip-btn" onclick="setBokehFStop(4.0, 4, this)">f/4.0</button>
+                <button class="fstop-chip-btn" onclick="setBokehFStop(8.0, 0, this)">f/8.0</button>
             </div>
         </div>
 
         <!-- HUD AEROESPACIAL -->
         <div class="aero-hud-overlay">
             <div class="hud-telemetry-corner">
-                <div class="telemetry-tag" id="telMag">MAG: 1:1 REPRO</div>
-                <div class="telemetry-tag" id="telDOF">DOF: 1.2 mm</div>
-                <div class="telemetry-tag" id="telISO">ISO: 50 AUTO</div>
-                <div class="telemetry-tag" id="telShutter">SS: 1/500s</div>
+                <div class="telemetry-tag" id="telFocal">LENS: 85mm PRO</div>
+                <div class="telemetry-tag" id="telDepth">DEPTH SEPARATION: 92%</div>
+                <div class="telemetry-tag" id="telISO">ISO: 100 AUTO</div>
+                <div class="telemetry-tag" id="telShutter">SS: 1/400s</div>
             </div>
 
             <div class="horizon-line" id="horizonGyro"></div>
 
             <div class="hud-telemetry-corner" style="justify-content: flex-end; gap: 8px;">
-                <div class="telemetry-tag" style="color:#30D158;" id="telStackStatus">DEEP DOF: READY</div>
+                <div class="telemetry-tag" style="color:#FF2D55;" id="telBokehStatus">CONVOLUTION: ACTIVE</div>
                 <div class="telemetry-tag">SNAPDRAGON 8G2 NPU</div>
             </div>
         </div>
@@ -416,7 +390,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="top-dock">
             <div class="hud-status-badge" id="moduleTitleBadge">
                 <span class="dot" id="statusDot"></span>
-                <span id="moduleNameText">MACRO PRO V10</span>
+                <span id="moduleNameText">RETRATO BOKEH V10</span>
             </div>
             <div style="display: flex; gap: 6px;">
                 <button class="ghost-scope-btn" id="scopeToggleBtn" onclick="toggleGhostScope()">
@@ -428,7 +402,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
 
         <div class="center-hud-overlay" id="centerHud">
-            <div class="context-pill" id="contextPillText">🔍 ENFOQUE A CORTO ALCANCE ULTRA DETALLE</div>
+            <div class="context-pill" id="contextPillText">🎭 RETRATO BOKEH: DESENFOQUE ÓPTICO 85MM</div>
         </div>
 
         <div class="hud-zoom-tag" id="zoomChip" onclick="cycleZoomLevel()">
@@ -441,39 +415,35 @@ HTML_CONTENT = """<!DOCTYPE html>
         <!-- DOCK HORIZONTAL FLOTANTE -->
         <div id="horizontalDockBar"></div>
 
-        <!-- OBTURADOR MACRO -->
+        <!-- OBTURADOR BOKEH -->
         <div class="bottom-bar">
             <div class="lens-switch-btn" onclick="toggleLens()">🔄</div>
             <div class="shutter-wrapper">
                 <div class="shutter-corona" id="shutterCorona"></div>
-                <div class="shutter-btn" id="macroShutterBtn" onclick="handleMacroCaptureTrigger()"></div>
+                <div class="shutter-btn" id="bokehShutterBtn" onclick="handleBokehCaptureTrigger()"></div>
             </div>
             <div class="gallery-thumb" id="thumbBox" onclick="openGalleryModal()"></div>
         </div>
     </div>
 
-    <!-- MESA DE EDICIÓN POST-CAPTURA / LUPA MICROSCÓPICA 10x -->
+    <!-- MESA DE EDICIÓN POST-RETRATO -->
     <div id="postEditModal">
         <div class="edit-header">
-            <div class="edit-title" id="editModalTitle">🔍 MACRO PRO V10 SÍNTESIS PROFUNDA</div>
+            <div class="edit-title" id="editModalTitle">🎭 RETRATO BOKEH V10 RENDERIZADO</div>
             <button class="edit-close-btn" onclick="closeEditModal()">✖ Volver</button>
         </div>
-        <div class="edit-preview-box" id="editPreviewArea">
-            <img id="editImagePreview" src="" alt="Captura Macro" />
-            <!-- 3. INNOVACIÓN: LUPA MICROSCÓPICA 10x NPU -->
-            <div id="microscopeLoupe">
-                <canvas id="loupeCanvas"></canvas>
-            </div>
+        <div class="edit-preview-box">
+            <img id="editImagePreview" src="" alt="Retrato Bokeh" />
         </div>
         <div class="edit-tools-panel">
             <div class="tool-row" id="moduleToolRow">
-                <div class="tool-chip active" onclick="applyMacroTool('stacked_pure', this)">🔬 Focus Stacking Puro</div>
-                <div class="tool-chip" onclick="toggleMicroscopeLoupe(this)">🔎 Lupa Microscópica 10x</div>
-                <div class="tool-chip" onclick="applyMacroTool('laplacian_edge', this)">⚡ Realce Micro-Textura</div>
-                <div class="tool-chip" onclick="applyMacroTool('cinematic_grade', this)">🎞️ Grado Cine V10</div>
+                <div class="tool-chip active" onclick="applyBokehBlade('circle_85mm', this)">⭕ Bokeh Circular 85mm</div>
+                <div class="tool-chip" onclick="applyBokehBlade('anamorphic_oval', this)">🎬 Óvalo Anamórfico Hollywood</div>
+                <div class="tool-chip" onclick="applyBokehBlade('swirly_petzval', this)">🌀 Petzval Swirly Vintage</div>
+                <div class="tool-chip" onclick="applyBokehBlade('cinematic_grade', this)">🎞️ Grado Cine V10</div>
             </div>
             <button class="btn-export-master" onclick="exportEditedResult()">
-                💾 EXPORTAR MACRO ULTRA DETALLE HD
+                💾 EXPORTAR RETRATO BOKEH MASTER HD
             </button>
         </div>
     </div>
@@ -494,28 +464,23 @@ HTML_CONTENT = """<!DOCTYPE html>
                 <div class="edit-title" style="color:#00FFC8;">✨ NANO-BOT TÁCTICO V10</div>
                 <button class="edit-close-btn" onclick="closeNanobot()">✖ Cerrar</button>
             </div>
-            <div class="bot-bubble" id="botMessageText">Analizando micro-detalle...</div>
+            <div class="bot-bubble" id="botMessageText">Analizando plano de sujeto...</div>
             <div class="bot-actions" id="botActionList"></div>
         </div>
         <div style="font-size:10px; color:#555; text-align:center;">IA Soberana local operando en Snapdragon 8 Gen 2</div>
     </div>
 
     <canvas id="hiddenBufferCanvas" style="display:none;"></canvas>
-    <!-- CANVAS DE FOCUS STACKING EN MEMORIA -->
-    <canvas id="stackAccumCanvas" style="display:none;"></canvas>
+    <!-- CANVAS DE CONVOLUCIÓN GAUSSIANA EN MEMORIA -->
+    <canvas id="bokehRenderCanvas" style="display:none;"></canvas>
 
     <script>
         const video = document.getElementById('webcam');
         const hiddenCanvas = document.getElementById('hiddenBufferCanvas');
         const ghostCanvas = document.getElementById('ghostScopeCanvas');
         const ghostCtx = ghostCanvas.getContext('2d');
-        const peakingCanvas = document.getElementById('macroPeakingCanvas');
-        const peakingCtx = peakingCanvas.getContext('2d');
-        const stackCanvas = document.getElementById('stackAccumCanvas');
-        const stackCtx = stackCanvas.getContext('2d');
-        const loupe = document.getElementById('microscopeLoupe');
-        const loupeCanvas = document.getElementById('loupeCanvas');
-        const loupeCtx = loupeCanvas.getContext('2d');
+        const bokehCanvas = document.getElementById('bokehRenderCanvas');
+        const bokehCtx = bokehCanvas.getContext('2d');
         const focusRing = document.getElementById('focusRing');
         let audioCtx = null;
         let facingMode = 'environment';
@@ -523,10 +488,10 @@ HTML_CONTENT = """<!DOCTYPE html>
         const zoomLevels = [0.6, 1.0, 2.0];
         let isGhostScopeOn = false;
 
-        /* ESTADO MACRO PRO V10 */
-        let macroMode = 'stacking';
-        let isLoupeActive = false;
-        let processedMacroDataUrl = null;
+        /* ESTADO BOKEH V10 */
+        let currentFStop = 1.2;
+        let currentBlurRadius = 18;
+        let processedBokehDataUrl = null;
 
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -568,17 +533,15 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         });
 
-        /* 1. PIPELINE FOCUS PEAKING NEÓN EN TIEMPO REAL */
+        /* PIPELINE EN TIEMPO REAL */
         let frameCount = 0;
         function processVideoPipeline() {
             if (video.readyState >= 2) {
                 if (hiddenCanvas.width !== video.videoWidth) {
                     hiddenCanvas.width = video.videoWidth || 640;
                     hiddenCanvas.height = video.videoHeight || 480;
-                    stackCanvas.width = hiddenCanvas.width;
-                    stackCanvas.height = hiddenCanvas.height;
-                    peakingCanvas.width = 320;
-                    peakingCanvas.height = 240;
+                    bokehCanvas.width = hiddenCanvas.width;
+                    bokehCanvas.height = hiddenCanvas.height;
                     ghostCanvas.width = 320;
                     ghostCanvas.height = 240;
                 }
@@ -602,42 +565,8 @@ HTML_CONTENT = """<!DOCTYPE html>
                     }
                     ghostCtx.putImageData(imgData, 0, 0);
                 }
-
-                // Focus Peaking Verde Neón si Macro Pro está activo
-                const curMod = moduleCatalog[activeCardIndex];
-                if (curMod.key === 'macro' && frameCount % 2 === 0) {
-                    renderFocusPeaking();
-                } else if (curMod.key !== 'macro') {
-                    peakingCtx.clearRect(0, 0, peakingCanvas.width, peakingCanvas.height);
-                }
             }
             requestAnimationFrame(processVideoPipeline);
-        }
-
-        function renderFocusPeaking() {
-            peakingCtx.drawImage(hiddenCanvas, 0, 0, 320, 240);
-            const imgData = peakingCtx.getImageData(0, 0, 320, 240);
-            const d = imgData.data;
-            const w = 320;
-
-            // Detección simple de bordes por gradiente horizontal (Laplaciano ligero)
-            for (let y = 0; y < 240; y++) {
-                for (let x = 0; x < w - 1; x++) {
-                    const idx = (y * w + x) * 4;
-                    const nextIdx = (y * w + (x + 1)) * 4;
-                    const luma1 = d[idx] * 0.299 + d[idx+1] * 0.587 + d[idx+2] * 0.114;
-                    const luma2 = d[nextIdx] * 0.299 + d[nextIdx+1] * 0.587 + d[nextIdx+2] * 0.114;
-                    const diff = Math.abs(luma1 - luma2);
-
-                    if (diff > 28) {
-                        // Resaltar borde en plano focal con verde neón
-                        d[idx] = 48; d[idx+1] = 209; d[idx+2] = 88; d[idx+3] = 220;
-                    } else {
-                        d[idx+3] = 0;
-                    }
-                }
-            }
-            peakingCtx.putImageData(imgData, 0, 0);
         }
 
         function toggleGhostScope() {
@@ -654,66 +583,68 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         }
 
-        /* 2. TRABAJO PESADO: FOCUS STACKING (FUSIÓN DE PLANOS FOCALES EN RAM) */
-        function setMacroFocusMode(mode, elem) {
-            macroMode = mode;
-            document.querySelectorAll('.macro-chip-btn').forEach(b => b.classList.remove('active'));
+        /* 2. TRABAJO PESADO: RENDER BOKEH CONVOLUCIONAL PROGRESIVO */
+        function setBokehFStop(fstop, blurPx, elem) {
+            currentFStop = fstop;
+            currentBlurRadius = blurPx;
+            document.querySelectorAll('.fstop-chip-btn').forEach(b => b.classList.remove('active'));
             elem.classList.add('active');
-            document.getElementById('telStackStatus').innerText = (mode === 'stacking') ? 'DEEP DOF: ACTIVE' : 'SINGLE: READY';
+            document.getElementById('bokehRadiusLabel').innerText = `DESENFOQUE: ${blurPx}px`;
         }
 
-        async function handleMacroCaptureTrigger() {
+        async function handleBokehCaptureTrigger() {
             const curMod = moduleCatalog[activeCardIndex];
-            if (curMod.key === 'macro') {
-                if (macroMode === 'stacking') {
-                    executeFocusStackingCapture();
-                } else {
-                    captureStandardZSL();
-                }
+            if (curMod.key === 'bokeh') {
+                executeBokehDepthCapture();
             } else {
                 captureStandardZSL();
             }
         }
 
-        async function executeFocusStackingCapture() {
+        async function executeBokehDepthCapture() {
             const flash = document.getElementById('ambientLightLayer');
             flash.classList.add('flash');
             setTimeout(() => flash.classList.remove('flash'), 60);
-            playMacroChirpSound();
+            playBokehApertureSound();
 
-            document.getElementById('telStackStatus').innerText = 'STACKING: FUSING 6 PLANES';
+            document.getElementById('telBokehStatus').innerText = 'CONVOLUTION: RENDERING';
 
-            // Preparar lienzo de síntesis profunda
-            stackCtx.drawImage(hiddenCanvas, 0, 0);
+            // Dibujar capa de fondo con convolución gaussiana simulada
+            bokehCtx.filter = `blur(${currentBlurRadius}px) contrast(1.05)`;
+            bokehCtx.drawImage(hiddenCanvas, 0, 0);
+            bokehCtx.filter = 'none';
 
-            // Simulación de ráfaga de micro-pasos de enfoque: sintetizar nitidez profunda
-            const stackImgData = stackCtx.getImageData(0, 0, stackCanvas.width, stackCanvas.height);
-            const d = stackImgData.data;
+            // Máscara radial de sujeto en foco central (simulación de profundidad óptica 85mm)
+            const w = bokehCanvas.width;
+            const h = bokehCanvas.height;
+            const cx = w / 2;
+            const cy = h / 2;
+            const radius = Math.min(w, h) * 0.38;
 
-            // Filtro Laplaciano de realce de nitidez micro-estructural (Unsharp Masking en memoria)
-            for (let i = 0; i < d.length; i += 4) {
-                d[i] = Math.min(255, d[i] * 1.12);
-                d[i+1] = Math.min(255, d[i+1] * 1.15);
-                d[i+2] = Math.min(255, d[i+2] * 1.10);
-            }
-            stackCtx.putImageData(stackImgData, 0, 0);
+            bokehCtx.save();
+            bokehCtx.beginPath();
+            bokehCtx.ellipse(cx, cy, radius * 0.82, radius * 1.15, 0, 0, Math.PI * 2);
+            bokehCtx.clip();
+            bokehCtx.drawImage(hiddenCanvas, 0, 0);
+            bokehCtx.restore();
 
-            processedMacroDataUrl = stackCanvas.toDataURL('image/jpeg', 0.95);
+            processedBokehDataUrl = bokehCanvas.toDataURL('image/jpeg', 0.95);
 
             const res = await fetch('/bian/process/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: processedMacroDataUrl, prompt_analysis: 'Macro Pro Focus Stack V10' })
+                body: JSON.stringify({ image_base64: processedBokehDataUrl, prompt_analysis: `Retrato Bokeh f/${currentFStop} V10` })
             });
 
             if (res.ok) {
                 const data = await res.json();
                 document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
-                openMacroEditModal(processedMacroDataUrl);
+                openBokehEditModal(processedBokehDataUrl);
+                document.getElementById('telBokehStatus').innerText = 'CONVOLUTION: ACTIVE';
             }
         }
 
-        function playMacroChirpSound() {
+        function playBokehApertureSound() {
             try {
                 const ctx = getAudioContext();
                 const now = ctx.currentTime;
@@ -721,87 +652,44 @@ HTML_CONTENT = """<!DOCTYPE html>
                 const gain = ctx.createGain();
                 osc.connect(gain); gain.connect(ctx.destination);
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(880, now);
-                osc.frequency.exponentialRampToValueAtTime(1760, now + 0.18);
-                gain.gain.setValueAtTime(0.25, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
-                osc.start(now); osc.stop(now + 0.19);
+                osc.frequency.setValueAtTime(240, now);
+                osc.frequency.exponentialRampToValueAtTime(80, now + 0.14);
+                gain.gain.setValueAtTime(0.28, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+                osc.start(now); osc.stop(now + 0.15);
             } catch(e) {}
         }
 
-        /* 3. INNOVACIÓN: LUPA MICROSCÓPICA FLOTANTE NPU 10x INTERACTIVA */
-        function openMacroEditModal(imgSrc) {
-            document.getElementById('editModalTitle').innerText = '🔍 MACRO PRO V10 SÍNTESIS PROFUNDA';
+        /* 3. INNOVACIÓN: APERTURE BLADE SHAPER (ANAMÓRFICO / PETZVAL / CIRCULAR) */
+        function openBokehEditModal(imgSrc) {
+            document.getElementById('editModalTitle').innerText = `🎭 RETRATO BOKEH f/${currentFStop} PROCESADO`;
             document.getElementById('editImagePreview').src = imgSrc;
-            loupe.style.display = 'none';
-            isLoupeActive = false;
             document.getElementById('postEditModal').style.display = 'flex';
         }
 
         function closeEditModal() { document.getElementById('postEditModal').style.display = 'none'; }
 
-        function toggleMicroscopeLoupe(elem) {
-            isLoupeActive = !isLoupeActive;
-            document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
-            if (isLoupeActive) {
-                elem.classList.add('active');
-                loupe.style.display = 'block';
-                loupeCanvas.width = 140;
-                loupeCanvas.height = 140;
-                updateLoupe(70, 70);
-            } else {
-                loupe.style.display = 'none';
-            }
-        }
-
-        const previewArea = document.getElementById('editPreviewArea');
-        previewArea.addEventListener('touchmove', (e) => {
-            if (!isLoupeActive) return;
-            const touch = e.touches[0];
-            const rect = previewArea.getBoundingClientRect();
-            const x = touch.clientX - rect.left;
-            const y = touch.clientY - rect.top;
-            updateLoupe(x, y);
-        }, { passive: true });
-
-        function updateLoupe(x, y) {
-            loupe.style.left = `${x - 70}px`;
-            loupe.style.top = `${y - 70}px`;
-
-            const img = document.getElementById('editImagePreview');
-            // Mapeo ampliado 10x de la zona tocada
-            loupeCtx.clearRect(0, 0, 140, 140);
-            loupeCtx.save();
-            loupeCtx.beginPath();
-            loupeCtx.arc(70, 70, 68, 0, Math.PI * 2);
-            loupeCtx.clip();
-            loupeCtx.drawImage(
-                img,
-                x * 2 - 35, y * 2 - 35, 70, 70,
-                0, 0, 140, 140
-            );
-            loupeCtx.restore();
-        }
-
-        function applyMacroTool(mode, elem) {
+        function applyBokehBlade(mode, elem) {
             document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
             elem.classList.add('active');
             const img = document.getElementById('editImagePreview');
-            if (mode === 'stacked_pure') {
-                img.style.filter = 'contrast(1.2) brightness(1.05) saturate(1.15)';
-            } else if (mode === 'laplacian_edge') {
-                img.style.filter = 'contrast(1.4) brightness(1.08) drop-shadow(0 0 6px #30D158)';
+            if (mode === 'circle_85mm') {
+                img.style.filter = 'contrast(1.1) brightness(1.02) saturate(1.1)';
+            } else if (mode === 'anamorphic_oval') {
+                img.style.filter = 'contrast(1.2) saturate(1.15) drop-shadow(0 0 10px rgba(0,210,255,0.4))';
+            } else if (mode === 'swirly_petzval') {
+                img.style.filter = 'sepia(0.15) contrast(1.25) brightness(0.98)';
             } else if (mode === 'cinematic_grade') {
-                img.style.filter = 'sepia(0.18) contrast(1.25) saturate(0.95)';
+                img.style.filter = 'sepia(0.2) contrast(1.3) saturate(0.9)';
             }
         }
 
         function exportEditedResult() {
             const a = document.createElement('a');
-            a.href = processedMacroDataUrl || document.getElementById('editImagePreview').src;
-            a.download = `bian_macro_pro_v10_${Date.now()}.jpg`;
+            a.href = processedBokehDataUrl || document.getElementById('editImagePreview').src;
+            a.download = `bian_retrato_bokeh_f${currentFStop}_v10_${Date.now()}.jpg`;
             a.click();
-            alert('✔ Macro Ultra Detalle HD exportado a la memoria local.');
+            alert('✔ Retrato Bokeh Master HD exportado a la memoria local.');
         }
 
         /* DISPARO ESTÁNDAR ZSL */
@@ -820,7 +708,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             if (res.ok) {
                 const data = await res.json();
                 document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
-                openMacroEditModal(b64);
+                openBokehEditModal(b64);
             }
         }
 
@@ -883,10 +771,11 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         }, { passive: true });
 
-        /* CATÁLOGO DE MÓDULOS CON MACRO PRO */
+        /* CATÁLOGO DE MÓDULOS CON RETRATO BOKEH INTEGRADO */
         const moduleCatalog = [
-            { key: 'macro', icon: '🔍', title: 'MACRO PRO', pill: '🔍 FOCUS PEAKING & DEEP FOCUS STACK', color: '#30D158', botTips: 'Distancia de 2 a 8 cm. El Focus Peaking resalta los planos en foco en verde fluorescente.' },
+            { key: 'bokeh', icon: '🎭', title: 'RETRATO BOKEH', pill: '🎭 APERTURA ÓPTICA & IRIS SHAPER', color: '#FF2D55', botTips: 'Mantén al sujeto a 1-2 metros del fondo para maximizar el desenfoque progresivo.' },
             { key: 'night', icon: '🌙', title: 'NIGHTOGRAPHY', pill: '🌙 MULTI-FRAME STACK & DEEP-SKY BOOST', color: '#5E5CE6', botTips: 'Baja iluminación detectada.' },
+            { key: 'macro', icon: '🔍', title: 'MACRO PRO', pill: '🔍 FOCUS PEAKING & DEEP FOCUS STACK', color: '#30D158', botTips: 'Distancia de 2 a 8 cm.' },
             { key: 'scan', icon: '📄', title: 'SCAN DOC PRO', pill: '📄 AUTO-ENCUADRE HOMOGRÁFICO & OCR', color: '#00D2FF', botTips: 'Alinea el documento dentro del cuadrilátero.' },
             { key: 'timelapse', icon: '⏱️', title: 'TIMELAPSE V10', pill: '⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA 4x', color: '#FF3B30', botTips: 'Gimbal Virtual OIS activo.' },
             { key: 'pano', icon: '🌐', title: 'PANORÁMICA 360', pill: '🌐 BARRIDO POLAR & ORBE 3D VR', color: '#00FFC8', botTips: 'Gira el teléfono de izquierda a derecha.' },
@@ -995,13 +884,11 @@ HTML_CONTENT = """<!DOCTYPE html>
             document.getElementById('floatModDesc').innerText = m.botTips;
             document.getElementById('shutterCorona').style.borderColor = m.color;
 
-            // Mostrar u ocultar Focus Peaking y Regla Micrométrica
-            if (m.key === 'macro') {
-                document.getElementById('macroHud').style.display = 'flex';
-                document.getElementById('macroRuler').style.display = 'flex';
+            // Mostrar u ocultar selector de iris bokeh
+            if (m.key === 'bokeh') {
+                document.getElementById('bokehHud').style.display = 'flex';
             } else {
-                document.getElementById('macroHud').style.display = 'none';
-                document.getElementById('macroRuler').style.display = 'none';
+                document.getElementById('bokehHud').style.display = 'none';
             }
 
             const topCard = deckStack.querySelector('.pos-0');
@@ -1095,7 +982,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                 const cur = moduleCatalog[activeCardIndex];
                 const list = document.getElementById('floatActionList');
                 list.innerHTML = `
-                    <button class="bot-btn" onclick="handleMacroCaptureTrigger(); toggleFloatingPanel();">📸 Disparo Macro con ${cur.title}</button>
+                    <button class="bot-btn" onclick="handleBokehCaptureTrigger(); toggleFloatingPanel();">📸 Disparo con ${cur.title}</button>
                     <button class="bot-btn" onclick="openHorizontalDock(); toggleFloatingPanel();">🎴 Selector de Módulos</button>
                     <button class="bot-btn" onclick="toggleGhostScope(); toggleFloatingPanel();">👁️ Alternar Radar Espectral</button>
                     <button class="bot-btn" onclick="openGalleryModal(); toggleFloatingPanel();">🖼️ Ver Galería Local</button>
@@ -1133,7 +1020,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                     card.className = 'gallery-card';
                     card.onclick = () => {
                         closeGalleryModal();
-                        openMacroEditModal(img.image_path);
+                        openBokehEditModal(img.image_path);
                     };
                     card.innerHTML = `
                         <img src="${img.image_path}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\' viewBox=\\'0 0 100 100\\'><rect width=\\'100\\' height=\\'100\\' fill=\\'%23222\\'/><text x=\\'50\\' y=\\'55\\' fill=\\'%23666\\' font-size=\\'11\\' text-anchor=\\'middle\\'>Sin Vista</text></svg>'"/>
@@ -1157,14 +1044,14 @@ HTML_CONTENT = """<!DOCTYPE html>
             const act = document.getElementById('botActionList');
 
             msg.innerHTML = `
-                <div style="color:#30D158; font-weight:800; margin-bottom:6px;">🤖 Diagnóstico V10 para ${curMod.title}:</div>
+                <div style="color:#FF2D55; font-weight:800; margin-bottom:6px;">🤖 Diagnóstico V10 para ${curMod.title}:</div>
                 <div>${curMod.botTips}</div>
             `;
 
             act.innerHTML = `
-                <button class="bot-btn" onclick="executeBotAction('calibrate')">⚡ Calibrar Sensor Macro & Focus Peaking</button>
+                <button class="bot-btn" onclick="executeBotAction('calibrate')">⚡ Calibrar Iris f/1.2 & Separación de Sujeto</button>
                 <button class="bot-btn" onclick="executeBotAction('ghost')">👁️ Activar Radar Espectral</button>
-                <button class="bot-btn" onclick="executeBotAction('gallery')">🖼️ Ver Fotos Macro Guardadas</button>
+                <button class="bot-btn" onclick="executeBotAction('gallery')">🖼️ Ver Retratos Guardados</button>
             `;
 
             modal.style.display = 'flex';
@@ -1176,7 +1063,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             closeNanobot();
             if(action === 'calibrate') {
                 applyActiveCardTheme(moduleCatalog[activeCardIndex]);
-                alert("✔ Focus Peaking y matriz micrométrica calibrados.");
+                alert("✔ Apertura f/1.2 y convolución gaussiana calibradas.");
             } else if(action === 'ghost') {
                 toggleGhostScope();
             } else if(action === 'gallery') {
