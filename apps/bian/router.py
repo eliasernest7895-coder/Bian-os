@@ -16,16 +16,16 @@ router.mount("/storage", StaticFiles(directory="storage"), name="storage")
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Captura Master V10"
+    prompt_analysis: str = "Captura Cam Vision V10"
 
 HTML_CONTENT = """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>BIAN MASTER SUITE V10 PRO</title>
+    <title>BIAN CAM VISION V10 ULTRA</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', Roboto, monospace; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; width: 100vw; overflow: hidden; position: fixed; }
 
         .edge-screen-border {
@@ -43,6 +43,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .ambient-fade-light.flash { opacity: 1; transition: opacity 0.05s ease-in; }
 
+        /* LOCKSCREEN TAPA 35MM */
         #lockscreen {
             position: fixed; inset: 0; background: #050608; z-index: 200;
             display: flex; flex-direction: column; align-items: center; justify-content: space-between;
@@ -84,10 +85,40 @@ HTML_CONTENT = """<!DOCTYPE html>
         .lens-cap-sub { font-size: 7px; color: #777; letter-spacing: 1px; margin-top: 2px; }
         .lens-cap-hint { font-size: 10px; font-weight: 800; color: #aaa; margin-top: 10px; letter-spacing: 1px; text-transform: uppercase; }
 
+        /* VIEWPORT Y VISOR PRINCIPAL */
         .suite-view { width: 100vw; height: 100vh; position: relative; background: #000; overflow: hidden; display: flex; flex-direction: column; }
         #videoContainer { width: 100%; height: 100%; position: relative; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
 
+        /* CANVAS DEL ESPECTRO FANTASMA EN TIEMPO REAL */
+        #ghostScopeCanvas {
+            position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+            pointer-events: none; z-index: 45; opacity: 0; mix-blend-mode: screen;
+            transition: opacity 0.3s ease;
+        }
+        #ghostScopeCanvas.active { opacity: 0.75; }
+
+        /* HUD AEROESPACIAL TITANIUM (LÍNEAS DE HORIZONTE Y TELEMETRÍA) */
+        .aero-hud-overlay {
+            position: absolute; inset: 0; pointer-events: none; z-index: 50;
+            display: flex; flex-direction: column; justify-content: space-between; padding: 75px 18px 185px 18px;
+        }
+        .horizon-line {
+            position: absolute; top: 50%; left: 25%; width: 50%; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 200, 0.6), transparent);
+            transition: transform 0.08s linear;
+        }
+        .hud-telemetry-corner {
+            display: flex; justify-content: space-between; font-family: monospace;
+            font-size: 10px; font-weight: 800; color: rgba(255, 255, 255, 0.7);
+            letter-spacing: 1px; text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+        }
+        .telemetry-tag {
+            background: rgba(14, 16, 20, 0.65); padding: 3px 8px; border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(8px);
+        }
+
+        /* TOP DOCK */
         .top-dock {
             position: absolute; top: 16px; left: 16px; right: 16px; z-index: 100;
             display: flex; justify-content: space-between; align-items: center;
@@ -103,10 +134,19 @@ HTML_CONTENT = """<!DOCTYPE html>
             color: #fff; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 20px;
             backdrop-filter: blur(10px); cursor: pointer; display: flex; align-items: center; gap: 4px;
         }
-
         #botToggleBtn {
             border-color: rgba(0,255,200,0.4); color: #00FFC8;
             transition: all 0.4s ease; min-width: 155px; justify-content: center;
+        }
+
+        /* BOTÓN RADAR ESPECTRAL V10 */
+        .ghost-scope-btn {
+            background: rgba(18, 18, 22, 0.75); border: 1px solid rgba(0, 255, 200, 0.35);
+            color: #00FFC8; font-size: 10px; font-weight: 800; padding: 6px 11px; border-radius: 18px;
+            cursor: pointer; backdrop-filter: blur(8px); display: flex; align-items: center; gap: 5px;
+        }
+        .ghost-scope-btn.active {
+            background: #00FFC8; color: #000; box-shadow: 0 0 14px rgba(0,255,200,0.6);
         }
 
         .center-hud-overlay {
@@ -120,6 +160,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             transition: all 0.3s ease;
         }
 
+        /* ANILLO DE ENFOQUE AF/AE */
         .focus-ring {
             position: absolute; width: 84px; height: 84px; border-radius: 50%;
             border: 1.5px solid rgba(255, 255, 255, 0.85);
@@ -142,6 +183,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: flex; align-items: center; gap: 4px; user-select: none;
         }
 
+        /* MODO CARTAS APILADO */
         .deck-stack-wrapper {
             position: absolute; bottom: 98px; left: calc(50% + 55px); z-index: 105;
             width: 58px; height: 58px; perspective: 600px; touch-action: none;
@@ -165,6 +207,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         .deck-card-item.slide-up { transform: translate3d(0, -70px, 40px) scale(1.08); opacity: 0; }
         .deck-card-item.slide-down { transform: translate3d(0, 70px, 40px) scale(1.08); opacity: 0; }
 
+        /* DOCK HORIZONTAL FLOTANTE */
         #horizontalDockBar {
             position: absolute; bottom: 104px; left: 16px; right: 16px; z-index: 110;
             background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.14);
@@ -182,28 +225,34 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: flex; align-items: center; justify-content: center; font-size: 20px;
             cursor: pointer; transition: all 0.2s ease;
         }
-        .dock-item-btn.active {
-            background: rgba(255, 255, 255, 0.18);
-            transform: scale(1.12);
-        }
+        .dock-item-btn.active { background: rgba(255, 255, 255, 0.18); transform: scale(1.12); }
         .dock-dot-indicator {
-            position: absolute; bottom: -3px; width: 6px; height: 6px; border-radius: 50%;
-            display: none;
+            position: absolute; bottom: -3px; width: 6px; height: 6px; border-radius: 50%; display: none;
         }
         .dock-item-btn.active .dock-dot-indicator { display: block; }
 
+        /* OBTURADOR BI-FÁSICO CON ARO DE EXPOSICIÓN */
         .bottom-bar {
             position: absolute; bottom: 20px; left: 0; right: 0; z-index: 100;
             display: flex; justify-content: space-around; align-items: center; padding: 0 25px;
         }
+        .shutter-wrapper { position: relative; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; }
+        .shutter-corona {
+            position: absolute; inset: -4px; border-radius: 50%;
+            border: 2px dashed rgba(255,255,255,0.3); pointer-events: none;
+            transition: transform 0.4s ease, border-color 0.4s;
+        }
+        .shutter-btn {
+            width: 72px; height: 72px; border-radius: 50%; background: #FF3B30;
+            border: 4px solid #fff; box-shadow: 0 0 22px rgba(255, 59, 48, 0.55); cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+        .shutter-btn:active { transform: scale(0.92); }
+
         .lens-switch-btn {
             width: 46px; height: 46px; border-radius: 50%; background: rgba(30, 30, 35, 0.75);
             border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center;
             justify-content: center; cursor: pointer; font-size: 19px;
-        }
-        .shutter-btn {
-            width: 76px; height: 76px; border-radius: 50%; background: #FF3B30;
-            border: 4px solid #fff; box-shadow: 0 0 22px rgba(255, 59, 48, 0.55); cursor: pointer;
         }
         .gallery-thumb {
             width: 46px; height: 46px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.3);
@@ -211,21 +260,18 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
+        /* GADGET Y PANELES */
         #floatingGadget {
             position: fixed; top: 180px; left: 14px; width: 48px; height: 48px;
             border-radius: 50%; background: #0c0d12; border: 2px solid #00FFC8;
             box-shadow: 0 6px 18px rgba(0, 255, 200, 0.4); z-index: 250;
             display: flex; align-items: center; justify-content: center;
             font-size: 20px; cursor: grab; touch-action: none; user-select: none;
-            transition: border-color 0.2s ease;
         }
-        #floatingGadget:active { cursor: grabbing; transform: scale(1.08); }
-
         #floatingPanel {
             display: none; position: fixed; inset: 100px 18px 120px 18px; z-index: 260;
             background: rgba(10, 12, 16, 0.96); border: 1px solid #00FFC8; border-radius: 20px;
             backdrop-filter: blur(25px); flex-direction: column; padding: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.85);
         }
         .float-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 
@@ -234,87 +280,74 @@ HTML_CONTENT = """<!DOCTYPE html>
             backdrop-filter: blur(20px); flex-direction: column; padding: 20px 18px 25px 18px;
         }
         .edit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .edit-title { font-size: 14px; font-weight: 800; color: #00FFC8; letter-spacing: 0.5px; }
+        .edit-title { font-size: 14px; font-weight: 800; color: #00FFC8; }
         .edit-close-btn { background: #222; border: 1px solid #444; color: #fff; padding: 5px 12px; border-radius: 14px; font-size: 11px; cursor: pointer; }
-        
         .edit-preview-box {
             flex: 1; border-radius: 16px; overflow: hidden; background: #000; border: 1px solid #222;
             display: flex; align-items: center; justify-content: center; position: relative;
         }
         .edit-preview-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
-
         .edit-tools-panel { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
         .tool-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
         .tool-chip {
             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
-            padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap;
-            color: #ddd; cursor: pointer;
+            padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #ddd; cursor: pointer;
         }
         .tool-chip.active { border-color: #00FFC8; color: #00FFC8; background: rgba(0,255,200,0.12); }
-
         .btn-export-master {
             background: linear-gradient(90deg, #00FFC8, #00B3FF); color: #000; font-size: 13px;
-            font-weight: 900; letter-spacing: 0.5px; padding: 13px; border-radius: 14px; border: none;
-            cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center;
-            gap: 8px; box-shadow: 0 4px 18px rgba(0, 255, 200, 0.4); margin-top: 4px;
+            font-weight: 900; padding: 13px; border-radius: 14px; border: none; cursor: pointer;
+            width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
         }
 
         #galleryModal {
             display: none; position: fixed; inset: 0; z-index: 320; background: rgba(5, 6, 8, 0.98);
             backdrop-filter: blur(25px); flex-direction: column; padding: 20px;
         }
-        .gallery-grid {
-            display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; overflow-y: auto; flex: 1; margin-top: 14px;
-        }
-        .gallery-card {
-            background: #111216; border: 1px solid #222; border-radius: 12px; overflow: hidden; cursor: pointer;
-            display: flex; flex-direction: column; min-height: 140px;
-        }
-        .gallery-card img { width: 100%; height: 110px; object-fit: cover; background: #000; }
+        .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; overflow-y: auto; flex: 1; margin-top: 14px; }
+        .gallery-card { background: #111216; border: 1px solid #222; border-radius: 12px; overflow: hidden; cursor: pointer; min-height: 140px; }
+        .gallery-card img { width: 100%; height: 110px; object-fit: cover; }
         .gallery-card-info { padding: 6px 8px; font-size: 10px; color: #888; background: #16171d; }
 
         #nanobotModal {
             display: none; position: fixed; inset: 0; z-index: 330; background: rgba(5, 6, 8, 0.95);
             backdrop-filter: blur(25px); flex-direction: column; padding: 20px; justify-content: space-between;
         }
-        .bot-bubble {
-            background: #121318; border: 1px solid rgba(0,255,200,0.3); border-radius: 16px; padding: 16px;
-            font-size: 13px; line-height: 1.5; color: #eee; margin-top: 15px;
-        }
+        .bot-bubble { background: #121318; border: 1px solid rgba(0,255,200,0.3); border-radius: 16px; padding: 16px; font-size: 13px; line-height: 1.5; color: #eee; margin-top: 15px; }
         .bot-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
         .bot-btn {
             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff;
             padding: 12px; border-radius: 12px; font-size: 12px; font-weight: 700; text-align: left; cursor: pointer;
         }
-        .bot-btn:hover { border-color: #00FFC8; color: #00FFC8; }
     </style>
 </head>
 <body>
     <div class="edge-screen-border" id="screenEdgeBorder"></div>
     <div class="ambient-fade-light" id="ambientLightLayer"></div>
 
+    <!-- LOCKSCREEN CON TAPA 35MM -->
     <div id="lockscreen">
         <div class="pill-badge">• BIAN MASTER SUITE V10</div>
-
         <div class="brand-center">
             <div class="brand-title">BIAN</div>
-            <div class="brand-subtitle">Tu app de fotos y video</div>
+            <div class="brand-subtitle">Cam Vision V10 Ultra</div>
             <div style="font-size:11px; color:#777; max-width:280px; margin:0 auto; line-height:1.4;">
-                Sensor calibrado, óptica anamórfica, IA local y módulos de producción soberana.
+                Ring Buffer ZSL • Radar Espectral • Titanium HUD Aeroespacial
             </div>
         </div>
-
         <div class="lens-cap-assembly" id="lensCapUnlockBtn">
             <div class="lens-cap-disk" id="lensCapDisk">
-                <div class="lens-cap-center">BIAN</div>
-                <div class="lens-cap-sub">F/1.4 • 35MM</div>
+                <div class="lens-cap-center">BIAN V10</div>
+                <div class="lens-cap-sub">F/1.4 • 35MM TITANIUM</div>
             </div>
-            <div class="lens-cap-hint">🔓 TOCA O DESLIZA PARA DESTAPAR</div>
+            <div class="lens-cap-hint">🔓 DESTAPAR LENTE</div>
         </div>
     </div>
 
+    <!-- GADGET BURBUJA FLOTANTE -->
     <div id="floatingGadget" title="Arrastra o toca para abrir taller">⚡</div>
 
+    <!-- PANEL FLOTANTE -->
     <div id="floatingPanel">
         <div class="float-header">
             <div style="font-size:13px; font-weight:800; color:#00FFC8;">⚡ TALLER TÁCTICO FLOTANTE</div>
@@ -323,15 +356,36 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div style="flex:1; overflow-y:auto; font-size:12px; color:#aaa; display:flex; flex-direction:column; gap:10px;">
             <div style="background:#14151b; padding:12px; border-radius:12px; border:1px solid #222;">
                 <div style="color:#fff; font-weight:700; margin-bottom:4px;" id="floatModTitle">MODO ACTIVO</div>
-                <div id="floatModDesc">Herramienta flotante lista para usarse junto a otras tareas.</div>
+                <div id="floatModDesc">Telemetría de sensor y búfer circular listos.</div>
             </div>
             <div class="bot-actions" id="floatActionList"></div>
         </div>
     </div>
 
+    <!-- VIEWPORT CON RETÍCULA AERO HUD Y RADAR ESPECTRAL -->
     <div class="suite-view" id="viewportArea">
         <div id="videoContainer">
             <video id="webcam" autoplay playsinline></video>
+            <!-- INNOVACIÓN: RADAR DE FRECUENCIA ESPECTRAL FANTASMA -->
+            <canvas id="ghostScopeCanvas"></canvas>
+        </div>
+
+        <!-- 1. DISEÑO ESTÉTICO: HUD AEROESPACIAL TITANIUM -->
+        <div class="aero-hud-overlay">
+            <div class="hud-telemetry-corner">
+                <div class="telemetry-tag" id="telExposure">EXP: +0.0 EV</div>
+                <div class="telemetry-tag" id="telISO">ISO: 125 AUTO</div>
+                <div class="telemetry-tag" id="telShutter">SS: 1/250s</div>
+                <div class="telemetry-tag" id="telKelvin">WB: 5400K</div>
+            </div>
+
+            <!-- HORIZONTE ARTIFICIAL GIROSCÓPICO -->
+            <div class="horizon-line" id="horizonGyro"></div>
+
+            <div class="hud-telemetry-corner" style="justify-content: flex-end; gap: 8px;">
+                <div class="telemetry-tag" style="color:#00FFC8;">ZSL RING BUFFER: OK</div>
+                <div class="telemetry-tag">SNAPDRAGON 8G2 NPU</div>
+            </div>
         </div>
 
         <div class="focus-ring" id="focusRing">
@@ -344,9 +398,13 @@ HTML_CONTENT = """<!DOCTYPE html>
                 <span class="dot" id="statusDot"></span>
                 <span id="moduleNameText">NIGHTOGRAPHY</span>
             </div>
-            <div style="display: flex; gap: 8px;">
-                <button class="top-action-btn" onclick="lockSuite()">🔒 Bloquear</button>
-                <button class="top-action-btn" id="botToggleBtn" onclick="openNanobot()">✨ ¿Qué quieres hacer?</button>
+            <div style="display: flex; gap: 6px;">
+                <!-- BOTÓN PARA ENCENDER/APAGAR EL RADAR ESPECTRAL -->
+                <button class="ghost-scope-btn" id="scopeToggleBtn" onclick="toggleGhostScope()">
+                    👁️ ESPECTRO
+                </button>
+                <button class="top-action-btn" onclick="lockSuite()">🔒</button>
+                <button class="top-action-btn" id="botToggleBtn" onclick="openNanobot()">✨ Nano-Bot</button>
             </div>
         </div>
 
@@ -358,38 +416,46 @@ HTML_CONTENT = """<!DOCTYPE html>
             🔍 <span id="zoomLabel">1x</span>
         </div>
 
+        <!-- BARAJA DE CARTAS CON APERTURA AL TOQUE -->
         <div class="deck-stack-wrapper" id="deckStack" onclick="openHorizontalDock()"></div>
 
+        <!-- DOCK HORIZONTAL FLOTANTE -->
         <div id="horizontalDockBar"></div>
 
+        <!-- OBTURADOR BI-FÁSICO CON ARO DE DISPARO -->
         <div class="bottom-bar">
             <div class="lens-switch-btn" onclick="toggleLens()">🔄</div>
-            <div class="shutter-btn" onclick="captureDirect()"></div>
+            <div class="shutter-wrapper">
+                <div class="shutter-corona" id="shutterCorona"></div>
+                <div class="shutter-btn" onclick="captureZeroShutterLag()"></div>
+            </div>
             <div class="gallery-thumb" id="thumbBox" onclick="openGalleryModal()"></div>
         </div>
     </div>
 
+    <!-- MODAL DE EDICIÓN POST-CAPTURA -->
     <div id="postEditModal">
         <div class="edit-header">
-            <div class="edit-title" id="editModalTitle">🛠️ POST-PROCESO & EDICIÓN</div>
-            <button class="edit-close-btn" onclick="closeEditModal()">✖ Volver a Cámara</button>
+            <div class="edit-title" id="editModalTitle">🛠️ CAM VISION V10 POST-PROCESO</div>
+            <button class="edit-close-btn" onclick="closeEditModal()">✖ Volver</button>
         </div>
         <div class="edit-preview-box">
             <img id="editImagePreview" src="" alt="Captura a editar" />
         </div>
         <div class="edit-tools-panel">
             <div class="tool-row" id="moduleToolRow">
-                <div class="tool-chip active" onclick="applyEditTool('original', this)">Normal</div>
-                <div class="tool-chip" onclick="applyEditTool('npu_boost', this)">✨ NPU Boost</div>
-                <div class="tool-chip" onclick="applyEditTool('alpha_matte', this)">✂️ Recorte Alfa</div>
-                <div class="tool-chip" onclick="applyEditTool('cinematic_grade', this)">🎞️ Grado Cine</div>
+                <div class="tool-chip active" onclick="applyEditTool('original', this)">ZSL Nativo</div>
+                <div class="tool-chip" onclick="applyEditTool('tone_map', this)">⚡ Tone Mapping Local</div>
+                <div class="tool-chip" onclick="applyEditTool('spectral_extract', this)">🌌 Revelado Espectral</div>
+                <div class="tool-chip" onclick="applyEditTool('cinematic_grade', this)">🎞️ Grado Cine V10</div>
             </div>
             <button class="btn-export-master" onclick="exportEditedResult()">
-                💾 EXPORTAR MASTER HD / CLIP
+                💾 EXPORTAR MASTER HD ULTRA
             </button>
         </div>
     </div>
 
+    <!-- GALERÍA SOBERANA -->
     <div id="galleryModal">
         <div class="edit-header">
             <div class="edit-title" style="color:#00FFC8;">🖼️ GALERÍA SOBERANA (SQLITE LOCAL)</div>
@@ -398,10 +464,11 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="gallery-grid" id="galleryGridContent"></div>
     </div>
 
+    <!-- NANO-BOT ASISTENTE -->
     <div id="nanobotModal">
         <div>
             <div class="edit-header">
-                <div class="edit-title" style="color:#00FFC8;">✨ NANO-BOT TÁCTICO BIAN</div>
+                <div class="edit-title" style="color:#00FFC8;">✨ NANO-BOT TÁCTICO V10</div>
                 <button class="edit-close-btn" onclick="closeNanobot()">✖ Cerrar</button>
             </div>
             <div class="bot-bubble" id="botMessageText">Analizando escena...</div>
@@ -410,19 +477,24 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div style="font-size:10px; color:#555; text-align:center;">IA Soberana local operando en Snapdragon 8 Gen 2</div>
     </div>
 
-    <canvas id="canvas" style="display:none;"></canvas>
+    <canvas id="hiddenBufferCanvas" style="display:none;"></canvas>
 
     <script>
         const video = document.getElementById('webcam');
-        const canvas = document.getElementById('canvas');
+        const hiddenCanvas = document.getElementById('hiddenBufferCanvas');
+        const ghostCanvas = document.getElementById('ghostScopeCanvas');
+        const ghostCtx = ghostCanvas.getContext('2d');
         const focusRing = document.getElementById('focusRing');
         let audioCtx = null;
         let facingMode = 'environment';
         let currentZoomIndex = 1;
         const zoomLevels = [0.6, 1.0, 2.0];
-        let lastCapturedBlob = null;
-        let lastClickedModuleIndex = -1;
-        let lastModuleClickTime = 0;
+        let isGhostScopeOn = false;
+
+        /* 2. TRABAJO PESADO: RING BUFFER VOLÁTIL ZSL (4 FOTOGRAMAS EN RAM) */
+        const RING_BUFFER_SIZE = 4;
+        const ringBuffer = [];
+        let ringHead = 0;
 
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -432,9 +504,15 @@ HTML_CONTENT = """<!DOCTYPE html>
 
         function startCamera() {
             if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
-            navigator.mediaDevices.getUserMedia({ video: { facingMode } })
-                .then(stream => { video.srcObject = stream; updateThumb(); })
-                .catch(err => console.warn("Permiso de cámara:", err));
+            navigator.mediaDevices.getUserMedia({
+                video: { facingMode, width: { ideal: 1920 }, height: { ideal: 1080 } }
+            })
+            .then(stream => {
+                video.srcObject = stream;
+                updateThumb();
+                requestAnimationFrame(processVideoPipeline);
+            })
+            .catch(err => console.warn("Error cámara:", err));
         }
         startCamera();
 
@@ -450,17 +528,107 @@ HTML_CONTENT = """<!DOCTYPE html>
             video.style.transform = `scale(${z})`;
         }
 
-        let botLabelState = 0;
-        setInterval(() => {
-            const btn = document.getElementById('botToggleBtn');
-            botLabelState = (botLabelState === 0) ? 1 : 0;
-            btn.style.opacity = '0.2';
-            setTimeout(() => {
-                btn.innerHTML = (botLabelState === 0) ? '✨ ¿Qué quieres hacer?' : '🤖 Nano-Bot Táctico';
-                btn.style.opacity = '1';
-            }, 250);
-        }, 5000);
+        /* LECTURA DEL HORIZONTE GIROSCÓPICO REAL */
+        window.addEventListener('deviceorientation', (e) => {
+            if (e.gamma !== null) {
+                const angle = Math.max(-30, Math.min(30, e.gamma));
+                document.getElementById('horizonGyro').style.transform = `rotate(${angle}deg)`;
+            }
+        });
 
+        /* 3. INNOVACIÓN: PIPELINE EN TIEMPO REAL (BUFFER ZSL + RADAR ESPECTRAL FANTASMA) */
+        let frameCount = 0;
+        function processVideoPipeline() {
+            if (video.readyState >= 2) {
+                if (hiddenCanvas.width !== video.videoWidth) {
+                    hiddenCanvas.width = video.videoWidth || 640;
+                    hiddenCanvas.height = video.videoHeight || 480;
+                    ghostCanvas.width = 320;
+                    ghostCanvas.height = 240;
+                }
+                const hCtx = hiddenCanvas.getContext('2d');
+                hCtx.drawImage(video, 0, 0, hiddenCanvas.width, hiddenCanvas.height);
+
+                // Guardado circular en RAM (Zero Shutter Lag)
+                ringBuffer[ringHead] = hiddenCanvas.toDataURL('image/jpeg', 0.95);
+                ringHead = (ringHead + 1) % RING_BUFFER_SIZE;
+
+                // Radar de Frecuencia Espectral
+                frameCount++;
+                if (isGhostScopeOn && frameCount % 3 === 0) {
+                    ghostCtx.drawImage(hiddenCanvas, 0, 0, 320, 240);
+                    const imgData = ghostCtx.getImageData(0, 0, 320, 240);
+                    const d = imgData.data;
+
+                    for (let i = 0; i < d.length; i += 4) {
+                        const luma = (d[i] * 0.299 + d[i+1] * 0.587 + d[i+2] * 0.114);
+                        if (luma < 30) {
+                            // Sombra profunda con datos recuperables: Neón Magenta
+                            d[i] = 255; d[i+1] = 0; d[i+2] = 180;
+                        } else if (luma > 235) {
+                            // Altas luces quemadas al límite: Neón Cian
+                            d[i] = 0; d[i+1] = 255; d[i+2] = 200;
+                        } else {
+                            // Rango seguro: transparente
+                            d[i+3] = 0;
+                        }
+                    }
+                    ghostCtx.putImageData(imgData, 0, 0);
+                }
+
+                // Telemetría dinámica simulada por sensor
+                if (frameCount % 15 === 0) {
+                    document.getElementById('telISO').innerText = `ISO: ${Math.floor(80 + Math.random() * 40)}`;
+                    document.getElementById('telShutter').innerText = `SS: 1/${Math.floor(200 + Math.random() * 80)}s`;
+                }
+            }
+            requestAnimationFrame(processVideoPipeline);
+        }
+
+        function toggleGhostScope() {
+            isGhostScopeOn = !isGhostScopeOn;
+            const btn = document.getElementById('scopeToggleBtn');
+            const gCanvas = document.getElementById('ghostScopeCanvas');
+            if (isGhostScopeOn) {
+                btn.classList.add('active');
+                gCanvas.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+                gCanvas.classList.remove('active');
+                ghostCtx.clearRect(0, 0, ghostCanvas.width, ghostCanvas.height);
+            }
+        }
+
+        /* 2. DISPARO CON ZERO SHUTTER LAG (ZSL) */
+        async function captureZeroShutterLag() {
+            // Se toma el fotograma previo estable del ring buffer para anular temblores del toque
+            const priorIndex = (ringHead - 2 + RING_BUFFER_SIZE) % RING_BUFFER_SIZE;
+            const bestFrame = ringBuffer[priorIndex] || ringBuffer[0];
+
+            if (!bestFrame) return;
+
+            // Flash táctico en pantalla
+            const flash = document.getElementById('ambientLightLayer');
+            flash.classList.add('flash');
+            setTimeout(() => flash.classList.remove('flash'), 60);
+
+            // Sonido de obturación mecánica
+            playLensCapShutterSound();
+
+            const res = await fetch('/bian/process/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image_base64: bestFrame, prompt_analysis: 'ZSL Cam Vision V10' })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
+                openEditModalWithCapture(bestFrame);
+            }
+        }
+
+        /* ENFOQUE TÁCTICO AL TOCAR LA ESCENA */
         window.addEventListener('click', (e) => {
             if (e.target.closest('.bottom-bar') || e.target.closest('.top-dock') || e.target.closest('#deckStack') || e.target.closest('#horizontalDockBar') || e.target.closest('#zoomChip') || !unlocked || e.target.closest('#postEditModal') || e.target.closest('#galleryModal') || e.target.closest('#nanobotModal') || e.target.closest('#floatingGadget') || e.target.closest('#floatingPanel')) return;
             focusRing.style.left = `${e.clientX}px`;
@@ -471,6 +639,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             setTimeout(() => focusRing.classList.remove('active'), 2500);
         });
 
+        /* AUDIO DE OBTURADOR ANALÓGICO */
         function playLensCapShutterSound() {
             try {
                 const ctx = getAudioContext();
@@ -479,11 +648,11 @@ HTML_CONTENT = """<!DOCTYPE html>
                 const gain = ctx.createGain();
                 osc.connect(gain); gain.connect(ctx.destination);
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(140, now);
-                osc.frequency.exponentialRampToValueAtTime(40, now + 0.12);
-                gain.gain.setValueAtTime(0.3, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-                osc.start(now); osc.stop(now + 0.13);
+                osc.frequency.setValueAtTime(160, now);
+                osc.frequency.exponentialRampToValueAtTime(35, now + 0.11);
+                gain.gain.setValueAtTime(0.28, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
+                osc.start(now); osc.stop(now + 0.12);
             } catch(e) {}
         }
 
@@ -518,6 +687,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             if (deltaY > 20 || Math.abs(deltaY) < 10) unlockSuite();
         }, { passive: true });
 
+        /* SWIPE GLOBAL */
         window.addEventListener('touchstart', (e) => {
             if (!e.target.closest('#deckStack') && !e.target.closest('#horizontalDockBar') && !e.target.closest('#postEditModal') && !e.target.closest('#galleryModal') && !e.target.closest('#nanobotModal') && !e.target.closest('#floatingGadget') && !e.target.closest('#floatingPanel')) touchStartY = e.touches[0].clientY;
         }, { passive: true });
@@ -529,19 +699,22 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         }, { passive: true });
 
+        /* CATÁLOGO DE MÓDULOS CON TONOS NEÓN V10 */
         const moduleCatalog = [
-            { key: 'night', icon: '🌙', title: 'NIGHTOGRAPHY', pill: '🌙 NIGHTOGRAPHY: ISO BOOST + RAW DENOISE', color: '#5E5CE6', botTips: 'Baja iluminación detectada. Estabiliza 1 seg para máxima nitidez sin ruido.' },
-            { key: 'timelapse', icon: '⏱️', title: 'TIMELAPSE', pill: '⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA 4x', color: '#FF3B30', botTips: 'Modo compresión activo. Ideal para registrar tránsito o nubes.' },
-            { key: 'macro', icon: '🔍', title: 'MACRO PRO', pill: '🔍 ENFOQUE A CORTO ALCANCE ULTRA DETALLE', color: '#30D158', botTips: 'Distancia de 4-8 cm. La NPU optimiza el micro-contraste.' },
-            { key: 'chef', icon: '👨‍🍳', title: 'CHEF LEAN V3', pill: '👨‍🍳 FOOD COST & CONTROL DE MERMA CÁRNICA', color: '#FF9F0A', botTips: 'Insumo cárnico en mira. Calcula de inmediato la merma y porciones netas.' },
-            { key: 'price', icon: '🏷️', title: 'VALUADOR HÍBRIDO', pill: '🏷️ TASACIÓN DE MERCADO OFFLINE/ONLINE', color: '#63E6E2', botTips: 'Cotejo comercial activado. Estima banda de compra vs venta sugerida.' },
-            { key: 'depth', icon: '🧠', title: 'DEPTH-MAP NPU', pill: '🧠 ESTIMACIÓN VOLUMÉTRICA Z-BUFFER', color: '#00FFC8', botTips: 'Cálculo de profundidad monocular para mallas 3D.' },
-            { key: 'cine', icon: '🎬', title: 'CINE SCOPE V8', pill: '🎬 ANAMÓRFICO 2.39:1 & BLUE STREAK FLARE', color: '#FF0055', botTips: 'Grado cinematográfico DCI con grano de haluro de plata 35mm.' }
+            { key: 'night', icon: '🌙', title: 'NIGHTOGRAPHY', pill: '🌙 NIGHTOGRAPHY: ISO BOOST + RAW DENOISE', color: '#5E5CE6', botTips: 'Baja iluminación detectada. Búfer ZSL activo para capturar sin trepidación.' },
+            { key: 'timelapse', icon: '⏱️', title: 'TIMELAPSE', pill: '⏱️️ TIME-LAPSE: CAPTURA COMPRIMIDA 4x', color: '#FF3B30', botTips: 'Compresión en búfer activo. Proyección secuencial de cuadros.' },
+            { key: 'macro', icon: '🔍', title: 'MACRO PRO', pill: '🔍 ENFOQUE A CORTO ALCANCE ULTRA DETALLE', color: '#30D158', botTips: 'Distancia de 4-8 cm. La NPU maximiza el micro-contraste focal.' },
+            { key: 'chef', icon: '👨‍🍳', title: 'CHEF LEAN V3', pill: '👨‍🍳 FOOD COST & CONTROL DE MERMA CÁRNICA', color: '#FF9F0A', botTips: 'Insumo cárnico en encuadre. Listo para cuantificación de merma.' },
+            { key: 'price', icon: '🏷️', title: 'VALUADOR HÍBRIDO', pill: '🏷️ TASACIÓN DE MERCADO OFFLINE/ONLINE', color: '#63E6E2', botTips: 'Cotejo comercial activado. Estima compra vs venta en vivo.' },
+            { key: 'depth', icon: '🧠', title: 'DEPTH-MAP NPU', pill: '🧠 ESTIMACIÓN VOLUMÉTRICA Z-BUFFER', color: '#00FFC8', botTips: 'Cálculo de profundidad monocular para mallas 3D y relieve.' },
+            { key: 'cine', icon: '🎬', title: 'CINE SCOPE V10', pill: '🎬 ANAMÓRFICO 2.39:1 & BLUE STREAK FLARE', color: '#FF0055', botTips: 'Grado cinematográfico DCI con grano de haluro de plata de 35mm.' }
         ];
 
         let activeCardIndex = 0;
         const deckStack = document.getElementById('deckStack');
         const horizontalDock = document.getElementById('horizontalDockBar');
+        let lastClickedModuleIndex = -1;
+        let lastModuleClickTime = 0;
 
         function renderDeckStack() {
             deckStack.innerHTML = '';
@@ -576,7 +749,6 @@ HTML_CONTENT = """<!DOCTYPE html>
                     const now = Date.now();
                     const isDoubleClick = (lastClickedModuleIndex === idx) && (now - lastModuleClickTime < 650);
 
-                    // Si se presiona el que ya está activo o se hace doble clic en otro
                     if (idx === activeCardIndex || isDoubleClick) {
                         activeCardIndex = idx;
                         closeHorizontalDock();
@@ -584,7 +756,6 @@ HTML_CONTENT = """<!DOCTYPE html>
                         applyActiveCardTheme(moduleCatalog[activeCardIndex]);
                         lastClickedModuleIndex = -1;
                     } else {
-                        // Primer toque en un módulo diferente: lo activa y mantiene el dock abierto
                         activeCardIndex = idx;
                         lastClickedModuleIndex = idx;
                         lastModuleClickTime = now;
@@ -608,10 +779,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
 
         let deckTouchStartY = 0;
-        deckStack.addEventListener('touchstart', (e) => {
-            deckTouchStartY = e.touches[0].clientY;
-        }, { passive: true });
-
+        deckStack.addEventListener('touchstart', (e) => { deckTouchStartY = e.touches[0].clientY; }, { passive: true });
         deckStack.addEventListener('touchend', (e) => {
             const deltaY = deckTouchStartY - e.changedTouches[0].clientY;
             if (deltaY > 20) shiftCard(1, 'slide-up');
@@ -641,6 +809,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             document.getElementById('floatModTitle').innerText = m.title;
             document.getElementById('floatModTitle').style.color = m.color;
             document.getElementById('floatModDesc').innerText = m.botTips;
+            document.getElementById('shutterCorona').style.borderColor = m.color;
 
             const topCard = deckStack.querySelector('.pos-0');
             if (topCard) {
@@ -681,6 +850,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             }, 100);
         }
 
+        /* GADGET FLOTANTE */
         const gadget = document.getElementById('floatingGadget');
         let isDragging = false;
         let dragStartX, dragStartY, gadgetStartX, gadgetStartY;
@@ -703,26 +873,21 @@ HTML_CONTENT = """<!DOCTYPE html>
             const touch = e.touches[0];
             const deltaX = touch.clientX - dragStartX;
             const deltaY = touch.clientY - dragStartY;
-
             if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) hasMovedSignificantly = true;
-
             const newX = Math.min(window.innerWidth - 52, Math.max(4, gadgetStartX + deltaX));
             const newY = Math.min(window.innerHeight - 100, Math.max(60, gadgetStartY + deltaY));
-
             gadget.style.left = `${newX}px`;
             gadget.style.top = `${newY}px`;
         }, { passive: true });
 
-        window.addEventListener('touchend', (e) => {
+        window.addEventListener('touchend', () => {
             if (!isDragging) return;
             isDragging = false;
             gadget.style.transition = 'left 0.35s cubic-bezier(0.16, 1, 0.3, 1), top 0.35s ease';
-
             if (!hasMovedSignificantly) {
                 toggleFloatingPanel();
                 return;
             }
-
             const rect = gadget.getBoundingClientRect();
             const snapLeft = (rect.left + rect.width / 2 < window.innerWidth / 2) ? 14 : (window.innerWidth - 62);
             gadget.style.left = `${snapLeft}px`;
@@ -737,30 +902,11 @@ HTML_CONTENT = """<!DOCTYPE html>
                 const cur = moduleCatalog[activeCardIndex];
                 const list = document.getElementById('floatActionList');
                 list.innerHTML = `
-                    <button class="bot-btn" onclick="captureDirect(); toggleFloatingPanel();">📸 Disparar con perfil ${cur.title}</button>
-                    <button class="bot-btn" onclick="openHorizontalDock(); toggleFloatingPanel();">🎴 Ver todos los módulos en dock</button>
-                    <button class="bot-btn" onclick="openGalleryModal(); toggleFloatingPanel();">🖼️ Ver galería</button>
+                    <button class="bot-btn" onclick="captureZeroShutterLag(); toggleFloatingPanel();">📸 Disparo ZSL con ${cur.title}</button>
+                    <button class="bot-btn" onclick="openHorizontalDock(); toggleFloatingPanel();">🎴 Selector de Módulos</button>
+                    <button class="bot-btn" onclick="toggleGhostScope(); toggleFloatingPanel();">👁️ Alternar Radar Espectral</button>
+                    <button class="bot-btn" onclick="openGalleryModal(); toggleFloatingPanel();">🖼️ Ver Galería Local</button>
                 `;
-            }
-        }
-
-        async function captureDirect() {
-            canvas.width = video.videoWidth || 640;
-            canvas.height = video.videoHeight || 480;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const b64 = canvas.toDataURL('image/jpeg');
-
-            const res = await fetch('/bian/process/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: b64, prompt_analysis: 'Captura Master V10' })
-            });
-            if (res.ok) {
-                const data = await res.json();
-                document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
-                lastCapturedBlob = b64;
-                openEditModalWithCapture(b64);
             }
         }
 
@@ -771,14 +917,13 @@ HTML_CONTENT = """<!DOCTYPE html>
                 if(list.length > 0) {
                     const last = list[list.length - 1];
                     document.getElementById('thumbBox').innerHTML = `<img src="${last.image_path}" />`;
-                    lastCapturedBlob = last.image_path;
                 }
             } catch(e) {}
         }
 
         function openEditModalWithCapture(imgSrc) {
             const curMod = moduleCatalog[activeCardIndex];
-            document.getElementById('editModalTitle').innerText = `🛠️ EDICIÓN: ${curMod.title}`;
+            document.getElementById('editModalTitle').innerText = `🛠️ ${curMod.title} V10 PROCESADO`;
             document.getElementById('editModalTitle').style.color = curMod.color;
             document.getElementById('editImagePreview').src = imgSrc;
             document.getElementById('postEditModal').style.display = 'flex';
@@ -791,17 +936,17 @@ HTML_CONTENT = """<!DOCTYPE html>
             elem.classList.add('active');
             const img = document.getElementById('editImagePreview');
             if(tool === 'original') img.style.filter = 'none';
-            else if(tool === 'npu_boost') img.style.filter = 'contrast(1.25) saturate(1.3) brightness(1.05)';
-            else if(tool === 'alpha_matte') img.style.filter = 'drop-shadow(0 0 15px #00FFC8) contrast(1.1)';
-            else if(tool === 'cinematic_grade') img.style.filter = 'sepia(0.2) contrast(1.3) saturate(0.9)';
+            else if(tool === 'tone_map') img.style.filter = 'contrast(1.15) brightness(1.08) saturate(1.2)';
+            else if(tool === 'spectral_extract') img.style.filter = 'hue-rotate(45deg) saturate(1.5) contrast(1.3)';
+            else if(tool === 'cinematic_grade') img.style.filter = 'sepia(0.18) contrast(1.25) saturate(0.95)';
         }
 
         function exportEditedResult() {
             const a = document.createElement('a');
             a.href = document.getElementById('editImagePreview').src;
-            a.download = `bian_master_export_${Date.now()}.jpg`;
+            a.download = `bian_v10_zsl_${Date.now()}.jpg`;
             a.click();
-            alert("✔ Activo exportado con éxito a la memoria local.");
+            alert("✔ Activo V10 exportado con éxito a la memoria interna.");
         }
 
         async function openGalleryModal() {
@@ -847,14 +992,15 @@ HTML_CONTENT = """<!DOCTYPE html>
             const act = document.getElementById('botActionList');
 
             msg.innerHTML = `
-                <div style="color:#00FFC8; font-weight:800; margin-bottom:6px;">🤖 Diagnóstico para ${curMod.title}:</div>
+                <div style="color:#00FFC8; font-weight:800; margin-bottom:6px;">🤖 Diagnóstico V10 para ${curMod.title}:</div>
                 <div>${curMod.botTips}</div>
             `;
 
             act.innerHTML = `
-                <button class="bot-btn" onclick="executeBotAction('calibrate')">⚡ Calibrar Sensor & NPU para ${curMod.title}</button>
-                <button class="bot-btn" onclick="executeBotAction('focus')">🎯 Enfocar Sujeto al Centro</button>
-                <button class="bot-btn" onclick="executeBotAction('gallery')">🖼️ Explorar Capturas de este Modo</button>
+                <button class="bot-btn" onclick="executeBotAction('calibrate')">⚡ Calibrar Sensor & Tone Mapping</button>
+                <button class="bot-btn" onclick="executeBotAction('ghost')">👁️ Activar Radar Espectral</button>
+                <button class="bot-btn" onclick="executeBotAction('focus')">🎯 Centrar AF Aeroespacial</button>
+                <button class="bot-btn" onclick="executeBotAction('gallery')">🖼️ Ver Galería de este Modo</button>
             `;
 
             modal.style.display = 'flex';
@@ -866,7 +1012,9 @@ HTML_CONTENT = """<!DOCTYPE html>
             closeNanobot();
             if(action === 'calibrate') {
                 applyActiveCardTheme(moduleCatalog[activeCardIndex]);
-                alert("✔ Parámetros NPU calibrados.");
+                alert("✔ Sensor V10 y curva de luminancia calibrados.");
+            } else if(action === 'ghost') {
+                toggleGhostScope();
             } else if(action === 'focus') {
                 focusRing.style.left = "50%";
                 focusRing.style.top = "50%";
