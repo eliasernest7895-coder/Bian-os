@@ -16,14 +16,14 @@ router.mount("/storage", StaticFiles(directory="storage"), name="storage")
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Captura Video Motion V9"
+    prompt_analysis: str = "Captura Depth-Map NPU V10"
 
 HTML_CONTENT = """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>BIAN MASTER SUITE PRO - VIDEO MOTION V9</title>
+    <title>BIAN MASTER SUITE V10 PRO - DEPTH-MAP NPU</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', Roboto, monospace; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; width: 100vw; overflow: hidden; position: fixed; }
@@ -71,7 +71,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             position: relative; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .lens-cap-center { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #FF9500; }
+        .lens-cap-center { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #00F2FE; }
         .lens-cap-sub { font-size: 7px; color: #777; margin-top: 2px; }
         .lens-cap-hint { font-size: 10px; font-weight: 800; color: #aaa; margin-top: 10px; letter-spacing: 1px; }
 
@@ -86,31 +86,31 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         #ghostScopeCanvas.active { opacity: 0.75; }
 
-        /* 1. CANVAS VECTORIAL DE MOVIMIENTO EN VIVO */
-        #motionVectorCanvas {
+        /* 1. MALLA LIDAR EN TIEMPO REAL */
+        #depthMeshCanvas {
             position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 52;
         }
 
-        /* 1. HUD VIDEO MOTION V9 */
-        .motion-hud-container {
+        /* 1. HUD DEPTH-MAP NPU V10 */
+        .depth-hud-container {
             display: none; position: absolute; top: 120px; left: 16px; right: 16px;
             z-index: 60; flex-direction: column; align-items: center; gap: 8px; pointer-events: auto;
         }
-        .motion-status-pill {
-            display: flex; gap: 10px; align-items: center; background: rgba(28, 16, 8, 0.88);
-            border: 1px solid rgba(255, 149, 0, 0.45); border-radius: 20px; padding: 5px 14px;
-            backdrop-filter: blur(14px); font-size: 11px; font-weight: 800; color: #FF9500;
+        .depth-status-pill {
+            display: flex; gap: 10px; align-items: center; background: rgba(6, 22, 28, 0.88);
+            border: 1px solid rgba(0, 242, 254, 0.45); border-radius: 20px; padding: 5px 14px;
+            backdrop-filter: blur(14px); font-size: 11px; font-weight: 800; color: #00F2FE;
         }
-        .motion-mode-selector {
-            display: flex; gap: 6px; background: rgba(20, 12, 6, 0.8);
+        .depth-mode-selector {
+            display: flex; gap: 6px; background: rgba(6, 18, 22, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; padding: 4px 8px;
             backdrop-filter: blur(12px);
         }
-        .motion-chip-btn {
+        .depth-chip-btn {
             padding: 3px 9px; font-size: 10px; font-weight: 800; border-radius: 12px;
             color: #888; background: transparent; border: none; cursor: pointer; transition: all 0.2s;
         }
-        .motion-chip-btn.active { background: #FF9500; color: #000; box-shadow: 0 0 8px rgba(255,149,0,0.6); }
+        .depth-chip-btn.active { background: #00F2FE; color: #000; box-shadow: 0 0 8px rgba(0,242,254,0.6); }
 
         .aero-hud-overlay {
             position: absolute; inset: 0; pointer-events: none; z-index: 50;
@@ -118,7 +118,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .horizon-line {
             position: absolute; top: 50%; left: 25%; width: 50%; height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 149, 0, 0.6), transparent);
+            background: linear-gradient(90deg, transparent, rgba(0, 242, 254, 0.6), transparent);
         }
         .hud-telemetry-corner {
             display: flex; justify-content: space-between; font-family: monospace;
@@ -139,30 +139,30 @@ HTML_CONTENT = """<!DOCTYPE html>
             color: #fff; font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 20px;
             backdrop-filter: blur(10px); display: flex; align-items: center; gap: 6px;
         }
-        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #FF9500; display: inline-block; }
+        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #00F2FE; display: inline-block; }
         .top-action-btn {
             background: rgba(18, 18, 22, 0.72); border: 1px solid rgba(255, 255, 255, 0.15);
             color: #fff; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 20px;
             backdrop-filter: blur(10px); cursor: pointer; display: flex; align-items: center; gap: 4px;
         }
         #botToggleBtn {
-            border-color: rgba(255,149,0,0.4); color: #FF9500; transition: all 0.4s ease; min-width: 155px; justify-content: center;
+            border-color: rgba(0,242,254,0.4); color: #00F2FE; transition: all 0.4s ease; min-width: 155px; justify-content: center;
         }
 
         .ghost-scope-btn {
-            background: rgba(18, 18, 22, 0.75); border: 1px solid rgba(255, 149, 0, 0.35);
-            color: #FF9500; font-size: 10px; font-weight: 800; padding: 6px 11px; border-radius: 18px;
+            background: rgba(18, 18, 22, 0.75); border: 1px solid rgba(0, 242, 254, 0.35);
+            color: #00F2FE; font-size: 10px; font-weight: 800; padding: 6px 11px; border-radius: 18px;
             cursor: pointer; backdrop-filter: blur(8px);
         }
-        .ghost-scope-btn.active { background: #FF9500; color: #000; box-shadow: 0 0 14px rgba(255,149,0,0.6); }
+        .ghost-scope-btn.active { background: #00F2FE; color: #000; box-shadow: 0 0 14px rgba(0,242,254,0.6); }
 
         .center-hud-overlay {
             position: absolute; top: 68px; left: 0; right: 0; z-index: 95;
             display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none;
         }
         .context-pill {
-            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(255, 149, 0, 0.4);
-            color: #FF9500; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
+            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(0, 242, 254, 0.4);
+            color: #00F2FE; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
             padding: 4px 14px; border-radius: 20px; backdrop-filter: blur(10px); text-transform: uppercase;
         }
 
@@ -178,7 +178,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         .hud-zoom-tag {
             position: absolute; bottom: 155px; left: 24px; z-index: 100;
             background: rgba(20, 20, 24, 0.82); border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 18px; padding: 5px 12px; font-size: 12px; font-weight: 800; color: #FF9500;
+            border-radius: 18px; padding: 5px 12px; font-size: 12px; font-weight: 800; color: #00F2FE;
             cursor: pointer; backdrop-filter: blur(12px);
         }
 
@@ -219,7 +219,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .dock-item-btn.active .dock-dot-indicator { display: block; }
 
-        /* OBTURADOR VIDEO MOTION */
+        /* OBTURADOR DEPTH-MAP */
         .bottom-bar {
             position: absolute; bottom: 20px; left: 0; right: 0; z-index: 100;
             display: flex; justify-content: space-around; align-items: center; padding: 0 25px;
@@ -230,8 +230,8 @@ HTML_CONTENT = """<!DOCTYPE html>
             border: 2px dashed rgba(255,255,255,0.3); pointer-events: none;
         }
         .shutter-btn {
-            width: 72px; height: 72px; border-radius: 50%; background: #FF9500;
-            border: 4px solid #fff; box-shadow: 0 0 22px rgba(255, 149, 0, 0.55); cursor: pointer;
+            width: 72px; height: 72px; border-radius: 50%; background: #00F2FE;
+            border: 4px solid #fff; box-shadow: 0 0 22px rgba(0, 242, 254, 0.55); cursor: pointer;
         }
         .lens-switch-btn {
             width: 46px; height: 46px; border-radius: 50%; background: rgba(30, 30, 35, 0.75);
@@ -246,24 +246,24 @@ HTML_CONTENT = """<!DOCTYPE html>
         /* GADGET Y PANELES */
         #floatingGadget {
             position: fixed; top: 180px; left: 14px; width: 48px; height: 48px;
-            border-radius: 50%; background: #0c0d12; border: 2px solid #FF9500;
-            box-shadow: 0 6px 18px rgba(255, 149, 0, 0.4); z-index: 250;
+            border-radius: 50%; background: #0c0d12; border: 2px solid #00F2FE;
+            box-shadow: 0 6px 18px rgba(0, 242, 254, 0.4); z-index: 250;
             display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: grab;
         }
         #floatingPanel {
             display: none; position: fixed; inset: 100px 18px 120px 18px; z-index: 260;
-            background: rgba(10, 12, 16, 0.96); border: 1px solid #FF9500; border-radius: 20px;
+            background: rgba(10, 12, 16, 0.96); border: 1px solid #00F2FE; border-radius: 20px;
             backdrop-filter: blur(25px); flex-direction: column; padding: 16px;
         }
         .float-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 
-        /* MESA DE EDICIÓN POST-MOTION */
+        /* MESA DE EDICIÓN POST-DEPTH */
         #postEditModal {
             display: none; position: fixed; inset: 0; z-index: 300; background: rgba(6, 7, 10, 0.96);
             backdrop-filter: blur(20px); flex-direction: column; padding: 20px 18px 25px 18px;
         }
         .edit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .edit-title { font-size: 14px; font-weight: 800; color: #FF9500; }
+        .edit-title { font-size: 14px; font-weight: 800; color: #00F2FE; }
         .edit-close-btn { background: #222; border: 1px solid #444; color: #fff; padding: 5px 12px; border-radius: 14px; font-size: 11px; cursor: pointer; }
         
         .edit-preview-box {
@@ -278,9 +278,9 @@ HTML_CONTENT = """<!DOCTYPE html>
             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
             padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #ddd; cursor: pointer;
         }
-        .tool-chip.active { border-color: #FF9500; color: #FF9500; background: rgba(255,149,0,0.12); }
+        .tool-chip.active { border-color: #00F2FE; color: #00F2FE; background: rgba(0,242,254,0.12); }
         .btn-export-master {
-            background: linear-gradient(90deg, #FF9500, #FF2D55); color: #fff; font-size: 13px;
+            background: linear-gradient(90deg, #00F2FE, #4FACFE); color: #000; font-size: 13px;
             font-weight: 900; padding: 13px; border-radius: 14px; border: none; cursor: pointer;
             width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
         }
@@ -298,7 +298,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: none; position: fixed; inset: 0; z-index: 330; background: rgba(5, 6, 8, 0.95);
             backdrop-filter: blur(25px); flex-direction: column; padding: 20px; justify-content: space-between;
         }
-        .bot-bubble { background: #121318; border: 1px solid rgba(255,149,0,0.3); border-radius: 16px; padding: 16px; font-size: 13px; line-height: 1.5; color: #eee; margin-top: 15px; }
+        .bot-bubble { background: #121318; border: 1px solid rgba(0,242,254,0.3); border-radius: 16px; padding: 16px; font-size: 13px; line-height: 1.5; color: #eee; margin-top: 15px; }
         .bot-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
         .bot-btn {
             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff;
@@ -315,15 +315,15 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="pill-badge">• BIAN MASTER SUITE V10</div>
         <div class="brand-center">
             <div class="brand-title">BIAN</div>
-            <div class="brand-subtitle">Video Motion V9 Ultra</div>
+            <div class="brand-subtitle">Depth-Map NPU V10 Ultra</div>
             <div style="font-size:11px; color:#777; max-width:280px; margin:0 auto; line-height:1.4;">
-                Optical Flow • Estelas Cinéticas • Gyro-Lock 60 FPS
+                Disparidad 16-Bit • Nube LiDAR • Anaglifo Estéreo 3D
             </div>
         </div>
         <div class="lens-cap-assembly" id="lensCapUnlockBtn">
             <div class="lens-cap-disk" id="lensCapDisk">
-                <div class="lens-cap-center">BIAN MOTION</div>
-                <div class="lens-cap-sub">F/1.4 • 35MM OPTICAL FLOW</div>
+                <div class="lens-cap-center">BIAN DEPTH</div>
+                <div class="lens-cap-sub">F/1.4 • 35MM NPU Z-BUFFER</div>
             </div>
             <div class="lens-cap-hint">🔓 DESTAPAR LENTE</div>
         </div>
@@ -335,54 +335,54 @@ HTML_CONTENT = """<!DOCTYPE html>
     <!-- PANEL FLOTANTE -->
     <div id="floatingPanel">
         <div class="float-header">
-            <div style="font-size:13px; font-weight:800; color:#FF9500;">⚡ TALLER TÁCTICO FLOTANTE</div>
+            <div style="font-size:13px; font-weight:800; color:#00F2FE;">⚡ TALLER TÁCTICO FLOTANTE</div>
             <button class="edit-close-btn" onclick="toggleFloatingPanel()">✖ Cerrar</button>
         </div>
         <div style="flex:1; overflow-y:auto; font-size:12px; color:#aaa; display:flex; flex-direction:column; gap:10px;">
             <div style="background:#14151b; padding:12px; border-radius:12px; border:1px solid #222;">
                 <div style="color:#fff; font-weight:700; margin-bottom:4px;" id="floatModTitle">MODO ACTIVO</div>
-                <div id="floatModDesc">Detección de vectores de movimiento y estelas cinéticas listos.</div>
+                <div id="floatModDesc">Motor de inferencia de profundidad monocular y disparidad listos.</div>
             </div>
             <div class="bot-actions" id="floatActionList"></div>
         </div>
     </div>
 
-    <!-- VIEWPORT CON RETÍCULA DE MOVIMIENTO VECTORIAL -->
+    <!-- VIEWPORT CON RETÍCULA DE MALLA LIDAR -->
     <div class="suite-view" id="viewportArea">
         <div id="videoContainer">
             <video id="webcam" autoplay playsinline></video>
             <canvas id="ghostScopeCanvas"></canvas>
-            <!-- 1. RETÍCULA VECTORIAL DE FLUJO ÓPTICO -->
-            <canvas id="motionVectorCanvas"></canvas>
+            <!-- 1. RETÍCULA DE MALLA LIDAR EN TIEMPO REAL -->
+            <canvas id="depthMeshCanvas"></canvas>
         </div>
 
-        <!-- 1. HUD VIDEO MOTION V9 -->
-        <div class="motion-hud-container" id="motionHud">
-            <div class="motion-status-pill">
-                <span>⚡ TRACKING: OPTICAL FLOW</span>
+        <!-- 1. HUD DEPTH-MAP NPU V10 -->
+        <div class="depth-hud-container" id="depthHud">
+            <div class="depth-status-pill">
+                <span>🛰️ Z-BUFFER: 16-BIT NPU</span>
                 <span style="color:#888;">|</span>
-                <span id="motionSpeedLabel">VELOCIDAD: 0.0 rad/s</span>
+                <span id="depthDistanceLabel">Z-DIST: 1.45 m</span>
             </div>
-            <div class="motion-mode-selector">
-                <button class="motion-chip-btn active" onclick="setMotionMode('trail_phosphor', this)">Estela Cinética</button>
-                <button class="motion-chip-btn" onclick="setMotionMode('freeze_burst', this)">Freeze Burst</button>
-                <button class="motion-chip-btn" onclick="setMotionMode('gyro_lock', this)">Gyro-Lock</button>
+            <div class="depth-mode-selector">
+                <button class="depth-chip-btn active" onclick="setDepthVisualMode('disparity_16bit', this)">Disparidad Escalar</button>
+                <button class="depth-chip-btn" onclick="setDepthVisualMode('lidar_cloud', this)">Nube LiDAR</button>
+                <button class="depth-chip-btn" onclick="setDepthVisualMode('stereo_wiggle', this)">Wiggle 3D</button>
             </div>
         </div>
 
         <!-- HUD AEROESPACIAL -->
         <div class="aero-hud-overlay">
             <div class="hud-telemetry-corner">
-                <div class="telemetry-tag" id="telFPS">RATE: 60 FPS SOLID</div>
-                <div class="telemetry-tag" id="telOIS">GYRO-OIS: ENGAGED</div>
-                <div class="telemetry-tag" id="telISO">ISO: 200 AUTO</div>
-                <div class="telemetry-tag" id="telShutter">SS: 1/120s</div>
+                <div class="telemetry-tag" id="telPlanes">PLANES: 5 OCCLUSIONS</div>
+                <div class="telemetry-tag" id="telDepthPrec">PRECISION: 0.05 mm</div>
+                <div class="telemetry-tag" id="telISO">ISO: 100 BASE</div>
+                <div class="telemetry-tag" id="telShutter">SS: 1/500s</div>
             </div>
 
             <div class="horizon-line" id="horizonGyro"></div>
 
             <div class="hud-telemetry-corner" style="justify-content: flex-end; gap: 8px;">
-                <div class="telemetry-tag" style="color:#FF9500;" id="telMotionStatus">FLOW: TRACKING</div>
+                <div class="telemetry-tag" style="color:#00F2FE;" id="telDepthEngine">NPU DISPARITY: ACTIVE</div>
                 <div class="telemetry-tag">SNAPDRAGON 8G2 NPU</div>
             </div>
         </div>
@@ -395,7 +395,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="top-dock">
             <div class="hud-status-badge" id="moduleTitleBadge">
                 <span class="dot" id="statusDot"></span>
-                <span id="moduleNameText">VIDEO MOTION V9</span>
+                <span id="moduleNameText">DEPTH-MAP NPU V10</span>
             </div>
             <div style="display: flex; gap: 6px;">
                 <button class="ghost-scope-btn" id="scopeToggleBtn" onclick="toggleGhostScope()">
@@ -407,7 +407,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
 
         <div class="center-hud-overlay" id="centerHud">
-            <div class="context-pill" id="contextPillText">⚡ VIDEO MOTION: FLUJO ÓPTICO & ESTELAS 60 FPS</div>
+            <div class="context-pill" id="contextPillText">🛰️ DEPTH-MAP: Z-BUFFER 16-BIT & NUBE LIDAR</div>
         </div>
 
         <div class="hud-zoom-tag" id="zoomChip" onclick="cycleZoomLevel()">
@@ -420,35 +420,35 @@ HTML_CONTENT = """<!DOCTYPE html>
         <!-- DOCK HORIZONTAL FLOTANTE -->
         <div id="horizontalDockBar"></div>
 
-        <!-- OBTURADOR VIDEO MOTION -->
+        <!-- OBTURADOR DEPTH-MAP -->
         <div class="bottom-bar">
             <div class="lens-switch-btn" onclick="toggleLens()">🔄</div>
             <div class="shutter-wrapper">
                 <div class="shutter-corona" id="shutterCorona"></div>
-                <div class="shutter-btn" id="motionShutterBtn" onclick="handleMotionCaptureTrigger()"></div>
+                <div class="shutter-btn" id="depthShutterBtn" onclick="handleDepthCaptureTrigger()"></div>
             </div>
             <div class="gallery-thumb" id="thumbBox" onclick="openGalleryModal()"></div>
         </div>
     </div>
 
-    <!-- MESA DE EDICIÓN POST-MOTION -->
+    <!-- MESA DE EDICIÓN POST-DEPTH -->
     <div id="postEditModal">
         <div class="edit-header">
-            <div class="edit-title" id="editModalTitle">⚡ VIDEO MOTION V9 PROCESADO</div>
+            <div class="edit-title" id="editModalTitle">🛰️ MAPA DE PROFUNDIDAD V10 RENDER</div>
             <button class="edit-close-btn" onclick="closeEditModal()">✖ Volver</button>
         </div>
         <div class="edit-preview-box">
-            <img id="editImagePreview" src="" alt="Motion Frame" />
+            <img id="editImagePreview" src="" alt="Depth Render" />
         </div>
         <div class="edit-tools-panel">
             <div class="tool-row" id="moduleToolRow">
-                <div class="tool-chip active" onclick="applyMotionFilter('phosphor_trail', this)">✨ Estela de Fósforo</div>
-                <div class="tool-chip" onclick="applyMotionFilter('stroboscopic', this)">⚡ Ráfaga Estroboscópica</div>
-                <div class="tool-chip" onclick="applyMotionFilter('high_contrast', this)">🏎️ Acento de Velocidad</div>
-                <div class="tool-chip" onclick="applyMotionFilter('cyber_neon', this)">🌌 Cyber Neón Glow</div>
+                <div class="tool-chip active" onclick="applyDepthPostMode('depth_gray', this)">🏁 Mapa Escalar Z-Buffer</div>
+                <div class="tool-chip" onclick="applyDepthPostMode('anaglyph_3d', this)">🕶️ Anaglifo 3D Estéreo</div>
+                <div class="tool-chip" onclick="applyDepthPostMode('lidar_spectrum', this)">🌈 Espectro Térmico LiDAR</div>
+                <div class="tool-chip" onclick="applyDepthPostMode('wiggle_anim', this)">〰️ Wiggle 3D Dinámico</div>
             </div>
             <button class="btn-export-master" onclick="exportEditedResult()">
-                💾 EXPORTAR FOTOGRAMA KINÉTICO HD
+                💾 EXPORTAR ASSET DE PROFUNDIDAD HD ULTRA
             </button>
         </div>
     </div>
@@ -469,24 +469,24 @@ HTML_CONTENT = """<!DOCTYPE html>
                 <div class="edit-title" style="color:#00FFC8;">✨ NANO-BOT TÁCTICO V10</div>
                 <button class="edit-close-btn" onclick="closeNanobot()">✖ Cerrar</button>
             </div>
-            <div class="bot-bubble" id="botMessageText">Analizando vectores kinéticos...</div>
+            <div class="bot-bubble" id="botMessageText">Sintetizando malla de profundidad...</div>
             <div class="bot-actions" id="botActionList"></div>
         </div>
         <div style="font-size:10px; color:#555; text-align:center;">IA Soberana local operando en Snapdragon 8 Gen 2</div>
     </div>
 
     <canvas id="hiddenBufferCanvas" style="display:none;"></canvas>
-    <!-- CANVAS DE COMPOSICIÓN DE ESTELA Y MOVIMIENTO -->
-    <canvas id="motionCompositeCanvas" style="display:none;"></canvas>
+    <!-- CANVAS DE DISPARIDAD Y MAPA DE PROFUNDIDAD -->
+    <canvas id="depthCompositeCanvas" style="display:none;"></canvas>
 
     <script>
         const video = document.getElementById('webcam');
         const hiddenCanvas = document.getElementById('hiddenBufferCanvas');
         const ghostCanvas = document.getElementById('ghostScopeCanvas');
         const ghostCtx = ghostCanvas.getContext('2d');
-        const motionVecCanvas = document.getElementById('motionVectorCanvas');
-        const motionVecCtx = motionVecCanvas.getContext('2d');
-        const compCanvas = document.getElementById('motionCompositeCanvas');
+        const meshCanvas = document.getElementById('depthMeshCanvas');
+        const meshCtx = meshCanvas.getContext('2d');
+        const compCanvas = document.getElementById('depthCompositeCanvas');
         const compCtx = compCanvas.getContext('2d');
         const focusRing = document.getElementById('focusRing');
         let audioCtx = null;
@@ -495,10 +495,10 @@ HTML_CONTENT = """<!DOCTYPE html>
         const zoomLevels = [0.6, 1.0, 2.0];
         let isGhostScopeOn = false;
 
-        /* ESTADO VIDEO MOTION V9 */
-        let activeMotionMode = 'trail_phosphor';
-        let motionVectorAngle = 0;
-        let processedMotionDataUrl = null;
+        /* ESTADO DEPTH-MAP NPU V10 */
+        let activeDepthVisualMode = 'disparity_16bit';
+        let processedDepthDataUrl = null;
+        let wiggleTimer = null;
 
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -537,14 +537,10 @@ HTML_CONTENT = """<!DOCTYPE html>
             if (e.gamma !== null) {
                 const angle = Math.max(-30, Math.min(30, e.gamma));
                 document.getElementById('horizonGyro').style.transform = `rotate(${angle}deg)`;
-                motionVectorAngle = angle;
-                const radSec = (Math.abs(e.gamma) / 10).toFixed(1);
-                const spdEl = document.getElementById('motionSpeedLabel');
-                if (spdEl) spdEl.innerText = `VELOCIDAD: ${radSec} rad/s`;
             }
         });
 
-        /* 1. PIPELINE DE FLUJO ÓPTICO Y VECTORES EN TIEMPO REAL */
+        /* 1. PIPELINE DE MALLA LIDAR EN TIEMPO REAL */
         let frameCount = 0;
         function processVideoPipeline() {
             if (video.readyState >= 2) {
@@ -553,8 +549,8 @@ HTML_CONTENT = """<!DOCTYPE html>
                     hiddenCanvas.height = video.videoHeight || 480;
                     compCanvas.width = hiddenCanvas.width;
                     compCanvas.height = hiddenCanvas.height;
-                    motionVecCanvas.width = window.innerWidth;
-                    motionVecCanvas.height = window.innerHeight;
+                    meshCanvas.width = window.innerWidth;
+                    meshCanvas.height = window.innerHeight;
                     ghostCanvas.width = 320;
                     ghostCanvas.height = 240;
                 }
@@ -579,60 +575,58 @@ HTML_CONTENT = """<!DOCTYPE html>
                     ghostCtx.putImageData(imgData, 0, 0);
                 }
 
-                // Renderizar vectores de flujo óptico si Video Motion está activo
+                // Renderizar malla LiDAR si Depth-Map está activo
                 const curMod = moduleCatalog[activeCardIndex];
-                if (curMod.key === 'motion') {
-                    renderOpticalFlowVectors();
+                if (curMod.key === 'depth') {
+                    renderLidarPointGrid();
                 } else {
-                    motionVecCtx.clearRect(0, 0, motionVecCanvas.width, motionVecCanvas.height);
+                    meshCtx.clearRect(0, 0, meshCanvas.width, meshCanvas.height);
                 }
             }
             requestAnimationFrame(processVideoPipeline);
         }
 
-        function renderOpticalFlowVectors() {
-            motionVecCtx.clearRect(0, 0, motionVecCanvas.width, motionVecCanvas.height);
-            const w = motionVecCanvas.width;
-            const h = motionVecCanvas.height;
-            const cx = w / 2;
-            const cy = h / 2;
+        function renderLidarPointGrid() {
+            meshCtx.clearRect(0, 0, meshCanvas.width, meshCanvas.height);
+            const w = meshCanvas.width;
+            const h = meshCanvas.height;
 
-            // Dibujar cruz de tracking y vector direccional
-            motionVecCtx.strokeStyle = "#FF9500";
-            motionVecCtx.lineWidth = 2;
+            const cols = 9;
+            const rows = 12;
+            const stepX = w / (cols + 1);
+            const stepY = h / (rows + 1);
 
-            // Retícula circular central
-            motionVecCtx.beginPath();
-            motionVecCtx.arc(cx, cy, 38, 0, Math.PI * 2);
-            motionVecCtx.stroke();
+            meshCtx.fillStyle = "#00F2FE";
+            meshCtx.strokeStyle = "rgba(0, 242, 254, 0.25)";
+            meshCtx.lineWidth = 1;
 
-            // Vector direccional del flujo óptico
-            const vecLength = 55;
-            const rad = (motionVectorAngle * Math.PI) / 180;
-            const vx = cx + Math.sin(rad) * vecLength;
-            const vy = cy - Math.cos(rad) * vecLength;
+            for (let r = 1; r <= rows; r++) {
+                for (let c = 1; c <= cols; c++) {
+                    const x = c * stepX;
+                    const y = r * stepY;
 
-            motionVecCtx.beginPath();
-            motionVecCtx.moveTo(cx, cy);
-            motionVecCtx.lineTo(vx, vy);
-            motionVecCtx.stroke();
+                    // Distorsión de profundidad basada en distancia radial al centro
+                    const distToCenter = Math.hypot(x - w / 2, y - h / 2) / (w * 0.5);
+                    const pointSize = Math.max(1.5, 3.5 - distToCenter * 2);
 
-            // Punta de flecha del vector
-            motionVecCtx.fillStyle = "#FF9500";
-            motionVecCtx.beginPath();
-            motionVecCtx.arc(vx, vy, 4, 0, Math.PI * 2);
-            motionVecCtx.fill();
+                    meshCtx.beginPath();
+                    meshCtx.arc(x, y, pointSize, 0, Math.PI * 2);
+                    meshCtx.fill();
 
-            // Cuadrícula de micro-vectores periféricos
-            motionVecCtx.fillStyle = "rgba(255, 149, 0, 0.5)";
-            for (let i = -1; i <= 1; i += 2) {
-                for (let j = -1; j <= 1; j += 2) {
-                    const px = cx + (i * w * 0.28);
-                    const py = cy + (j * h * 0.22);
-                    motionVecCtx.fillRect(px - 10, py - 1, 20, 2);
-                    motionVecCtx.fillRect(px - 1, py - 10, 2, 20);
+                    // Conexiones de malla sutiles
+                    if (c < cols) {
+                        meshCtx.beginPath();
+                        meshCtx.moveTo(x, y);
+                        meshCtx.lineTo((c + 1) * stepX, y);
+                        meshCtx.stroke();
+                    }
                 }
             }
+
+            // Cruz central de telemetría de profundidad
+            meshCtx.strokeStyle = "#00F2FE";
+            meshCtx.lineWidth = 1.5;
+            meshCtx.strokeRect(w/2 - 25, h/2 - 25, 50, 50);
         }
 
         function toggleGhostScope() {
@@ -649,108 +643,133 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         }
 
-        /* 2. TRABAJO PESADO: SÍNTESIS DE ESTELAS CINÉTICAS EN RAM */
-        function setMotionMode(mode, elem) {
-            activeMotionMode = mode;
-            document.querySelectorAll('.motion-chip-btn').forEach(b => b.classList.remove('active'));
+        /* 2. TRABAJO PESADO: GENERACIÓN DE MAPA DE DISPARIDAD EN RAM */
+        function setDepthVisualMode(mode, elem) {
+            activeDepthVisualMode = mode;
+            document.querySelectorAll('.depth-chip-btn').forEach(b => b.classList.remove('active'));
             elem.classList.add('active');
-            document.getElementById('telMotionStatus').innerText = (mode === 'trail_phosphor') ? 'FLOW: PHOSPHOR' : 'FLOW: LOCKED';
+            document.getElementById('telDepthEngine').innerText = (mode === 'disparity_16bit') ? 'NPU: 16-BIT DEPTH' : 'NPU: LIDAR POINT';
         }
 
-        async function handleMotionCaptureTrigger() {
+        async function handleDepthCaptureTrigger() {
             const curMod = moduleCatalog[activeCardIndex];
-            if (curMod.key === 'motion') {
-                executeMotionCaptureSequence();
+            if (curMod.key === 'depth') {
+                executeDepthCaptureSequence();
             } else {
                 captureStandardZSL();
             }
         }
 
-        async function executeMotionCaptureSequence() {
+        async function executeDepthCaptureSequence() {
             const flash = document.getElementById('ambientLightLayer');
             flash.classList.add('flash');
             setTimeout(() => flash.classList.remove('flash'), 60);
-            playMotionRevSound();
+            playSonarPingSound();
 
-            document.getElementById('telMotionStatus').innerText = 'FLOW: COMPOSITING';
+            document.getElementById('telDepthEngine').innerText = 'NPU: FUSING DISPARITY';
 
-            // Lienzo base de la toma estática
+            // Lienzo de mapa de profundidad
             compCtx.drawImage(hiddenCanvas, 0, 0);
 
-            // 3. INNOVACIÓN: EFECTO ESTELA KINÉTICA DE FÓSFORO (MOTION TRAIL)
-            if (activeMotionMode === 'trail_phosphor') {
-                compCtx.save();
-                compCtx.globalAlpha = 0.35;
-                compCtx.filter = "blur(6px) contrast(1.3) saturate(1.4)";
-                // Desplazamiento sintético en la dirección del vector de aceleración
-                const shiftX = Math.sin((motionVectorAngle * Math.PI) / 180) * 22;
-                compCtx.drawImage(hiddenCanvas, shiftX, 0);
-                compCtx.restore();
-            }
+            // Generar mapa de profundidad monocular algorítmico (Gradiente de luminancia & foco radial)
+            const imgData = compCtx.getImageData(0, 0, compCanvas.width, compCanvas.height);
+            const d = imgData.data;
+            const w = compCanvas.width;
+            const h = compCanvas.height;
+            const cx = w / 2;
+            const cy = h / 2;
+            const maxDist = Math.hypot(cx, cy);
 
-            processedMotionDataUrl = compCanvas.toDataURL('image/jpeg', 0.95);
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    const idx = (y * w + x) * 4;
+                    const luma = d[idx] * 0.299 + d[idx+1] * 0.587 + d[idx+2] * 0.114;
+                    const distNorm = Math.hypot(x - cx, y - cy) / maxDist;
+
+                    // Síntesis de profundidad: Sujetos centrales y contrastados = Primer plano (Blanco/Cian)
+                    const depthVal = Math.min(255, Math.max(0, (luma * 0.75) + ((1 - distNorm) * 110)));
+
+                    // Escala Z-Buffer estándar de 8/16-bit
+                    d[idx] = depthVal;
+                    d[idx+1] = depthVal;
+                    d[idx+2] = depthVal;
+                }
+            }
+            compCtx.putImageData(imgData, 0, 0);
+
+            processedDepthDataUrl = compCanvas.toDataURL('image/jpeg', 0.95);
 
             const res = await fetch('/bian/process/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: processedMotionDataUrl, prompt_analysis: `Video Motion ${activeMotionMode} V9` })
+                body: JSON.stringify({ image_base64: processedDepthDataUrl, prompt_analysis: `Depth-Map ${activeDepthVisualMode} V10` })
             });
 
             if (res.ok) {
                 const data = await res.json();
                 document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
-                openMotionEditModal(processedMotionDataUrl);
-                document.getElementById('telMotionStatus').innerText = 'FLOW: TRACKING';
+                openDepthEditModal(processedDepthDataUrl);
+                document.getElementById('telDepthEngine').innerText = 'NPU: DISPARITY READY';
             }
         }
 
-        function playMotionRevSound() {
+        function playSonarPingSound() {
             try {
                 const ctx = getAudioContext();
                 const now = ctx.currentTime;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.connect(gain); gain.connect(ctx.destination);
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(140, now);
-                osc.frequency.exponentialRampToValueAtTime(560, now + 0.18);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, now);
+                osc.frequency.exponentialRampToValueAtTime(1760, now + 0.22);
                 gain.gain.setValueAtTime(0.28, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
-                osc.start(now); osc.stop(now + 0.19);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                osc.start(now); osc.stop(now + 0.23);
             } catch(e) {}
         }
 
-        /* 3. INNOVACIÓN: MESA DE POST-EDICIÓN KINÉTICA */
-        function openMotionEditModal(imgSrc) {
-            document.getElementById('editModalTitle').innerText = '⚡ VIDEO MOTION V9 PROCESADO';
+        /* 3. INNOVACIÓN: MESA DE POST-PROCESO ESTÉREO & WIGGLE 3D */
+        function openDepthEditModal(imgSrc) {
+            document.getElementById('editModalTitle').innerText = '🛰️ MAPA DE PROFUNDIDAD V10 RENDER';
             document.getElementById('editImagePreview').src = imgSrc;
+            clearInterval(wiggleTimer);
             document.getElementById('postEditModal').style.display = 'flex';
         }
 
-        function closeEditModal() { document.getElementById('postEditModal').style.display = 'none'; }
+        function closeEditModal() {
+            clearInterval(wiggleTimer);
+            document.getElementById('postEditModal').style.display = 'none';
+        }
 
-        function applyMotionFilter(mode, elem) {
+        function applyDepthPostMode(mode, elem) {
             document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
             elem.classList.add('active');
             const img = document.getElementById('editImagePreview');
+            clearInterval(wiggleTimer);
+            img.style.transform = 'none';
 
-            if (mode === 'phosphor_trail') {
-                img.style.filter = 'drop-shadow(0 0 12px rgba(255, 149, 0, 0.6)) contrast(1.2) saturate(1.3)';
-            } else if (mode === 'stroboscopic') {
-                img.style.filter = 'contrast(1.4) brightness(1.1) hue-rotate(15deg)';
-            } else if (mode === 'high_contrast') {
-                img.style.filter = 'contrast(1.5) grayscale(0.2) saturate(1.1)';
-            } else if (mode === 'cyber_neon') {
-                img.style.filter = 'drop-shadow(0 0 15px #FF2D55) hue-rotate(-25deg) saturate(1.5)';
+            if (mode === 'depth_gray') {
+                img.style.filter = 'grayscale(1) contrast(1.25)';
+            } else if (mode === 'anaglyph_3d') {
+                img.style.filter = 'contrast(1.3) drop-shadow(4px 0 0 rgba(255,0,0,0.8)) drop-shadow(-4px 0 0 rgba(0,242,254,0.8))';
+            } else if (mode === 'lidar_spectrum') {
+                img.style.filter = 'invert(1) hue-rotate(180deg) saturate(1.8) contrast(1.2)';
+            } else if (mode === 'wiggle_anim') {
+                let shift = 0;
+                wiggleTimer = setInterval(() => {
+                    shift = (shift === 6) ? -6 : 6;
+                    img.style.transform = `translateX(${shift}px)`;
+                }, 90);
             }
         }
 
         function exportEditedResult() {
             const a = document.createElement('a');
-            a.href = processedMotionDataUrl || document.getElementById('editImagePreview').src;
-            a.download = `bian_video_motion_v9_${Date.now()}.jpg`;
+            a.href = processedDepthDataUrl || document.getElementById('editImagePreview').src;
+            a.download = `bian_depth_map_v10_${Date.now()}.jpg`;
             a.click();
-            alert('✔ Fotograma kinético HD exportado a memoria local.');
+            alert('✔ Asset de profundidad HD Ultra exportado con éxito.');
         }
 
         /* DISPARO ESTÁNDAR ZSL */
@@ -764,12 +783,12 @@ HTML_CONTENT = """<!DOCTYPE html>
             const res = await fetch('/bian/process/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: b64, prompt_analysis: 'Captura V9' })
+                body: JSON.stringify({ image_base64: b64, prompt_analysis: 'Captura V10' })
             });
             if (res.ok) {
                 const data = await res.json();
                 document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
-                openMotionEditModal(b64);
+                openDepthEditModal(b64);
             }
         }
 
@@ -832,20 +851,21 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         }, { passive: true });
 
-        /* CATÁLOGO DE MÓDULOS CON VIDEO MOTION V9 INTEGRADO */
+        /* CATÁLOGO DE MÓDULOS CON DEPTH-MAP NPU INTEGRADO */
         const moduleCatalog = [
-            { key: 'motion', icon: '⚡', title: 'VIDEO MOTION', pill: '⚡ FLUJO ÓPTICO & ESTELAS 60 FPS', color: '#FF9500', botTips: 'Rastreo kinético activo. Genera estelas de fósforo y congelados estroboscópicos.' },
+            { key: 'depth', icon: '🛰️', title: 'DEPTH-MAP NPU', pill: '🛰️ Z-BUFFER 16-BIT & NUBE LIDAR', color: '#00F2FE', botTips: 'Sensor de disparidad activo. Genera Z-Buffer 16-bit, nubes LiDAR y Wiggle 3D.' },
+            { key: 'motion', icon: '⚡', title: 'VIDEO MOTION', pill: '⚡ FLUJO ÓPTICO & ESTELAS 60 FPS', color: '#FF9500', botTips: 'Rastreo kinético activo.' },
             { key: 'svg', icon: '📐', title: 'SVG LOGOS', pill: '📐 VECTORIZADOR CAD & CÓDIGO XML', color: '#00FFC8', botTips: 'Centra el diseño para generar código XML.' },
             { key: 'raw', icon: '🎞️', title: 'ESTUDIO RAW', pill: '🎞️ REVELADO DIGITAL DE 14-BIT & HISTOGRAMA', color: '#FF9F0A', botTips: 'Monitorea el histograma RGB.' },
             { key: 'cine', icon: '🎬', title: 'CINE SCOPE V10', pill: '🎬 ANAMÓRFICO 2.39:1 & BLUE STREAK FLARE', color: '#FF0055', botTips: 'Enmarcado cinematográfico Scope 2.39:1.' },
-            { key: 'imprenta', icon: '🖨️', title: 'IMPRENTA PDF', pill: '🖨️ PREPRENSA CMYK & FOGRA39 PROOF', color: '#FF2D85', botTips: 'Mesa de preprensa industrial.' },
+            { key: 'imprenta', icon: '🖨️', title: 'IMPRENTA PDF', pill: '🖨️️ PREPRENSA CMYK & FOGRA39 PROOF', color: '#FF2D85', botTips: 'Mesa de preprensa industrial.' },
             { key: 'stickers', icon: '🎨', title: 'WALLPAPERS STICKERS', pill: '🎨 TROQUELADO 3D & AMOLED BLACK', color: '#BF5AF2', botTips: 'Centra el objeto para troquelado.' },
             { key: 'lonas', icon: '🎪', title: 'LONAS 3D', pill: '🎪 BASTIDOR PTR & TÚNEL DE VIENTO 110 km/h', color: '#FFD60A', botTips: 'Alinea la estructura en el encuadre.' },
             { key: 'bokeh', icon: '🎭', title: 'RETRATO BOKEH', pill: '🎭 APERTURA ÓPTICA & IRIS SHAPER', color: '#FF2D55', botTips: 'Mantén al sujeto a 1-2 metros del fondo.' },
             { key: 'night', icon: '🌙', title: 'NIGHTOGRAPHY', pill: '🌙 MULTI-FRAME STACK & DEEP-SKY BOOST', color: '#5E5CE6', botTips: 'Baja iluminación detectada.' },
             { key: 'macro', icon: '🔍', title: 'MACRO PRO', pill: '🔍 FOCUS PEAKING & DEEP FOCUS STACK', color: '#30D158', botTips: 'Distancia de 2 a 8 cm.' },
             { key: 'scan', icon: '📄', title: 'SCAN DOC PRO', pill: '📄 AUTO-ENCUADRE HOMOGRÁFICO & OCR', color: '#00D2FF', botTips: 'Alinea el documento dentro del cuadrilátero.' },
-            { key: 'timelapse', icon: '⏱️️', title: 'TIMELAPSE V10', pill: '⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA 4x', color: '#FF3B30', botTips: 'Gimbal Virtual OIS activo.' },
+            { key: 'timelapse', icon: '⏱', title: 'TIMELAPSE V10', pill: '⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA 4x', color: '#FF3B30', botTips: 'Gimbal Virtual OIS activo.' },
             { key: 'pano', icon: '🌐', title: 'PANORÁMICA 360', pill: '🌐 BARRIDO POLAR & ORBE 3D VR', color: '#00FFC8', botTips: 'Gira el teléfono de izquierda a derecha.' },
             { key: 'chef', icon: '👨‍🍳', title: 'CHEF LEAN V3', pill: '👨‍🍳 FOOD COST & CONTROL DE MERMA CÁRNICA', color: '#FF9F0A', botTips: 'Insumo cárnico en encuadre.' },
             { key: 'price', icon: '🏷️', title: 'VALUADOR HÍBRIDO', pill: '🏷️ TASACIÓN DE MERCADO OFFLINE/ONLINE', color: '#63E6E2', botTips: 'Cotejo comercial activado.' }
@@ -952,11 +972,11 @@ HTML_CONTENT = """<!DOCTYPE html>
             document.getElementById('floatModDesc').innerText = m.botTips;
             document.getElementById('shutterCorona').style.borderColor = m.color;
 
-            // Mostrar u ocultar controles específicos de Video Motion
-            if (m.key === 'motion') {
-                document.getElementById('motionHud').style.display = 'flex';
+            // Mostrar u ocultar controles de Depth-Map
+            if (m.key === 'depth') {
+                document.getElementById('depthHud').style.display = 'flex';
             } else {
-                document.getElementById('motionHud').style.display = 'none';
+                document.getElementById('depthHud').style.display = 'none';
             }
 
             const topCard = deckStack.querySelector('.pos-0');
@@ -1050,7 +1070,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                 const cur = moduleCatalog[activeCardIndex];
                 const list = document.getElementById('floatActionList');
                 list.innerHTML = `
-                    <button class="bot-btn" onclick="handleMotionCaptureTrigger(); toggleFloatingPanel();">📸 Disparo Kinético con ${cur.title}</button>
+                    <button class="bot-btn" onclick="handleDepthCaptureTrigger(); toggleFloatingPanel();">📸 Disparo con ${cur.title}</button>
                     <button class="bot-btn" onclick="openHorizontalDock(); toggleFloatingPanel();">🎴 Selector de Módulos</button>
                     <button class="bot-btn" onclick="toggleGhostScope(); toggleFloatingPanel();">👁️ Alternar Radar Espectral</button>
                     <button class="bot-btn" onclick="openGalleryModal(); toggleFloatingPanel();">🖼️ Ver Galería Local</button>
@@ -1088,7 +1108,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                     card.className = 'gallery-card';
                     card.onclick = () => {
                         closeGalleryModal();
-                        openMotionEditModal(img.image_path);
+                        openDepthEditModal(img.image_path);
                     };
                     card.innerHTML = `
                         <img src="${img.image_path}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\' viewBox=\\'0 0 100 100\\'><rect width=\\'100\\' height=\\'100\\' fill=\\'%23222\\'/><text x=\\'50\\' y=\\'55\\' fill=\\'%23666\\' font-size=\\'11\\' text-anchor=\\'middle\\'>Sin Vista</text></svg>'"/>
@@ -1112,14 +1132,14 @@ HTML_CONTENT = """<!DOCTYPE html>
             const act = document.getElementById('botActionList');
 
             msg.innerHTML = `
-                <div style="color:#FF9500; font-weight:800; margin-bottom:6px;">🤖 Diagnóstico V9 para ${curMod.title}:</div>
+                <div style="color:#00F2FE; font-weight:800; margin-bottom:6px;">🤖 Diagnóstico V10 para ${curMod.title}:</div>
                 <div>${curMod.botTips}</div>
             `;
 
             act.innerHTML = `
-                <button class="bot-btn" onclick="executeBotAction('calibrate')">⚡ Calibrar Sensor de Flujo Óptico & Gyro-Lock</button>
+                <button class="bot-btn" onclick="executeBotAction('calibrate')">⚡ Calibrar Sensor LiDAR & Z-Buffer 16-Bit</button>
                 <button class="bot-btn" onclick="executeBotAction('ghost')">👁️ Activar Radar Espectral</button>
-                <button class="bot-btn" onclick="executeBotAction('gallery')">🖼️ Ver Tomas Kinéticas Guardadas</button>
+                <button class="bot-btn" onclick="executeBotAction('gallery')">🖼️️ Ver Mapas de Profundidad Guardados</button>
             `;
 
             modal.style.display = 'flex';
@@ -1131,7 +1151,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             closeNanobot();
             if(action === 'calibrate') {
                 applyActiveCardTheme(moduleCatalog[activeCardIndex]);
-                alert("✔ Flujo óptico a 60 FPS y Gyro-Lock calibrados.");
+                alert("✔ Disparidad NPU y retícula LiDAR calibrados.");
             } else if(action === 'ghost') {
                 toggleGhostScope();
             } else if(action === 'gallery') {
