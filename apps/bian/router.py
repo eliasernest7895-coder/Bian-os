@@ -16,14 +16,14 @@ router.mount("/storage", StaticFiles(directory="storage"), name="storage")
 
 class ImageCaptureRequest(BaseModel):
     image_base64: str
-    prompt_analysis: str = "Captura Chef Lean V10"
+    prompt_analysis: str = "Captura Valuador Hibrido V10"
 
 HTML_CONTENT = """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>BIAN MASTER SUITE V10 PRO - CHEF LEAN</title>
+    <title>BIAN MASTER SUITE V10 PRO - VALUADOR HÍBRIDO</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', Roboto, monospace; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; width: 100vw; overflow: hidden; position: fixed; }
@@ -71,7 +71,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             position: relative; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .lens-cap-center { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #FF9500; }
+        .lens-cap-center { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #63E6E2; }
         .lens-cap-sub { font-size: 7px; color: #777; margin-top: 2px; }
         .lens-cap-hint { font-size: 10px; font-weight: 800; color: #aaa; margin-top: 10px; letter-spacing: 1px; }
 
@@ -86,31 +86,31 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         #ghostScopeCanvas.active { opacity: 0.75; }
 
-        /* 1. RETÍCULA BÁSCULA VISUAL EN VIVO */
-        #chefScaleCanvas {
+        /* 1. RETÍCULA DE ESCANEO DE ACTIVOS */
+        #valuationReticleCanvas {
             position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 52;
         }
 
-        /* 1. HUD CHEF LEAN V10 */
-        .chef-hud-container {
+        /* 1. HUD VALUADOR HÍBRIDO V10 */
+        .val-hud-container {
             display: none; position: absolute; top: 120px; left: 16px; right: 16px;
             z-index: 60; flex-direction: column; align-items: center; gap: 8px; pointer-events: auto;
         }
-        .chef-status-pill {
-            display: flex; gap: 10px; align-items: center; background: rgba(28, 16, 8, 0.88);
-            border: 1px solid rgba(255, 149, 0, 0.45); border-radius: 20px; padding: 5px 14px;
-            backdrop-filter: blur(14px); font-size: 11px; font-weight: 800; color: #FF9500;
+        .val-status-pill {
+            display: flex; gap: 10px; align-items: center; background: rgba(8, 24, 26, 0.88);
+            border: 1px solid rgba(99, 230, 226, 0.45); border-radius: 20px; padding: 5px 14px;
+            backdrop-filter: blur(14px); font-size: 11px; font-weight: 800; color: #63E6E2;
         }
-        .chef-cut-selector {
-            display: flex; gap: 6px; background: rgba(20, 12, 6, 0.8);
+        .val-category-selector {
+            display: flex; gap: 6px; background: rgba(6, 18, 20, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; padding: 4px 8px;
             backdrop-filter: blur(12px);
         }
-        .chef-chip-btn {
+        .val-chip-btn {
             padding: 3px 9px; font-size: 10px; font-weight: 800; border-radius: 12px;
             color: #888; background: transparent; border: none; cursor: pointer; transition: all 0.2s;
         }
-        .chef-chip-btn.active { background: #FF9500; color: #000; box-shadow: 0 0 8px rgba(255,149,0,0.6); }
+        .val-chip-btn.active { background: #63E6E2; color: #000; box-shadow: 0 0 8px rgba(99,230,226,0.6); }
 
         .aero-hud-overlay {
             position: absolute; inset: 0; pointer-events: none; z-index: 50;
@@ -118,7 +118,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .horizon-line {
             position: absolute; top: 50%; left: 25%; width: 50%; height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 149, 0, 0.6), transparent);
+            background: linear-gradient(90deg, transparent, rgba(99, 230, 226, 0.6), transparent);
         }
         .hud-telemetry-corner {
             display: flex; justify-content: space-between; font-family: monospace;
@@ -139,30 +139,30 @@ HTML_CONTENT = """<!DOCTYPE html>
             color: #fff; font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 20px;
             backdrop-filter: blur(10px); display: flex; align-items: center; gap: 6px;
         }
-        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #FF9500; display: inline-block; }
+        .hud-status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #63E6E2; display: inline-block; }
         .top-action-btn {
             background: rgba(18, 18, 22, 0.72); border: 1px solid rgba(255, 255, 255, 0.15);
             color: #fff; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 20px;
             backdrop-filter: blur(10px); cursor: pointer; display: flex; align-items: center; gap: 4px;
         }
         #botToggleBtn {
-            border-color: rgba(255,149,0,0.4); color: #FF9500; transition: all 0.4s ease; min-width: 155px; justify-content: center;
+            border-color: rgba(99,230,226,0.4); color: #63E6E2; transition: all 0.4s ease; min-width: 155px; justify-content: center;
         }
 
         .ghost-scope-btn {
-            background: rgba(18, 18, 22, 0.75); border: 1px solid rgba(255, 149, 0, 0.35);
-            color: #FF9500; font-size: 10px; font-weight: 800; padding: 6px 11px; border-radius: 18px;
+            background: rgba(18, 18, 22, 0.75); border: 1px solid rgba(99, 230, 226, 0.35);
+            color: #63E6E2; font-size: 10px; font-weight: 800; padding: 6px 11px; border-radius: 18px;
             cursor: pointer; backdrop-filter: blur(8px);
         }
-        .ghost-scope-btn.active { background: #FF9500; color: #000; box-shadow: 0 0 14px rgba(255,149,0,0.6); }
+        .ghost-scope-btn.active { background: #63E6E2; color: #000; box-shadow: 0 0 14px rgba(99,230,226,0.6); }
 
         .center-hud-overlay {
             position: absolute; top: 68px; left: 0; right: 0; z-index: 95;
             display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none;
         }
         .context-pill {
-            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(255, 149, 0, 0.4);
-            color: #FF9500; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
+            background: rgba(18, 18, 22, 0.82); border: 1px solid rgba(99, 230, 226, 0.4);
+            color: #63E6E2; font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
             padding: 4px 14px; border-radius: 20px; backdrop-filter: blur(10px); text-transform: uppercase;
         }
 
@@ -178,7 +178,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         .hud-zoom-tag {
             position: absolute; bottom: 155px; left: 24px; z-index: 100;
             background: rgba(20, 20, 24, 0.82); border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 18px; padding: 5px 12px; font-size: 12px; font-weight: 800; color: #FF9500;
+            border-radius: 18px; padding: 5px 12px; font-size: 12px; font-weight: 800; color: #63E6E2;
             cursor: pointer; backdrop-filter: blur(12px);
         }
 
@@ -219,7 +219,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .dock-item-btn.active .dock-dot-indicator { display: block; }
 
-        /* OBTURADOR CHEF LEAN */
+        /* OBTURADOR VALUADOR */
         .bottom-bar {
             position: absolute; bottom: 20px; left: 0; right: 0; z-index: 100;
             display: flex; justify-content: space-around; align-items: center; padding: 0 25px;
@@ -230,8 +230,8 @@ HTML_CONTENT = """<!DOCTYPE html>
             border: 2px dashed rgba(255,255,255,0.3); pointer-events: none;
         }
         .shutter-btn {
-            width: 72px; height: 72px; border-radius: 50%; background: #FF9500;
-            border: 4px solid #fff; box-shadow: 0 0 22px rgba(255, 149, 0, 0.55); cursor: pointer;
+            width: 72px; height: 72px; border-radius: 50%; background: #63E6E2;
+            border: 4px solid #fff; box-shadow: 0 0 22px rgba(99, 230, 226, 0.55); cursor: pointer;
         }
         .lens-switch-btn {
             width: 46px; height: 46px; border-radius: 50%; background: rgba(30, 30, 35, 0.75);
@@ -246,24 +246,24 @@ HTML_CONTENT = """<!DOCTYPE html>
         /* GADGET Y PANELES */
         #floatingGadget {
             position: fixed; top: 180px; left: 14px; width: 48px; height: 48px;
-            border-radius: 50%; background: #0c0d12; border: 2px solid #FF9500;
-            box-shadow: 0 6px 18px rgba(255, 149, 0, 0.4); z-index: 250;
+            border-radius: 50%; background: #0c0d12; border: 2px solid #63E6E2;
+            box-shadow: 0 6px 18px rgba(99, 230, 226, 0.4); z-index: 250;
             display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: grab;
         }
         #floatingPanel {
             display: none; position: fixed; inset: 100px 18px 120px 18px; z-index: 260;
-            background: rgba(10, 12, 16, 0.96); border: 1px solid #FF9500; border-radius: 20px;
+            background: rgba(10, 12, 16, 0.96); border: 1px solid #63E6E2; border-radius: 20px;
             backdrop-filter: blur(25px); flex-direction: column; padding: 16px;
         }
         .float-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 
-        /* MESA DE EDICIÓN POST-CHEF LEAN & TICKET DE COSTEO */
+        /* MESA DE EDICIÓN POST-VALUACIÓN & CERTIFICADO COMERCIAL */
         #postEditModal {
             display: none; position: fixed; inset: 0; z-index: 300; background: rgba(6, 7, 10, 0.96);
             backdrop-filter: blur(20px); flex-direction: column; padding: 20px 18px 25px 18px;
         }
         .edit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .edit-title { font-size: 14px; font-weight: 800; color: #FF9500; }
+        .edit-title { font-size: 14px; font-weight: 800; color: #63E6E2; }
         .edit-close-btn { background: #222; border: 1px solid #444; color: #fff; padding: 5px 12px; border-radius: 14px; font-size: 11px; cursor: pointer; }
         
         .edit-preview-box {
@@ -272,14 +272,14 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .edit-preview-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
-        /* 3. INNOVACIÓN: TICKET DE COSTEO Y RENDIMIENTO CÁRNICO */
-        #chefCostTicket {
-            display: none; position: absolute; inset: 12px; background: rgba(10, 12, 16, 0.95);
-            border: 1px dashed #FF9500; border-radius: 12px; padding: 16px; font-family: monospace;
+        /* 3. INNOVACIÓN: PÓLIZA-CERTIFICADO COMERCIAL EN VIVO */
+        #valCertificateBox {
+            display: none; position: absolute; inset: 12px; background: rgba(8, 14, 18, 0.95);
+            border: 1px solid #63E6E2; border-radius: 12px; padding: 16px; font-family: monospace;
             font-size: 11px; color: #eee; flex-direction: column; justify-content: space-between; z-index: 310;
         }
-        .ticket-row { display: flex; justify-content: space-between; border-bottom: 1px solid #222; padding: 5px 0; }
-        .ticket-total { font-size: 13px; font-weight: 900; color: #FF9500; }
+        .cert-row { display: flex; justify-content: space-between; border-bottom: 1px solid #1a2830; padding: 6px 0; }
+        .cert-total { font-size: 13px; font-weight: 900; color: #63E6E2; }
 
         .edit-tools-panel { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
         .tool-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
@@ -287,9 +287,9 @@ HTML_CONTENT = """<!DOCTYPE html>
             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
             padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #ddd; cursor: pointer;
         }
-        .tool-chip.active { border-color: #FF9500; color: #FF9500; background: rgba(255,149,0,0.12); }
+        .tool-chip.active { border-color: #63E6E2; color: #63E6E2; background: rgba(99,230,226,0.12); }
         .btn-export-master {
-            background: linear-gradient(90deg, #FF9500, #FF3B30); color: #fff; font-size: 13px;
+            background: linear-gradient(90deg, #63E6E2, #00D2FF); color: #000; font-size: 13px;
             font-weight: 900; padding: 13px; border-radius: 14px; border: none; cursor: pointer;
             width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
         }
@@ -307,7 +307,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: none; position: fixed; inset: 0; z-index: 330; background: rgba(5, 6, 8, 0.95);
             backdrop-filter: blur(25px); flex-direction: column; padding: 20px; justify-content: space-between;
         }
-        .bot-bubble { background: #121318; border: 1px solid rgba(255,149,0,0.3); border-radius: 16px; padding: 16px; font-size: 13px; line-height: 1.5; color: #eee; margin-top: 15px; }
+        .bot-bubble { background: #121318; border: 1px solid rgba(99,230,226,0.3); border-radius: 16px; padding: 16px; font-size: 13px; line-height: 1.5; color: #eee; margin-top: 15px; }
         .bot-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
         .bot-btn {
             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff;
@@ -324,15 +324,15 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="pill-badge">• BIAN MASTER SUITE V10</div>
         <div class="brand-center">
             <div class="brand-title">BIAN</div>
-            <div class="brand-subtitle">Chef Lean V10 Ultra</div>
+            <div class="brand-subtitle">Valuador Híbrido V10 Ultra</div>
             <div style="font-size:11px; color:#777; max-width:280px; margin:0 auto; line-height:1.4;">
-                Báscula NPU • Control de Merma Cárnica • Costeo por Porción
+                Tasación Comercial • Bandas de Margen Bruto • Póliza Oficial
             </div>
         </div>
         <div class="lens-cap-assembly" id="lensCapUnlockBtn">
             <div class="lens-cap-disk" id="lensCapDisk">
-                <div class="lens-cap-center">CHEF LEAN</div>
-                <div class="lens-cap-sub">F/1.4 • 35MM MEAT YIELD</div>
+                <div class="lens-cap-center">VALUADOR</div>
+                <div class="lens-cap-sub">F/1.4 • 35MM ASSET APPRAISAL</div>
             </div>
             <div class="lens-cap-hint">🔓 DESTAPAR LENTE</div>
         </div>
@@ -344,48 +344,48 @@ HTML_CONTENT = """<!DOCTYPE html>
     <!-- PANEL FLOTANTE -->
     <div id="floatingPanel">
         <div class="float-header">
-            <div style="font-size:13px; font-weight:800; color:#FF9500;">⚡ TALLER TÁCTICO FLOTANTE</div>
+            <div style="font-size:13px; font-weight:800; color:#63E6E2;">⚡ TALLER TÁCTICO FLOTANTE</div>
             <button class="edit-close-btn" onclick="toggleFloatingPanel()">✖ Cerrar</button>
         </div>
         <div style="flex:1; overflow-y:auto; font-size:12px; color:#aaa; display:flex; flex-direction:column; gap:10px;">
             <div style="background:#14151b; padding:12px; border-radius:12px; border:1px solid #222;">
                 <div style="color:#fff; font-weight:700; margin-bottom:4px;" id="floatModTitle">MODO ACTIVO</div>
-                <div id="floatModDesc">Báscula visual por NPU y matriz de costeo cárnico listos.</div>
+                <div id="floatModDesc">Motor de cotización multimodal y análisis de margen comercial listos.</div>
             </div>
             <div class="bot-actions" id="floatActionList"></div>
         </div>
     </div>
 
-    <!-- VIEWPORT CON RETÍCULA DE BÁSCULA VISUAL -->
+    <!-- VIEWPORT CON RETÍCULA DE VALUACIÓN DE ACTIVOS -->
     <div class="suite-view" id="viewportArea">
         <div id="videoContainer">
             <video id="webcam" autoplay playsinline></video>
             <canvas id="ghostScopeCanvas"></canvas>
-            <!-- 1. RETÍCULA BÁSCULA VISUAL Y CALIBRE -->
-            <canvas id="chefScaleCanvas"></canvas>
+            <!-- 1. RETÍCULA DE ESCANEO DE ACTIVOS -->
+            <canvas id="valuationReticleCanvas"></canvas>
         </div>
 
-        <!-- 1. HUD CHEF LEAN V10 -->
-        <div class="chef-hud-container" id="chefHud">
-            <div class="chef-status-pill">
-                <span id="chefWeightLabel">⚖️ PESO EST.: 850 g</span>
+        <!-- 1. HUD VALUADOR HÍBRIDO V10 -->
+        <div class="val-hud-container" id="valHud">
+            <div class="val-status-pill">
+                <span id="valMarketLabel">🏷️ MERCADO: $1,450 MXN</span>
                 <span style="color:#888;">|</span>
-                <span id="chefYieldLabel">MERMA: 14.5%</span>
+                <span id="valLiquidityLabel">LIQUIDEZ: 85%</span>
                 <span style="color:#888;">|</span>
-                <span style="color:#30D158;">FOOD COST: 32%</span>
+                <span style="color:#30D158;">MARGEN: 42%</span>
             </div>
-            <div class="chef-cut-selector">
-                <button class="chef-chip-btn active" onclick="setMeatCut('res_ribeye', 180, 0.12, this)">Rib Eye / Costilla</button>
-                <button class="chef-chip-btn" onclick="setMeatCut('puerco_lomo', 110, 0.16, this)">Lomo Cerdo</button>
-                <button class="chef-chip-btn" onclick="setMeatCut('pollo_pechuga', 85, 0.22, this)">Pechuga Ave</button>
+            <div class="val-category-selector">
+                <button class="val-chip-btn active" onclick="setAssetCategory('tech_device', 1450, 0.45, this)">Electrónica / Gadgets</button>
+                <button class="val-chip-btn" onclick="setAssetCategory('industrial_tool', 2200, 0.38, this)">Herramienta / PTR</button>
+                <button class="val-chip-btn" onclick="setAssetCategory('apparel_merch', 650, 0.55, this)">Textil / Merch</button>
             </div>
         </div>
 
         <!-- HUD AEROESPACIAL -->
         <div class="aero-hud-overlay">
             <div class="hud-telemetry-corner">
-                <div class="telemetry-tag" id="telDensity">DENSITY: 1.05 g/cm³</div>
-                <div class="telemetry-tag" id="telFatRatio">FAT/LEAN: 18% / 82%</div>
+                <div class="telemetry-tag" id="telCondition">ESTADO: GRADO A (9.5/10)</div>
+                <div class="telemetry-tag" id="telDeprec">DEPRECIACIÓN: -8% AÑO</div>
                 <div class="telemetry-tag" id="telISO">ISO: 100 BASE</div>
                 <div class="telemetry-tag" id="telShutter">SS: 1/500s</div>
             </div>
@@ -393,7 +393,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             <div class="horizon-line" id="horizonGyro"></div>
 
             <div class="hud-telemetry-corner" style="justify-content: flex-end; gap: 8px;">
-                <div class="telemetry-tag" style="color:#FF9500;" id="telScaleStatus">MEAT AI: TRACKING</div>
+                <div class="telemetry-tag" style="color:#63E6E2;" id="telValStatus">APPRAISAL: READY</div>
                 <div class="telemetry-tag">SNAPDRAGON 8G2 NPU</div>
             </div>
         </div>
@@ -406,7 +406,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="top-dock">
             <div class="hud-status-badge" id="moduleTitleBadge">
                 <span class="dot" id="statusDot"></span>
-                <span id="moduleNameText">CHEF LEAN V10</span>
+                <span id="moduleNameText">VALUADOR HÍBRIDO V10</span>
             </div>
             <div style="display: flex; gap: 6px;">
                 <button class="ghost-scope-btn" id="scopeToggleBtn" onclick="toggleGhostScope()">
@@ -418,7 +418,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
 
         <div class="center-hud-overlay" id="centerHud">
-            <div class="context-pill" id="contextPillText">👨‍🍳 CHEF LEAN: CONTROL DE MERMA & COSTEO CÁRNICO</div>
+            <div class="context-pill" id="contextPillText">🏷️ VALUADOR HÍBRIDO: TASACIÓN COMERCIAL MULTIMODAL</div>
         </div>
 
         <div class="hud-zoom-tag" id="zoomChip" onclick="cycleZoomLevel()">
@@ -431,49 +431,48 @@ HTML_CONTENT = """<!DOCTYPE html>
         <!-- DOCK HORIZONTAL FLOTANTE -->
         <div id="horizontalDockBar"></div>
 
-        <!-- OBTURADOR CHEF LEAN -->
+        <!-- OBTURADOR VALUADOR -->
         <div class="bottom-bar">
             <div class="lens-switch-btn" onclick="toggleLens()">🔄</div>
             <div class="shutter-wrapper">
                 <div class="shutter-corona" id="shutterCorona"></div>
-                <div class="shutter-btn" id="chefShutterBtn" onclick="handleChefCaptureTrigger()"></div>
+                <div class="shutter-btn" id="valShutterBtn" onclick="handleValuationCaptureTrigger()"></div>
             </div>
             <div class="gallery-thumb" id="thumbBox" onclick="openGalleryModal()"></div>
         </div>
     </div>
 
-    <!-- MESA DE EDICIÓN POST-CHEF LEAN -->
+    <!-- MESA DE EDICIÓN POST-VALUACIÓN -->
     <div id="postEditModal">
         <div class="edit-header">
-            <div class="edit-title" id="editModalTitle">👨‍🍳 CHEF LEAN V10 RENDIMIENTO</div>
+            <div class="edit-title" id="editModalTitle">🏷️ VALUACIÓN COMERCIAL V10</div>
             <button class="edit-close-btn" onclick="closeEditModal()">✖ Volver</button>
         </div>
         <div class="edit-preview-box">
-            <img id="editImagePreview" src="" alt="Chef Lean Frame" />
-            <!-- 3. INNOVACIÓN: TICKET DE RENDIMIENTO CÁRNICO -->
-            <div id="chefCostTicket">
-                <div style="text-align:center; font-weight:900; color:#FF9500; font-size:12px; margin-bottom:8px;">
-                    === BIAN CHEF LEAN V10 AUDIT ===
+            <img id="editImagePreview" src="" alt="Valuation Frame" />
+            <!-- 3. INNOVACIÓN: PÓLIZA-CERTIFICADO DE TASACIÓN -->
+            <div id="valCertificateBox">
+                <div style="text-align:center; font-weight:900; color:#63E6E2; font-size:12px; margin-bottom:8px;">
+                    === CERTIFICADO DE TASACIÓN COMERCIAL BIAN ===
                 </div>
-                <div class="ticket-row"><span>CORTE ANALIZADO:</span><strong id="tickCutName">Rib Eye / Costilla</strong></div>
-                <div class="ticket-row"><span>PESO BRUTO ESTIMADO:</span><strong id="tickGrossWeight">850 g</strong></div>
-                <div class="ticket-row"><span>FACTOR DE MERMA:</span><strong id="tickWastePercent">12.0%</strong></div>
-                <div class="ticket-row"><span>PESO ÚTIL NETO:</span><strong id="tickNetWeight">748 g</strong></div>
-                <div class="ticket-row"><span>COSTO POR KG (INSUMO):</span><strong id="tickCostKg">$180.00 MXN</strong></div>
-                <div class="ticket-row"><span>COSTO REAL POR PORCIÓN (250g):</span><strong id="tickCostPortion">$60.16 MXN</strong></div>
-                <div class="ticket-row ticket-total"><span>PVP SUGERIDO (32% FOOD COST):</span><strong id="tickMenuPrice">$188.00 MXN</strong></div>
-                <div style="font-size:9px; color:#777; text-align:center; margin-top:8px;">Optimización NPU de merma por corte y cocción</div>
+                <div class="cert-row"><span>ACTIVO IDENTIFICADO:</span><strong id="certCategoryName">Electrónica / Gadgets</strong></div>
+                <div class="cert-row"><span>ESTADO FÍSICO / COSMÉTICO:</span><strong id="certConditionGrade">Grado A (9.5/10)</strong></div>
+                <div class="cert-row"><span>PRECIO COMPRA REMATE (OPORTUNIDAD):</span><strong id="certBuyPrice">$797.50 MXN</strong></div>
+                <div class="cert-row"><span>VALOR PROMEDIO MERCADO:</span><strong id="certMarketPrice">$1,450.00 MXN</strong></div>
+                <div class="cert-row"><span>PRECIO VENTA SUGERIDO EN MOSTRADOR:</span><strong id="certSellPrice">$1,380.00 MXN</strong></div>
+                <div class="cert-row cert-total"><span>MARGEN BRUTO ESTIMADO:</span><strong id="certMarginPercent">42.2% ($582.50 MXN)</strong></div>
+                <div style="font-size:9px; color:#777; text-align:center; margin-top:8px;">Trazabilidad algorítmica SQLite Local • Valuación Soberana</div>
             </div>
         </div>
         <div class="edit-tools-panel">
             <div class="tool-row" id="moduleToolRow">
-                <div class="tool-chip active" onclick="switchChefView('preview', this)">🥩 Foto con Área</div>
-                <div class="tool-chip" onclick="switchChefView('ticket', this)">🧾 Ticket de Costeo Food Cost</div>
-                <div class="tool-chip" onclick="applyMeatFilter('fat_highlight', this)">⚡ Realce de Veteado / Grasa</div>
-                <div class="tool-chip" onclick="applyMeatFilter('raw_butcher', this)">🔪 Modo Carnicería Pro</div>
+                <div class="tool-chip active" onclick="switchValView('preview', this)">📷 Activo Evaluado</div>
+                <div class="tool-chip" onclick="switchValView('certificate', this)">📜 Póliza de Tasación</div>
+                <div class="tool-chip" onclick="applyValFilter('highlight_asset', this)">⚡ Realce de Sellos/Detalles</div>
+                <div class="tool-chip" onclick="applyValFilter('commercial_clean', this)">🏪 Modo Catálogo Limpio</div>
             </div>
             <button class="btn-export-master" onclick="exportEditedResult()">
-                💾 EXPORTAR FICHA DE COSTEO & REPORTE HD
+                💾 EXPORTAR CERTIFICADO COMERCIAL HD
             </button>
         </div>
     </div>
@@ -494,25 +493,25 @@ HTML_CONTENT = """<!DOCTYPE html>
                 <div class="edit-title" style="color:#00FFC8;">✨ NANO-BOT TÁCTICO V10</div>
                 <button class="edit-close-btn" onclick="closeNanobot()">✖ Cerrar</button>
             </div>
-            <div class="bot-bubble" id="botMessageText">Analizando insumo cárnico y volumen...</div>
+            <div class="bot-bubble" id="botMessageText">Analizando activo comercial y dispersión de precios...</div>
             <div class="bot-actions" id="botActionList"></div>
         </div>
         <div style="font-size:10px; color:#555; text-align:center;">IA Soberana local operando en Snapdragon 8 Gen 2</div>
     </div>
 
     <canvas id="hiddenBufferCanvas" style="display:none;"></canvas>
-    <!-- CANVAS DE COMPOSICIÓN GASTRONÓMICA -->
-    <canvas id="chefRenderCanvas" style="display:none;"></canvas>
+    <!-- CANVAS DE COMPOSICIÓN COMERCIAL -->
+    <canvas id="valuationRenderCanvas" style="display:none;"></canvas>
 
     <script>
         const video = document.getElementById('webcam');
         const hiddenCanvas = document.getElementById('hiddenBufferCanvas');
         const ghostCanvas = document.getElementById('ghostScopeCanvas');
         const ghostCtx = ghostCanvas.getContext('2d');
-        const scaleCanvas = document.getElementById('chefScaleCanvas');
-        const scaleCtx = scaleCanvas.getContext('2d');
-        const chefCanvas = document.getElementById('chefRenderCanvas');
-        const chefCtx = chefCanvas.getContext('2d');
+        const reticleCanvas = document.getElementById('valuationReticleCanvas');
+        const reticleCtx = reticleCanvas.getContext('2d');
+        const valCanvas = document.getElementById('valuationRenderCanvas');
+        const valCtx = valCanvas.getContext('2d');
         const focusRing = document.getElementById('focusRing');
         let audioCtx = null;
         let facingMode = 'environment';
@@ -520,12 +519,11 @@ HTML_CONTENT = """<!DOCTYPE html>
         const zoomLevels = [0.6, 1.0, 2.0];
         let isGhostScopeOn = false;
 
-        /* ESTADO CHEF LEAN V10 */
-        let currentCutName = "Rib Eye / Costilla";
-        let currentCostKg = 180;
-        let currentWasteFactor = 0.12;
-        let estimatedGrossGrams = 850;
-        let processedChefDataUrl = null;
+        /* ESTADO VALUADOR HÍBRIDO V10 */
+        let currentCategoryName = "Electrónica / Gadgets";
+        let baseMarketPrice = 1450;
+        let targetMargin = 0.45;
+        let processedValDataUrl = null;
 
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -567,17 +565,17 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         });
 
-        /* 1. PIPELINE DE BÁSCULA VISUAL Y CALIBRE EN TIEMPO REAL */
+        /* 1. PIPELINE DE RETÍCULA DE ESCANEO DE ACTIVOS EN TIEMPO REAL */
         let frameCount = 0;
         function processVideoPipeline() {
             if (video.readyState >= 2) {
                 if (hiddenCanvas.width !== video.videoWidth) {
                     hiddenCanvas.width = video.videoWidth || 640;
                     hiddenCanvas.height = video.videoHeight || 480;
-                    chefCanvas.width = hiddenCanvas.width;
-                    chefCanvas.height = hiddenCanvas.height;
-                    scaleCanvas.width = window.innerWidth;
-                    scaleCanvas.height = window.innerHeight;
+                    valCanvas.width = hiddenCanvas.width;
+                    valCanvas.height = hiddenCanvas.height;
+                    reticleCanvas.width = window.innerWidth;
+                    reticleCanvas.height = window.innerHeight;
                     ghostCanvas.width = 320;
                     ghostCanvas.height = 240;
                 }
@@ -602,57 +600,58 @@ HTML_CONTENT = """<!DOCTYPE html>
                     ghostCtx.putImageData(imgData, 0, 0);
                 }
 
-                // Renderizar retícula de báscula si Chef Lean está activo
+                // Renderizar retícula de valuador si está activo
                 const curMod = moduleCatalog[activeCardIndex];
-                if (curMod.key === 'chef') {
-                    renderVisualScaleGrid();
+                if (curMod.key === 'price') {
+                    renderValuationScannerGrid();
                 } else {
-                    scaleCtx.clearRect(0, 0, scaleCanvas.width, scaleCanvas.height);
+                    reticleCtx.clearRect(0, 0, reticleCanvas.width, reticleCanvas.height);
                 }
             }
             requestAnimationFrame(processVideoPipeline);
         }
 
-        function renderVisualScaleGrid() {
-            scaleCtx.clearRect(0, 0, scaleCanvas.width, scaleCanvas.height);
-            const w = scaleCanvas.width;
-            const h = scaleCanvas.height;
+        function renderValuationScannerGrid() {
+            reticleCtx.clearRect(0, 0, reticleCanvas.width, reticleCanvas.height);
+            const w = reticleCanvas.width;
+            const h = reticleCanvas.height;
 
-            const boxW = w * 0.65;
-            const boxH = h * 0.38;
+            const boxW = w * 0.68;
+            const boxH = h * 0.36;
             const bx = (w - boxW) / 2;
             const by = (h - boxH) / 2;
 
-            // Marco de pesaje volumétrico ámbar
-            scaleCtx.strokeStyle = "#FF9500";
-            scaleCtx.lineWidth = 2;
-            scaleCtx.strokeRect(bx, by, boxW, boxH);
+            // Marco de escaneo de producto en turquesa financiero
+            reticleCtx.strokeStyle = "#63E6E2";
+            reticleCtx.lineWidth = 1.5;
+            reticleCtx.strokeRect(bx, by, boxW, boxH);
 
-            // Esquinas reforzadas de retícula
-            const len = 18;
-            scaleCtx.strokeStyle = "#FF3B30";
-            scaleCtx.lineWidth = 3.5;
+            // Esquinas tipo colimador láser
+            const len = 20;
+            reticleCtx.strokeStyle = "#00D2FF";
+            reticleCtx.lineWidth = 3.5;
             // TL
-            scaleCtx.beginPath(); scaleCtx.moveTo(bx, by + len); scaleCtx.lineTo(bx, by); scaleCtx.lineTo(bx + len, by); scaleCtx.stroke();
+            reticleCtx.beginPath(); reticleCtx.moveTo(bx, by + len); reticleCtx.lineTo(bx, by); reticleCtx.lineTo(bx + len, by); reticleCtx.stroke();
             // TR
-            scaleCtx.beginPath(); scaleCtx.moveTo(bx + boxW - len, by); scaleCtx.lineTo(bx + boxW, by); scaleCtx.lineTo(bx + boxW, by + len); scaleCtx.stroke();
+            reticleCtx.beginPath(); reticleCtx.moveTo(bx + boxW - len, by); reticleCtx.lineTo(bx + boxW, by); reticleCtx.lineTo(bx + boxW, by + len); reticleCtx.stroke();
             // BL
-            scaleCtx.beginPath(); scaleCtx.moveTo(bx, by + boxH - len); scaleCtx.lineTo(bx, by + boxH); scaleCtx.lineTo(bx + len, by + boxH); scaleCtx.stroke();
+            reticleCtx.beginPath(); reticleCtx.moveTo(bx, by + boxH - len); scaleCtx = reticleCtx; reticleCtx.lineTo(bx, by + boxH); reticleCtx.lineTo(bx + len, by + boxH); reticleCtx.stroke();
             // BR
-            scaleCtx.beginPath(); scaleCtx.moveTo(bx + boxW - len, by + boxH); scaleCtx.lineTo(bx + boxW, by + boxH); scaleCtx.lineTo(bx + boxW, by + boxH - len); scaleCtx.stroke();
+            reticleCtx.beginPath(); reticleCtx.moveTo(bx + boxW - len, by + boxH); reticleCtx.lineTo(bx + boxW, by + boxH); reticleCtx.lineTo(bx + boxW, by + boxH - len); reticleCtx.stroke();
 
-            // Calibre central y cruz
-            scaleCtx.strokeStyle = "rgba(255, 149, 0, 0.4)";
-            scaleCtx.lineWidth = 1;
-            scaleCtx.setLineDash([6, 4]);
-            scaleCtx.beginPath(); scaleCtx.moveTo(bx, by + boxH/2); scaleCtx.lineTo(bx + boxW, by + boxH/2); scaleCtx.stroke();
-            scaleCtx.beginPath(); scaleCtx.moveTo(bx + boxW/2, by); scaleCtx.lineTo(bx + boxW/2, by + boxH); scaleCtx.stroke();
-            scaleCtx.setLineDash([]);
+            // Línea de escaneo láser animada vertical
+            const scanY = by + (Math.sin(Date.now() * 0.003) * 0.5 + 0.5) * boxH;
+            reticleCtx.strokeStyle = "rgba(99, 230, 226, 0.7)";
+            reticleCtx.lineWidth = 2;
+            reticleCtx.beginPath();
+            reticleCtx.moveTo(bx + 4, scanY);
+            reticleCtx.lineTo(bx + boxW - 4, scanY);
+            reticleCtx.stroke();
 
-            // Etiqueta flotante de área en cm²
-            scaleCtx.fillStyle = "#FF9500";
-            scaleCtx.font = "bold 10px monospace";
-            scaleCtx.fillText("BÁSCULA NPU: TABLA CALIBRADA", bx + 6, by - 8);
+            // Etiqueta de tasación
+            reticleCtx.fillStyle = "#63E6E2";
+            reticleCtx.font = "bold 10px monospace";
+            reticleCtx.fillText("ESCANEO DE VALORACIÓN ACTIVO", bx + 6, by - 8);
         }
 
         function toggleGhostScope() {
@@ -669,78 +668,76 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         }
 
-        /* 2. TRABAJO PESADO: ESTIMACIÓN DE MERMA Y COSTEO */
-        function setMeatCut(key, cost, waste, elem) {
-            currentCostKg = cost;
-            currentWasteFactor = waste;
-            currentCutName = elem.innerText;
-            document.querySelectorAll('.chef-chip-btn').forEach(b => b.classList.remove('active'));
+        /* 2. TRABAJO PESADO: TASACIÓN COMERCIAL Y CÁLCULO DE MARGEN */
+        function setAssetCategory(key, marketPrice, margin, elem) {
+            baseMarketPrice = marketPrice;
+            targetMargin = margin;
+            currentCategoryName = elem.innerText;
+            document.querySelectorAll('.val-chip-btn').forEach(b => b.classList.remove('active'));
             elem.classList.add('active');
 
-            const wastePct = (waste * 100).toFixed(1);
-            document.getElementById('chefYieldLabel').innerText = `MERMA: ${wastePct}%`;
+            document.getElementById('valMarketLabel').innerText = `🏷️ MERCADO: $${marketPrice} MXN`;
+            document.getElementById('valLiquidityLabel').innerText = `LIQUIDEZ: ${(80 + Math.random() * 10).toFixed(0)}%`;
         }
 
-        async function handleChefCaptureTrigger() {
+        async function handleValuationCaptureTrigger() {
             const curMod = moduleCatalog[activeCardIndex];
-            if (curMod.key === 'chef') {
-                executeChefYieldCapture();
+            if (curMod.key === 'price') {
+                executeValuationCapture();
             } else {
                 captureStandardZSL();
             }
         }
 
-        async function executeChefYieldCapture() {
+        async function executeValuationCapture() {
             const flash = document.getElementById('ambientLightLayer');
             flash.classList.add('flash');
             setTimeout(() => flash.classList.remove('flash'), 60);
-            playKitchenWeighSound();
+            playCashChirpSound();
 
-            document.getElementById('telScaleStatus').innerText = 'MEAT AI: COMPUTING YIELD';
+            document.getElementById('telValStatus').innerText = 'APPRAISAL: COMPUTING';
 
-            // Lienzo con la pieza capturada
-            chefCtx.drawImage(hiddenCanvas, 0, 0);
+            // Lienzo con el activo evaluado
+            valCtx.drawImage(hiddenCanvas, 0, 0);
 
-            // Simulación volumétrica: estimar peso bruto aleatorio controlado (780 a 920g)
-            estimatedGrossGrams = Math.floor(780 + Math.random() * 140);
-            const netGrams = Math.floor(estimatedGrossGrams * (1 - currentWasteFactor));
-            const costPerGram = (currentCostKg / 1000) / (1 - currentWasteFactor);
-            const costPortion250g = (costPerGram * 250).toFixed(2);
-            const suggestedMenuPrice = Math.round(costPortion250g / 0.32);
+            // Cálculos comerciales paramétricos
+            const buyOpportunityPrice = Math.round(baseMarketPrice * (1 - targetMargin));
+            const suggestedSellPrice = Math.round(baseMarketPrice * 0.95);
+            const grossProfit = suggestedSellPrice - buyOpportunityPrice;
+            const grossMarginPercent = ((grossProfit / suggestedSellPrice) * 100).toFixed(1);
 
-            // Actualizar datos del ticket
-            document.getElementById('tickCutName').innerText = currentCutName;
-            document.getElementById('tickGrossWeight').innerText = `${estimatedGrossGrams} g`;
-            document.getElementById('tickWastePercent').innerText = `${(currentWasteFactor * 100).toFixed(1)}%`;
-            document.getElementById('tickNetWeight').innerText = `${netGrams} g`;
-            document.getElementById('tickCostKg').innerText = `$${currentCostKg}.00 MXN`;
-            document.getElementById('tickCostPortion').innerText = `$${costPortion250g} MXN`;
-            document.getElementById('tickMenuPrice').innerText = `$${suggestedMenuPrice}.00 MXN`;
+            // Actualizar datos de la póliza
+            document.getElementById('certCategoryName').innerText = currentCategoryName;
+            document.getElementById('certConditionGrade').innerText = "Grado A (9.5/10)";
+            document.getElementById('certBuyPrice').innerText = `$${buyOpportunityPrice}.00 MXN`;
+            document.getElementById('certMarketPrice').innerText = `$${baseMarketPrice}.00 MXN`;
+            document.getElementById('certSellPrice').innerText = `$${suggestedSellPrice}.00 MXN`;
+            document.getElementById('certMarginPercent').innerText = `${grossMarginPercent}% ($${grossProfit}.00 MXN)`;
 
-            // Marca de agua y datos grabados en foto
-            chefCtx.fillStyle = "rgba(0,0,0,0.7)";
-            chefCtx.fillRect(10, chefCanvas.height - 45, chefCanvas.width - 20, 35);
-            chefCtx.fillStyle = "#FF9500";
-            chefCtx.font = "bold 13px monospace";
-            chefCtx.fillText(`CHEF LEAN V10 • ${currentCutName} • BRUTO: ${estimatedGrossGrams}g • NETO: ${netGrams}g • PVP: $${suggestedMenuPrice}`, 20, chefCanvas.height - 22);
+            // Cintillo grabado sobre la foto
+            valCtx.fillStyle = "rgba(6, 14, 18, 0.78)";
+            valCtx.fillRect(10, valCanvas.height - 45, valCanvas.width - 20, 35);
+            valCtx.fillStyle = "#63E6E2";
+            valCtx.font = "bold 13px monospace";
+            valCtx.fillText(`VALUACIÓN BIAN • ${currentCategoryName} • COMPRA: $${buyOpportunityPrice} • VENTA: $${suggestedSellPrice} • MG: ${grossMarginPercent}%`, 20, valCanvas.height - 22);
 
-            processedChefDataUrl = chefCanvas.toDataURL('image/jpeg', 0.95);
+            processedValDataUrl = valCanvas.toDataURL('image/jpeg', 0.95);
 
             const res = await fetch('/bian/process/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: processedChefDataUrl, prompt_analysis: `Chef Lean ${currentCutName} ${estimatedGrossGrams}g V10` })
+                body: JSON.stringify({ image_base64: processedValDataUrl, prompt_analysis: `Valuador Híbrido ${currentCategoryName} $${baseMarketPrice} V10` })
             });
 
             if (res.ok) {
                 const data = await res.json();
                 document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
-                openChefEditModal(processedChefDataUrl);
-                document.getElementById('telScaleStatus').innerText = 'MEAT AI: TRACKING';
+                openValEditModal(processedValDataUrl);
+                document.getElementById('telValStatus').innerText = 'APPRAISAL: READY';
             }
         }
 
-        function playKitchenWeighSound() {
+        function playCashChirpSound() {
             try {
                 const ctx = getAudioContext();
                 const now = ctx.currentTime;
@@ -748,59 +745,59 @@ HTML_CONTENT = """<!DOCTYPE html>
                 const gain = ctx.createGain();
                 osc.connect(gain); gain.connect(ctx.destination);
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(440, now);
-                osc.frequency.setValueAtTime(880, now + 0.1);
-                gain.gain.setValueAtTime(0.25, now);
+                osc.frequency.setValueAtTime(520, now);
+                osc.frequency.setValueAtTime(1040, now + 0.1);
+                gain.gain.setValueAtTime(0.28, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
                 osc.start(now); osc.stop(now + 0.21);
             } catch(e) {}
         }
 
-        /* 3. INNOVACIÓN: MESA DE POST-PROCESO & TICKET DE COSTEO */
-        function openChefEditModal(imgSrc) {
-            document.getElementById('editModalTitle').innerText = '👨‍🍳 CHEF LEAN V10 RENDIMIENTO';
+        /* 3. INNOVACIÓN: MESA DE POST-EDICIÓN & PÓLIZA DE TASACIÓN */
+        function openValEditModal(imgSrc) {
+            document.getElementById('editModalTitle').innerText = '🏷️ VALUACIÓN COMERCIAL V10';
             document.getElementById('editImagePreview').src = imgSrc;
             document.getElementById('editImagePreview').style.display = 'block';
-            document.getElementById('chefCostTicket').style.display = 'none';
+            document.getElementById('valCertificateBox').style.display = 'none';
             document.getElementById('postEditModal').style.display = 'flex';
         }
 
         function closeEditModal() { document.getElementById('postEditModal').style.display = 'none'; }
 
-        function switchChefView(view, elem) {
+        function switchValView(view, elem) {
             document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
             elem.classList.add('active');
 
             const previewImg = document.getElementById('editImagePreview');
-            const ticket = document.getElementById('chefCostTicket');
+            const cert = document.getElementById('valCertificateBox');
 
             if (view === 'preview') {
                 previewImg.style.display = 'block';
-                ticket.style.display = 'none';
-            } else if (view === 'ticket') {
+                cert.style.display = 'none';
+            } else if (view === 'certificate') {
                 previewImg.style.display = 'none';
-                ticket.style.display = 'flex';
+                cert.style.display = 'flex';
             }
         }
 
-        function applyMeatFilter(mode, elem) {
+        function applyValFilter(mode, elem) {
             document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
             elem.classList.add('active');
             const img = document.getElementById('editImagePreview');
 
-            if (mode === 'fat_highlight') {
-                img.style.filter = 'contrast(1.3) saturate(1.4) brightness(1.05)';
-            } else if (mode === 'raw_butcher') {
-                img.style.filter = 'contrast(1.4) drop-shadow(0 0 12px rgba(255,149,0,0.5))';
+            if (mode === 'highlight_asset') {
+                img.style.filter = 'contrast(1.3) saturate(1.25) brightness(1.05)';
+            } else if (mode === 'commercial_clean') {
+                img.style.filter = 'contrast(1.15) brightness(1.1) drop-shadow(0 0 10px rgba(99,230,226,0.5))';
             }
         }
 
         function exportEditedResult() {
             const a = document.createElement('a');
-            a.href = processedChefDataUrl || document.getElementById('editImagePreview').src;
-            a.download = `bian_chef_lean_${currentCutName.toLowerCase().replace(/[^a-z0-9]/g, '_')}_v10_${Date.now()}.jpg`;
+            a.href = processedValDataUrl || document.getElementById('editImagePreview').src;
+            a.download = `bian_valuacion_${currentCategoryName.toLowerCase().replace(/[^a-z0-9]/g, '_')}_v10_${Date.now()}.jpg`;
             a.click();
-            alert('✔ Ficha de costeo cárnico HD exportada a memoria.');
+            alert('✔ Certificado de valuación comercial HD exportado con éxito.');
         }
 
         /* DISPARO ESTÁNDAR ZSL */
@@ -819,7 +816,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             if (res.ok) {
                 const data = await res.json();
                 document.getElementById('thumbBox').innerHTML = `<img src="${data.image_path}" />`;
-                openChefEditModal(b64);
+                openValEditModal(b64);
             }
         }
 
@@ -882,24 +879,24 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         }, { passive: true });
 
-        /* CATÁLOGO DE MÓDULOS CON CHEF LEAN V10 INTEGRADO */
+        /* CATÁLOGO COMPLETO DE LOS 16 MÓDULOS DE LA MASTER SUITE V10 */
         const moduleCatalog = [
-            { key: 'chef', icon: '👨‍🍳', title: 'CHEF LEAN V10', pill: '👨‍🍳 BÁSCULA NPU & AUDITORÍA DE MERMA', color: '#FF9500', botTips: 'Encuadra la pieza cárnica para calcular peso estimado, merma por corte y costo por porción.' },
-            { key: 'depth', icon: '🛰️', title: 'DEPTH-MAP NPU', pill: '🛰️ Z-BUFFER 16-BIT & NUBE LIDAR', color: '#00F2FE', botTips: 'Sensor de disparidad activo.' },
-            { key: 'motion', icon: '⚡', title: 'VIDEO MOTION', pill: '⚡ FLUJO ÓPTICO & ESTELAS 60 FPS', color: '#FF9500', botTips: 'Rastreo kinético activo.' },
-            { key: 'svg', icon: '📐', title: 'SVG LOGOS', pill: '📐 VECTORIZADOR CAD & CÓDIGO XML', color: '#00FFC8', botTips: 'Centra el diseño para generar código XML.' },
-            { key: 'raw', icon: '🎞️', title: 'ESTUDIO RAW', pill: '🎞️ REVELADO DIGITAL DE 14-BIT & HISTOGRAMA', color: '#FF9F0A', botTips: 'Monitorea el histograma RGB.' },
-            { key: 'cine', icon: '🎬', title: 'CINE SCOPE V10', pill: '🎬 ANAMÓRFICO 2.39:1 & BLUE STREAK FLARE', color: '#FF0055', botTips: 'Enmarcado cinematográfico Scope 2.39:1.' },
+            { key: 'price', icon: '🏷️', title: 'VALUADOR HÍBRIDO V10', pill: '🏷️ TASACIÓN DE MERCADO & PÓLIZA COMERCIAL', color: '#63E6E2', botTips: 'Encuadra el activo comercial para estimar precio de compra de remate, precio de venta y margen bruto.' },
+            { key: 'chef', icon: '👨‍🍳', title: 'CHEF LEAN V10', pill: '👨‍🍳 BÁSCULA NPU & AUDITORÍA DE MERMA', color: '#FF9500', botTips: 'Báscula volumétrica y control de merma cárnica.' },
+            { key: 'depth', icon: '🛰️', title: 'DEPTH-MAP NPU', pill: '🛰️ Z-BUFFER 16-BIT & NUBE LIDAR', color: '#00F2FE', botTips: 'Sensor de disparidad y Wiggle 3D.' },
+            { key: 'motion', icon: '⚡', title: 'VIDEO MOTION', pill: '⚡ FLUJO ÓPTICO & ESTELAS 60 FPS', color: '#FF9500', botTips: 'Rastreo kinético de vectores.' },
+            { key: 'svg', icon: '📐', title: 'SVG LOGOS', pill: '📐 VECTORIZADOR CAD & CÓDIGO XML', color: '#00FFC8', botTips: 'Vectorizador Autotrace y exportador XML.' },
+            { key: 'raw', icon: '🎞️', title: 'ESTUDIO RAW', pill: '🎞️ REVELADO DIGITAL DE 14-BIT & HISTOGRAMA', color: '#FF9F0A', botTips: 'Histograma espectral RGB.' },
+            { key: 'cine', icon: '🎬', title: 'CINE SCOPE V10', pill: '🎬 ANAMÓRFICO 2.39:1 & BLUE STREAK FLARE', color: '#FF0055', botTips: 'Enmarcado cinematográfico DCI 2.39:1.' },
             { key: 'imprenta', icon: '🖨️', title: 'IMPRENTA PDF', pill: '🖨️ PREPRENSA CMYK & FOGRA39 PROOF', color: '#FF2D85', botTips: 'Mesa de preprensa industrial.' },
-            { key: 'stickers', icon: '🎨', title: 'WALLPAPERS STICKERS', pill: '🎨 TROQUELADO 3D & AMOLED BLACK', color: '#BF5AF2', botTips: 'Centra el objeto para troquelado.' },
-            { key: 'lonas', icon: '🎪', title: 'LONAS 3D', pill: '🎪 BASTIDOR PTR & TÚNEL DE VIENTO 110 km/h', color: '#FFD60A', botTips: 'Alinea la estructura en el encuadre.' },
-            { key: 'bokeh', icon: '🎭', title: 'RETRATO BOKEH', pill: '🎭 APERTURA ÓPTICA & IRIS SHAPER', color: '#FF2D55', botTips: 'Mantén al sujeto a 1-2 metros del fondo.' },
-            { key: 'night', icon: '🌙', title: 'NIGHTOGRAPHY', pill: '🌙 MULTI-FRAME STACK & DEEP-SKY BOOST', color: '#5E5CE6', botTips: 'Baja iluminación detectada.' },
-            { key: 'macro', icon: '🔍', title: 'MACRO PRO', pill: '🔍 FOCUS PEAKING & DEEP FOCUS STACK', color: '#30D158', botTips: 'Distancia de 2 a 8 cm.' },
+            { key: 'stickers', icon: '🎨', title: 'WALLPAPERS STICKERS', pill: '🎨 TROQUELADO 3D & AMOLED BLACK', color: '#BF5AF2', botTips: 'Stickers die-cut y fondos AMOLED.' },
+            { key: 'lonas', icon: '🎪', title: 'LONAS 3D', pill: '🎪 BASTIDOR PTR & TÚNEL DE VIENTO 110 km/h', color: '#FFD60A', botTips: 'Bastidor de PTR y túnel de viento.' },
+            { key: 'bokeh', icon: '🎭', title: 'RETRATO BOKEH', pill: '🎭 APERTURA ÓPTICA & IRIS SHAPER', color: '#FF2D55', botTips: 'Desenfoque f/1.2 y convolución gaussiana.' },
+            { key: 'night', icon: '🌙', title: 'NIGHTOGRAPHY', pill: '🌙 MULTI-FRAME STACK & DEEP-SKY BOOST', color: '#5E5CE6', botTips: 'Baja iluminación y apilado en RAM.' },
+            { key: 'macro', icon: '🔍', title: 'MACRO PRO', pill: '🔍 FOCUS PEAKING & DEEP FOCUS STACK', color: '#30D158', botTips: 'Focus Peaking verde y lupa 10x.' },
             { key: 'scan', icon: '📄', title: 'SCAN DOC PRO', pill: '📄 AUTO-ENCUADRE HOMOGRÁFICO & OCR', color: '#00D2FF', botTips: 'Alinea el documento dentro del cuadrilátero.' },
             { key: 'timelapse', icon: '⏱️', title: 'TIMELAPSE V10', pill: '⏱️ TIME-LAPSE: CAPTURA COMPRIMIDA 4x', color: '#FF3B30', botTips: 'Gimbal Virtual OIS activo.' },
-            { key: 'pano', icon: '🌐', title: 'PANORÁMICA 360', pill: '🌐 BARRIDO POLAR & ORBE 3D VR', color: '#00FFC8', botTips: 'Gira el teléfono de izquierda a derecha.' },
-            { key: 'price', icon: '🏷️', title: 'VALUADOR HÍBRIDO', pill: '🏷️ TASACIÓN DE MERCADO OFFLINE/ONLINE', color: '#63E6E2', botTips: 'Cotejo comercial activado.' }
+            { key: 'pano', icon: '🌐', title: 'PANORÁMICA 360', pill: '🌐 BARRIDO POLAR & ORBE 3D VR', color: '#00FFC8', botTips: 'Gira el teléfono de izquierda a derecha.' }
         ];
 
         let activeCardIndex = 0;
@@ -1003,11 +1000,11 @@ HTML_CONTENT = """<!DOCTYPE html>
             document.getElementById('floatModDesc').innerText = m.botTips;
             document.getElementById('shutterCorona').style.borderColor = m.color;
 
-            // Mostrar u ocultar controles de Chef Lean
-            if (m.key === 'chef') {
-                document.getElementById('chefHud').style.display = 'flex';
+            // Mostrar u ocultar controles del Valuador
+            if (m.key === 'price') {
+                document.getElementById('valHud').style.display = 'flex';
             } else {
-                document.getElementById('chefHud').style.display = 'none';
+                document.getElementById('valHud').style.display = 'none';
             }
 
             const topCard = deckStack.querySelector('.pos-0');
@@ -1101,7 +1098,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                 const cur = moduleCatalog[activeCardIndex];
                 const list = document.getElementById('floatActionList');
                 list.innerHTML = `
-                    <button class="bot-btn" onclick="handleChefCaptureTrigger(); toggleFloatingPanel();">📸 Disparo con ${cur.title}</button>
+                    <button class="bot-btn" onclick="handleValuationCaptureTrigger(); toggleFloatingPanel();">📸 Disparo de Tasación con ${cur.title}</button>
                     <button class="bot-btn" onclick="openHorizontalDock(); toggleFloatingPanel();">🎴 Selector de Módulos</button>
                     <button class="bot-btn" onclick="toggleGhostScope(); toggleFloatingPanel();">👁️ Alternar Radar Espectral</button>
                     <button class="bot-btn" onclick="openGalleryModal(); toggleFloatingPanel();">🖼️ Ver Galería Local</button>
@@ -1139,7 +1136,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                     card.className = 'gallery-card';
                     card.onclick = () => {
                         closeGalleryModal();
-                        openChefEditModal(img.image_path);
+                        openValEditModal(img.image_path);
                     };
                     card.innerHTML = `
                         <img src="${img.image_path}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\' viewBox=\\'0 0 100 100\\'><rect width=\\'100\\' height=\\'100\\' fill=\\'%23222\\'/><text x=\\'50\\' y=\\'55\\' fill=\\'%23666\\' font-size=\\'11\\' text-anchor=\\'middle\\'>Sin Vista</text></svg>'"/>
@@ -1163,14 +1160,14 @@ HTML_CONTENT = """<!DOCTYPE html>
             const act = document.getElementById('botActionList');
 
             msg.innerHTML = `
-                <div style="color:#FF9500; font-weight:800; margin-bottom:6px;">🤖 Diagnóstico V10 para ${curMod.title}:</div>
+                <div style="color:#63E6E2; font-weight:800; margin-bottom:6px;">🤖 Diagnóstico V10 para ${curMod.title}:</div>
                 <div>${curMod.botTips}</div>
             `;
 
             act.innerHTML = `
-                <button class="bot-btn" onclick="executeBotAction('calibrate')">⚡ Calibrar Báscula NPU & Densidad Cárnica</button>
+                <button class="bot-btn" onclick="executeBotAction('calibrate')">⚡ Calibrar Sensor de Tasación & Bandas de Margen</button>
                 <button class="bot-btn" onclick="executeBotAction('ghost')">👁️ Activar Radar Espectral</button>
-                <button class="bot-btn" onclick="executeBotAction('gallery')">🖼️ Ver Auditorías de Merma Guardadas</button>
+                <button class="bot-btn" onclick="executeBotAction('gallery')">🖼️ Ver Valuaciones Guardadas</button>
             `;
 
             modal.style.display = 'flex';
@@ -1182,7 +1179,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             closeNanobot();
             if(action === 'calibrate') {
                 applyActiveCardTheme(moduleCatalog[activeCardIndex]);
-                alert("✔ Báscula volumétrica y matriz de merma calibradas.");
+                alert("✔ Algoritmo de tasación comercial y colimador calibrados.");
             } else if(action === 'ghost') {
                 toggleGhostScope();
             } else if(action === 'gallery') {
