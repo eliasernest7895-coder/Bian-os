@@ -353,15 +353,15 @@ HTML_CONTENT = """<!DOCTYPE html>
                 <div style="background:rgba(0,0,0,0.5); padding:8px; border-radius:10px; border:1px solid rgba(255,255,255,0.08); display:flex; flex-direction:column; gap:6px; margin-bottom:8px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; font-size:9px; color:#aaa;">
                         <span>EXPOSICIÓN:</span>
-                        <input type="range" id="slExp" min="50" max="150" value="100" oninput="applyFilters()" style="width:65%;">
+                        <input type="range" id="slExp" min="50" max="200" value="100" oninput="renderLiveColor()" style="width:65%;">
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; font-size:9px; color:#aaa;">
                         <span>CONTRASTE:</span>
-                        <input type="range" id="slCnt" min="50" max="150" value="100" oninput="applyFilters()" style="width:65%;">
+                        <input type="range" id="slCnt" min="50" max="200" value="100" oninput="renderLiveColor()" style="width:65%;">
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; font-size:9px; color:#aaa;">
                         <span>SATURACIÓN:</span>
-                        <input type="range" id="slSat" min="0" max="200" value="100" oninput="applyFilters()" style="width:65%;">
+                        <input type="range" id="slSat" min="0" max="250" value="100" oninput="renderLiveColor()" style="width:65%;">
                     </div>
                 </div>
 
@@ -370,7 +370,10 @@ HTML_CONTENT = """<!DOCTYPE html>
                     <input type="text" id="wsInputPrompt" placeholder="Instrucción de calibración / Bóveda..." style="width:100%; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:6px 8px; color:#fff; font-size:10px; outline:none; font-family:monospace;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <button type="button" onclick="document.getElementById('wsGatewayPrompt').style.display='flex'; document.getElementById('wsBodyContent').style.display='none'; document.getElementById('wsSubTitle').innerText='SELECCIONA MODO DE OPERACIÓN';" style="background:transparent; border:none; color:#64748b; font-size:8.5px; cursor:pointer;">↩ Cambiar modo</button>
-                        <button type="button" onclick="alert('☑️ Parámetros fijados'); resetDrawerToGateway();" style="background:#30D158; border:none; color:#000; border-radius:6px; padding:4px 12px; font-size:9px; font-weight:bold; cursor:pointer;">☑️ GUARDAR</button>
+                        <div style="display:flex; gap:6px;">
+                            <button type="button" onclick="resetWorkspaceFilters()" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#cbd5e1; border-radius:6px; padding:4px 10px; font-size:9px; font-weight:bold; cursor:pointer;">↺ RESET</button>
+                            <button type="button" onclick="alert('☑️ Parámetros fijados'); resetDrawerToGateway();" style="background:#30D158; border:none; color:#000; border-radius:6px; padding:4px 12px; font-size:9px; font-weight:bold; cursor:pointer;">☑️ GUARDAR</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -380,6 +383,50 @@ HTML_CONTENT = """<!DOCTYPE html>
         let assetEdits = {}; // Almacena ajustes independientes por cada foto (ID)
 
         
+        
+        function renderLiveColor() {
+            const exp = document.getElementById('slExp')?.value || 100;
+            const cnt = document.getElementById('slCnt')?.value || 100;
+            const sat = document.getElementById('slSat')?.value || 100;
+            const filterStr = `brightness(${exp}%) contrast(${cnt}%) saturate(${sat}%)`;
+
+            // Aplicar directo al video de la cámara en vivo
+            const videoElem = document.getElementById('webcam');
+            if (videoElem) {
+                videoElem.style.filter = filterStr;
+            }
+
+            // Si hay una foto abierta en la galería, aplicárselo también
+            const photoImg = document.querySelector('#assetDetailModal img');
+            if (photoImg) {
+                photoImg.style.filter = filterStr;
+            }
+
+            // Guardar en memoria si estamos en una foto
+            if (typeof activeAssetItem !== 'undefined' && activeAssetItem && typeof assetEdits !== 'undefined') {
+                assetEdits[activeAssetItem.id] = { exp, cnt, sat };
+            }
+        }
+
+        function resetWorkspaceFilters() {
+            const exp = document.getElementById('slExp');
+            const cnt = document.getElementById('slCnt');
+            const sat = document.getElementById('slSat');
+            if (exp) exp.value = 100;
+            if (cnt) cnt.value = 100;
+            if (sat) sat.value = 100;
+
+            const videoElem = document.getElementById('webcam');
+            if (videoElem) videoElem.style.filter = 'none';
+
+            const photoImg = document.querySelector('#assetDetailModal img');
+            if (photoImg) photoImg.style.filter = 'none';
+
+            if (typeof activeAssetItem !== 'undefined' && activeAssetItem && typeof assetEdits !== 'undefined') {
+                assetEdits[activeAssetItem.id] = { exp: 100, cnt: 100, sat: 100 };
+            }
+        }
+
         function resetDrawerToGateway() {
             const drawer = document.getElementById('telemetryDrawer');
             const gateway = document.getElementById('wsGatewayPrompt');
@@ -468,7 +515,54 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         };
 
-                function applyFilters() {
+                
+        function getActiveVideoElem() {
+            return document.getElementById('webcam') || document.querySelector('video');
+        }
+
+        function resetWorkspaceFilters() {
+            const exp = document.getElementById('slExp');
+            const cnt = document.getElementById('slCnt');
+            const sat = document.getElementById('slSat');
+            if (exp) exp.value = 100;
+            if (cnt) cnt.value = 100;
+            if (sat) sat.value = 100;
+
+            const detailModal = document.getElementById('assetDetailModal');
+            if (detailModal && detailModal.style.display !== 'none' && typeof activeAssetItem !== 'undefined' && activeAssetItem) {
+                if (typeof assetEdits !== 'undefined') {
+                    assetEdits[activeAssetItem.id] = { exp: 100, cnt: 100, sat: 100 };
+                }
+                const img = document.querySelector('#assetDetailModal img');
+                if (img) img.style.filter = 'none';
+            } else {
+                const vid = getActiveVideoElem();
+                if (vid) vid.style.filter = 'none';
+            }
+        }
+
+        function applyFilters() {
+            const e = document.getElementById('slExp')?.value || 100;
+            const c = document.getElementById('slCnt')?.value || 100;
+            const s = document.getElementById('slSat')?.value || 100;
+
+            // Si todos están al 100%, no aplicamos filtro para preservar la luz nativa
+            const filterValue = (e == 100 && c == 100 && s == 100) ? 'none' : `brightness(${e}%) contrast(${c}%) saturate(${s}%)`;
+
+            const detailModal = document.getElementById('assetDetailModal');
+            if (detailModal && detailModal.style.display !== 'none' && typeof activeAssetItem !== 'undefined' && activeAssetItem) {
+                if (typeof assetEdits !== 'undefined') {
+                    assetEdits[activeAssetItem.id] = { exp: e, cnt: c, sat: s };
+                }
+                const img = document.querySelector('#assetDetailModal img');
+                if (img) img.style.filter = filterValue;
+            } else {
+                const vid = getActiveVideoElem();
+                if (vid) vid.style.filter = filterValue;
+            }
+        }
+
+        function old_applyFilters_placeholder() {
                     const e = document.getElementById('slExp')?.value || 100;
                     const c = document.getElementById('slCnt')?.value || 100;
                     const s = document.getElementById('slSat')?.value || 100;
@@ -616,6 +710,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
 
         function startCamera() {
+        const vInit = document.getElementById('webcam'); if(vInit) vInit.style.filter = 'none';
             if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
             navigator.mediaDevices.getUserMedia({ video: { facingMode, width: { ideal: 1920 }, height: { ideal: 1080 } } })
             .then(stream => {
