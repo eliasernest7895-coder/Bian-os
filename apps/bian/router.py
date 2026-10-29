@@ -298,6 +298,19 @@ HTML_CONTENT = """<!DOCTYPE html>
     </div>
 
     <div class="suite-view">
+        
+        <!-- HUD RETÍCULA HORIZONTE INERCIAL (PANORAMA 360) -->
+        <div id="panoHorizonHud" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:40; justify-content:center; align-items:center;">
+            <div style="position:relative; width:220px; height:220px; display:flex; justify-content:center; align-items:center;">
+                <div id="hudOuterRing" style="position:absolute; width:100%; height:100%; border:1px dashed rgba(0, 229, 255, 0.3); border-radius:50%;"></div>
+                <div id="hudHorizonLine" style="position:absolute; width:160px; height:2px; background:#00E5FF; box-shadow:0 0 8px #00E5FF; transform:rotate(0deg);"></div>
+                <div style="position:absolute; width:24px; height:24px; border:1px solid rgba(255,255,255,0.4); border-radius:4px; display:flex; justify-content:center; align-items:center;">
+                    <div id="hudCenterDot" style="width:4px; height:4px; background:#00E5FF; border-radius:50%;"></div>
+                </div>
+                <div id="hudDegreeTag" style="position:absolute; bottom:14px; font-size:9px; font-family:monospace; color:#00E5FF; background:rgba(0,0,0,0.6); padding:1px 6px; border-radius:4px; border:1px solid rgba(0,229,255,0.3);">0.0°</div>
+            </div>
+        </div>
+
         <div id="videoContainer">
             <video id="webcam" autoplay playsinline></video>
             <canvas id="ghostScopeCanvas"></canvas>
@@ -322,7 +335,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             <!-- CABECERA -->
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(0, 229, 255, 0.25); padding-bottom:6px; margin-bottom:8px;">
                 <div>
-                    <span style="color:#00E5FF; font-weight:800; font-size:11px; letter-spacing:0.8px;" id="wsTitle">MESA DE TRABAJO // CAM VISIÓN</span>
+                    <span style="color:#00E5FF; font-weight:800; font-size:11px; letter-spacing:0.8px;" id="wsTitle">MESA DE TRABAJO</span>
                     <div style="color:#888; font-size:8.5px;" id="wsSubTitle">SELECCIONA MODO DE OPERACIÓN</div>
                 </div>
                 <div style="display:flex; align-items:center; gap:6px;">
@@ -335,7 +348,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             <div id="wsGatewayPrompt" style="display:flex; flex-direction:column; gap:8px; padding:6px 0;">
                 <div style="color:#cbd5e1; font-size:10px; text-align:center;">¿Dónde deseas trabajar?</div>
                 <div style="display:flex; gap:8px;">
-                    <button type="button" onclick="document.getElementById('wsGatewayPrompt').style.display='none'; document.getElementById('wsBodyContent').style.display='flex'; document.getElementById('wsSubTitle').innerText='EN VIVO // CONTROLES ÓPTICOS';" style="flex:1; background:rgba(0,229,255,0.15); border:1px solid #00E5FF; color:#00E5FF; border-radius:10px; padding:10px 0; font-size:10px; font-weight:bold; cursor:pointer;">🔴 EN VIVO</button>
+                    <button type="button" onclick="handleLiveButtonClick()" style="flex:1; background:rgba(0,229,255,0.15); border:1px solid #00E5FF; color:#00E5FF; border-radius:10px; padding:10px 0; font-size:10px; font-weight:bold; cursor:pointer;">🔴 EN VIVO</button>
                     <button type="button" onclick="document.getElementById('telemetryDrawer').style.display='none'; isDrawerOpen=false; openGalleryModal();" style="flex:1; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.2); color:#f8fafc; border-radius:10px; padding:10px 0; font-size:10px; font-weight:bold; cursor:pointer;">📁 GALERÍA</button>
                 </div>
             </div>
@@ -378,6 +391,41 @@ HTML_CONTENT = """<!DOCTYPE html>
                 </div>
             </div>
             
+            
+            <!-- CUERPO MÓDULO 2: PANORÁMICA 360 -->
+            <div id="wsBodyPanoContent" style="display:none; flex-direction:column; gap:8px;">
+                <div style="display:flex; gap:6px;">
+                    <button type="button" onclick="setPanoMode('180')" id="btnPano180" style="flex:1; background:rgba(0,229,255,0.15); border:1px solid #00E5FF; color:#00E5FF; border-radius:8px; padding:6px 0; font-size:9px; font-weight:bold;">180° WIDE</button>
+                    <button type="button" onclick="setPanoMode('360')" id="btnPano360" style="flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); color:#aaa; border-radius:8px; padding:6px 0; font-size:9px; font-weight:bold;">360° CILINDRAL</button>
+                    <button type="button" onclick="setPanoMode('VR')" id="btnPanoVR" style="flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); color:#aaa; border-radius:8px; padding:6px 0; font-size:9px; font-weight:bold;">360° ESFERA / VR</button>
+                </div>
+                <div style="background:rgba(0,0,0,0.55); border:1px solid rgba(0,229,255,0.25); border-radius:10px; padding:8px; display:flex; flex-direction:column; gap:6px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:9px; color:#888;">ESTADO DE NIVEL HORIZONTE:</span>
+                        <span id="imuStatusBadge" style="background:rgba(48,209,88,0.15); border:1px solid #30D158; color:#30D158; font-size:8px; padding:1px 6px; border-radius:8px; font-weight:bold;">NIVELADO</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-around; background:rgba(15,23,42,0.8); padding:6px; border-radius:6px; font-family:monospace; font-size:9.5px; color:#cbd5e1;">
+                        <div>PITCH: <span id="telePitch" style="color:#00E5FF; font-weight:bold;">0.0°</span></div>
+                        <div>ROLL: <span id="teleRoll" style="color:#00E5FF; font-weight:bold;">0.0°</span></div>
+                        <div>YAW: <span id="teleYaw" style="color:#30D158; font-weight:bold;">0.0°</span></div>
+                    </div>
+                </div>
+                <div style="background:rgba(0,0,0,0.5); padding:8px; border-radius:10px; border:1px solid rgba(255,255,255,0.08); display:flex; flex-direction:column; gap:6px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:9px; color:#aaa;">
+                        <span>SOLAPAMIENTO (OVERLAP):</span>
+                        <input type="range" id="slOverlap" min="15" max="45" value="30" style="width:55%;">
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:9px; color:#aaa;">
+                        <span>FUSIÓN (SEAM BLENDING):</span>
+                        <input type="range" id="slBlending" min="0" max="100" value="50" style="width:55%;">
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+                    <button type="button" onclick="returnToGatewayFromLive()" style="background:transparent; border:none; color:#64748b; font-size:8.5px; cursor:pointer;">↩ Cambiar modo</button>
+                    <button type="button" onclick="alert('Secuencia panorámica lista');" style="background:#00E5FF; border:none; color:#000; border-radius:6px; padding:4px 12px; font-size:9px; font-weight:bold; cursor:pointer;">🌀 COSER & FUSIONAR</button>
+                </div>
+            </div>
+
             <script>
                 
         let assetEdits = {}; // Almacena ajustes independientes por cada foto (ID)
@@ -427,7 +475,138 @@ HTML_CONTENT = """<!DOCTYPE html>
             }
         }
 
-        function resetDrawerToGateway() {
+        
+        function refreshWorktableHeader(subText) {
+            const wsTitle = document.getElementById('wsTitle');
+            const wsSubTitle = document.getElementById('wsSubTitle');
+            const mod = (typeof moduleCatalog !== 'undefined' && moduleCatalog[activeCardIndex]) ? moduleCatalog[activeCardIndex] : null;
+            const modTitle = mod ? (mod.title || mod.key.toUpperCase()) : 'CAM VISIÓN';
+            if (wsTitle) wsTitle.innerText = `MESA DE TRABAJO // ${modTitle}`;
+            if (wsSubTitle && subText) wsSubTitle.innerText = subText;
+        }
+
+        function returnToGatewayFromLive() {
+            const gateway = document.getElementById('wsGatewayPrompt');
+            const bodyCam = document.getElementById('wsBodyContent');
+            const bodyPano = document.getElementById('wsBodyPanoContent');
+            if (bodyCam) bodyCam.style.display = 'none';
+            if (bodyPano) bodyPano.style.display = 'none';
+            if (gateway) gateway.style.display = 'flex';
+            refreshWorktableHeader('SELECCIONA MODO DE OPERACIÓN');
+        }
+
+        function setPanoMode(m) {
+            ['btnPano180', 'btnPano360', 'btnPanoVR'].forEach(id => {
+                const b = document.getElementById(id);
+                if (b) { b.style.background = 'rgba(255,255,255,0.05)'; b.style.borderColor = 'rgba(255,255,255,0.15)'; b.style.color = '#aaa'; }
+            });
+            const sel = document.getElementById(m === '180' ? 'btnPano180' : (m === '360' ? 'btnPano360' : 'btnPanoVR'));
+            if (sel) { sel.style.background = 'rgba(0,229,255,0.15)'; sel.style.borderColor = '#00E5FF'; sel.style.color = '#00E5FF'; }
+        }
+
+        function syncActiveModeUI(key) {
+            const isPano = (key === 'pano');
+            const hud = document.getElementById('panoHorizonHud');
+            if (hud) hud.style.display = isPano ? 'flex' : 'none';
+            const bodyCam = document.getElementById('wsBodyContent');
+            const bodyPano = document.getElementById('wsBodyPanoContent');
+            const gateway = document.getElementById('wsGatewayPrompt');
+
+            if (gateway && gateway.style.display !== 'none') {
+                refreshWorktableHeader('SELECCIONA MODO DE OPERACIÓN');
+                return;
+            }
+
+            if (isPano) {
+                if (bodyCam) bodyCam.style.display = 'none';
+                if (bodyPano) bodyPano.style.display = 'flex';
+                refreshWorktableHeader('HORIZON LOCK & CALIBRACIÓN INERCIAL');
+            } else {
+                if (bodyPano) bodyPano.style.display = 'none';
+                if (bodyCam) bodyCam.style.display = 'flex';
+                refreshWorktableHeader('EN VIVO // CONTROLES ÓPTICOS');
+            }
+        }
+
+        
+        let isLevelLocked = false, lastVibeTime = 0, lastSensorTick = 0;
+
+        function updateIMU(e) {
+            const cur = (typeof moduleCatalog !== 'undefined' && moduleCatalog[activeCardIndex]) ? moduleCatalog[activeCardIndex].key : 'cam';
+            if (cur !== 'pano') return;
+
+            const now = performance.now();
+            if (now - lastSensorTick < 33) return; // ~30 fps
+            lastSensorTick = now;
+
+            const pitch = (e.beta || 0);
+            const roll = (e.gamma || 0);
+            const yaw = (e.alpha || 0);
+
+            const elP = document.getElementById('telePitch');
+            const elR = document.getElementById('teleRoll');
+            const elY = document.getElementById('teleYaw');
+            const badge = document.getElementById('imuStatusBadge');
+            const hLine = document.getElementById('hudHorizonLine');
+            const hRing = document.getElementById('hudOuterRing');
+            const hDot = document.getElementById('hudCenterDot');
+            const hTag = document.getElementById('hudDegreeTag');
+
+            if (elP) elP.innerText = pitch.toFixed(1) + '°';
+            if (elR) elR.innerText = roll.toFixed(1) + '°';
+            if (elY) elY.innerText = yaw.toFixed(1) + '°';
+
+            if (hLine) hLine.style.transform = `rotate(${-roll}deg)`;
+            if (hTag) hTag.innerText = `${roll.toFixed(1)}°`;
+
+            const rollOk = Math.abs(roll) <= 2.5;
+            const pitchOk = Math.abs(pitch - 90) <= 6.0;
+
+            if (rollOk && pitchOk) {
+                if (badge) {
+                    badge.innerText = 'NIVELADO';
+                    badge.style.borderColor = '#30D158';
+                    badge.style.color = '#30D158';
+                    badge.style.background = 'rgba(48,209,88,0.15)';
+                }
+                if (hLine) { hLine.style.background = '#30D158'; hLine.style.boxShadow = '0 0 10px #30D158'; }
+                if (hRing) hRing.style.borderColor = 'rgba(48,209,88,0.5)';
+                if (hDot) hDot.style.background = '#30D158';
+                if (hTag) { hTag.style.color = '#30D158'; hTag.style.borderColor = '#30D158'; }
+
+                const tNow = Date.now();
+                if (!isLevelLocked && (tNow - lastVibeTime > 600)) {
+                    if (navigator.vibrate) navigator.vibrate(25);
+                    lastVibeTime = tNow;
+                }
+                isLevelLocked = true;
+            } else {
+                isLevelLocked = false;
+                if (badge) {
+                    badge.innerText = 'DESALINEADO';
+                    badge.style.borderColor = '#FF453A';
+                    badge.style.color = '#FF453A';
+                    badge.style.background = 'rgba(255,69,58,0.15)';
+                }
+                if (hLine) { hLine.style.background = '#FF453A'; hLine.style.boxShadow = '0 0 6px #FF453A'; }
+                if (hRing) hRing.style.borderColor = 'rgba(255,69,58,0.3)';
+                if (hDot) hDot.style.background = '#FF453A';
+                if (hTag) { hTag.style.color = '#FF453A'; hTag.style.borderColor = '#FF453A'; }
+            }
+        }
+        if (window.DeviceOrientationEvent) {
+            window.addEventListener('deviceorientation', updateIMU, { passive: true });
+        }
+
+        function handleLiveButtonClick() {
+            const prompt = document.getElementById('wsGatewayPrompt');
+            if (prompt) prompt.style.display = 'none';
+            const curKey = (typeof moduleCatalog !== 'undefined' && moduleCatalog[activeCardIndex]) ? moduleCatalog[activeCardIndex].key : 'cam';
+            syncActiveModeUI(curKey);
+        }
+
+        function resetDrawerToGateway() { returnToGatewayFromLive(); }
+        function old_reset() {
             const drawer = document.getElementById('telemetryDrawer');
             const gateway = document.getElementById('wsGatewayPrompt');
             const body = document.getElementById('wsBodyContent');
@@ -437,7 +616,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 
             if (gateway) gateway.style.display = 'flex';
             if (body) body.style.display = 'none';
-            if (wsTitle) wsTitle.innerText = 'MESA DE TRABAJO // CAM VISIÓN';
+            if (wsTitle) wsTitle.innerText = 'MESA DE TRABAJO';
             if (wsSub) wsSub.innerText = 'SELECCIONA MODO DE OPERACIÓN';
             if (drawer) {
                 drawer.style.zIndex = '97';
@@ -875,6 +1054,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 
         /* 🌟 GESTIÓN DE LA PERILLA "MÁS INFO" ABAJO 🌟 */
         function toggleTelemetryDrawer() {
+            refreshWorktableHeader('SELECCIONA MODO DE OPERACIÓN');
             isDrawerOpen = !isDrawerOpen;
             const drawer = document.getElementById('telemetryDrawer');
             drawer.style.display = isDrawerOpen ? 'flex' : 'none';
@@ -966,6 +1146,9 @@ HTML_CONTENT = """<!DOCTYPE html>
                 card.innerText = m.icon;
                 card.setAttribute('data-key', m.key);
                 deckStack.appendChild(card);
+            }
+            if (typeof syncActiveModeUI === 'function' && typeof moduleCatalog !== 'undefined') {
+                syncActiveModeUI(moduleCatalog[activeCardIndex].key);
             }
         }
         renderDeckStack();
