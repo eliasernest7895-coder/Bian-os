@@ -319,22 +319,182 @@ HTML_CONTENT = """<!DOCTYPE html>
 
         <!-- 🌟 BANDEJA DESPLEGABLE DE TELEMETRÍA (ABRE DE ABAJO HACIA ARRIBA) 🌟 -->
         <div id="telemetryDrawer">
-            <div class="drawer-row">
-                <span style="color:#888;">DENSIDAD / PERFIL:</span>
-                <strong style="color:#00E5FF;" id="drawerDensity">DENSITY: AERO OPTIC</strong>
+            <!-- CABECERA -->
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(0, 229, 255, 0.25); padding-bottom:6px; margin-bottom:8px;">
+                <div>
+                    <span style="color:#00E5FF; font-weight:800; font-size:11px; letter-spacing:0.8px;" id="wsTitle">MESA DE TRABAJO // CAM VISIÓN</span>
+                    <div style="color:#888; font-size:8.5px;" id="wsSubTitle">SELECCIONA MODO DE OPERACIÓN</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="background:rgba(48,209,88,0.15); border:1px solid #30D158; color:#30D158; font-size:8.5px; padding:2px 6px; border-radius:10px; font-weight:bold;">READY</span>
+                    <span style="color:#64748b; font-size:12px; cursor:pointer; padding:2px 6px;" onclick="document.getElementById('telemetryDrawer').style.display='none'; isDrawerOpen=false;">✕</span>
+                </div>
             </div>
-            <div class="drawer-row">
-                <span style="color:#888;">ESTADO NPU:</span>
-                <strong style="color:#30D158;" id="drawerNpu">SNAPDRAGON 8G2 NPU</strong>
+
+            <!-- COMPUERTA DE AVISO (INICIAL) -->
+            <div id="wsGatewayPrompt" style="display:flex; flex-direction:column; gap:8px; padding:6px 0;">
+                <div style="color:#cbd5e1; font-size:10px; text-align:center;">¿Dónde deseas trabajar?</div>
+                <div style="display:flex; gap:8px;">
+                    <button type="button" onclick="document.getElementById('wsGatewayPrompt').style.display='none'; document.getElementById('wsBodyContent').style.display='flex'; document.getElementById('wsSubTitle').innerText='EN VIVO // CONTROLES ÓPTICOS';" style="flex:1; background:rgba(0,229,255,0.15); border:1px solid #00E5FF; color:#00E5FF; border-radius:10px; padding:10px 0; font-size:10px; font-weight:bold; cursor:pointer;">🔴 EN VIVO</button>
+                    <button type="button" onclick="document.getElementById('telemetryDrawer').style.display='none'; isDrawerOpen=false; openGalleryModal();" style="flex:1; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.2); color:#f8fafc; border-radius:10px; padding:10px 0; font-size:10px; font-weight:bold; cursor:pointer;">📁 GALERÍA</button>
+                </div>
             </div>
-            <div class="drawer-row">
-                <span style="color:#888;">VELOCIDAD DE OBTURACIÓN:</span>
-                <strong style="color:#FFD600;" id="drawerSS">SS: 1/500s</strong>
+
+            <!-- CUERPO DE HERRAMIENTAS DE LA MESA (SE DESPLIEGA AL ELEGIR MODO) -->
+            <div id="wsBodyContent" style="display:none; flex-direction:column;">
+                <!-- Perfiles Ópticos -->
+                <div style="display:flex; gap:6px; margin-bottom:8px;">
+                    <button type="button" onclick="setOpticProfile('AERO')" id="btnOptAero" style="flex:1; background:rgba(0,229,255,0.15); border:1px solid #00E5FF; color:#00E5FF; border-radius:8px; padding:6px 0; font-size:9px; font-weight:bold; cursor:pointer;">AERO OPTIC</button>
+                    <button type="button" onclick="setOpticProfile('TITANIUM')" id="btnOptTitanium" style="flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); color:#aaa; border-radius:8px; padding:6px 0; font-size:9px; font-weight:bold; cursor:pointer;">TITANIUM</button>
+                    <button type="button" onclick="setOpticProfile('RAW')" id="btnOptRaw" style="flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); color:#aaa; border-radius:8px; padding:6px 0; font-size:9px; font-weight:bold; cursor:pointer;">DEEP-RAW</button>
+                </div>
+
+                <!-- Matriz de Ajuste Táctil -->
+                <div style="background:rgba(0,0,0,0.5); padding:8px; border-radius:10px; border:1px solid rgba(255,255,255,0.08); display:flex; flex-direction:column; gap:6px; margin-bottom:8px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:9px; color:#aaa;">
+                        <span>EXPOSICIÓN:</span>
+                        <input type="range" id="slExp" min="50" max="150" value="100" oninput="applyFilters()" style="width:65%;">
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:9px; color:#aaa;">
+                        <span>CONTRASTE:</span>
+                        <input type="range" id="slCnt" min="50" max="150" value="100" oninput="applyFilters()" style="width:65%;">
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:9px; color:#aaa;">
+                        <span>SATURACIÓN:</span>
+                        <input type="range" id="slSat" min="0" max="200" value="100" oninput="applyFilters()" style="width:65%;">
+                    </div>
+                </div>
+
+                <!-- Instrucción / Bóveda -->
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                    <input type="text" id="wsInputPrompt" placeholder="Instrucción de calibración / Bóveda..." style="width:100%; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:6px 8px; color:#fff; font-size:10px; outline:none; font-family:monospace;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <button type="button" onclick="document.getElementById('wsGatewayPrompt').style.display='flex'; document.getElementById('wsBodyContent').style.display='none'; document.getElementById('wsSubTitle').innerText='SELECCIONA MODO DE OPERACIÓN';" style="background:transparent; border:none; color:#64748b; font-size:8.5px; cursor:pointer;">↩ Cambiar modo</button>
+                        <button type="button" onclick="alert('☑️ Parámetros fijados'); resetDrawerToGateway();" style="background:#30D158; border:none; color:#000; border-radius:6px; padding:4px 12px; font-size:9px; font-weight:bold; cursor:pointer;">☑️ GUARDAR</button>
+                    </div>
+                </div>
             </div>
-            <div class="drawer-row">
-                <span style="color:#888;">SENSIBILIDAD BASE:</span>
-                <strong style="color:#fff;">ISO: 100 BASE</strong>
-            </div>
+            
+            <script>
+                
+        let assetEdits = {}; // Almacena ajustes independientes por cada foto (ID)
+
+        
+        function resetDrawerToGateway() {
+            const drawer = document.getElementById('telemetryDrawer');
+            const gateway = document.getElementById('wsGatewayPrompt');
+            const body = document.getElementById('wsBodyContent');
+            const wsTitle = document.getElementById('wsTitle');
+            const wsSub = document.getElementById('wsSubTitle');
+            const infoText = document.getElementById('moreInfoText');
+
+            if (gateway) gateway.style.display = 'flex';
+            if (body) body.style.display = 'none';
+            if (wsTitle) wsTitle.innerText = 'MESA DE TRABAJO // CAM VISIÓN';
+            if (wsSub) wsSub.innerText = 'SELECCIONA MODO DE OPERACIÓN';
+            if (drawer) {
+                drawer.style.zIndex = '97';
+                drawer.style.display = 'none';
+            }
+            if (infoText) infoText.innerText = '📊 MÁS INFO ▲';
+            isDrawerOpen = false;
+        }
+
+        function togglePhotoWorkspace() {
+            const drawer = document.getElementById('telemetryDrawer');
+            if (!drawer) return;
+
+            isDrawerOpen = !isDrawerOpen;
+            if (isDrawerOpen) {
+                drawer.style.display = 'flex';
+                drawer.style.zIndex = '500'; // Se posiciona encima del modal
+                
+                // Ocultar compuerta y mostrar herramientas directo
+                const gateway = document.getElementById('wsGatewayPrompt');
+                const body = document.getElementById('wsBodyContent');
+                if (gateway) gateway.style.display = 'none';
+                if (body) body.style.display = 'flex';
+
+                const photoId = activeAssetItem ? activeAssetItem.id : '?';
+                const wsTitle = document.getElementById('wsTitle');
+                const wsSub = document.getElementById('wsSubTitle');
+                if (wsTitle) wsTitle.innerText = `MESA DE TRABAJO // FOTO #${photoId}`;
+                if (wsSub) wsSub.innerText = 'CALIBRACIÓN INDEPENDIENTE EN BÓVEDA';
+
+                // Cargar valores guardados para esta foto o reiniciar a 100
+                const saved = assetEdits[photoId] || { exp: 100, cnt: 100, sat: 100 };
+                if (document.getElementById('slExp')) document.getElementById('slExp').value = saved.exp;
+                if (document.getElementById('slCnt')) document.getElementById('slCnt').value = saved.cnt;
+                if (document.getElementById('slSat')) document.getElementById('slSat').value = saved.sat;
+                applyPhotoFilter(saved.exp, saved.cnt, saved.sat);
+            } else {
+                drawer.style.display = 'none';
+                drawer.style.zIndex = '97';
+            }
+        }
+
+        function applyPhotoFilter(e, c, s) {
+            const img = document.querySelector('#assetDetailModal img');
+            if (img) img.style.filter = `brightness(${e}%) contrast(${c}%) saturate(${s}%)`;
+        }
+
+        // Sobreescribimos applyFilters para detectar si editamos la cámara o una foto abierta
+        const originalApplyFilters = window.applyFilters;
+        window.applyFilters = function() {
+            const e = document.getElementById('slExp')?.value || 100;
+            const c = document.getElementById('slCnt')?.value || 100;
+            const s = document.getElementById('slSat')?.value || 100;
+            
+            const detailModal = document.getElementById('assetDetailModal');
+            if (detailModal && detailModal.style.display !== 'none' && activeAssetItem) {
+                assetEdits[activeAssetItem.id] = { exp: e, cnt: c, sat: s };
+                applyPhotoFilter(e, c, s);
+            } else {
+                const cam = document.getElementById('cameraStream');
+                if (cam) cam.style.filter = `brightness(${e}%) contrast(${c}%) saturate(${s}%)`;
+            }
+        };
+
+        // Al presionar Volver en la inspección forense, aseguramos cerrar la mesa
+        const originalCloseAssetDetail = window.closeAssetDetail;
+        window.closeAssetDetail = function() {
+            const drawer = document.getElementById('telemetryDrawer');
+            if (drawer) { drawer.style.display = 'none'; drawer.style.zIndex = '97'; }
+            isDrawerOpen = false;
+            if (typeof originalCloseAssetDetail === 'function') originalCloseAssetDetail();
+            else {
+                const m = document.getElementById('assetDetailModal');
+                if (m) m.style.display = 'none';
+            }
+        };
+
+                function applyFilters() {
+                    const e = document.getElementById('slExp')?.value || 100;
+                    const c = document.getElementById('slCnt')?.value || 100;
+                    const s = document.getElementById('slSat')?.value || 100;
+                    const cam = document.getElementById('cameraStream');
+                    if (cam) cam.style.filter = `brightness(${e}%) contrast(${c}%) saturate(${s}%)`;
+                    const img = document.querySelector('#assetDetailModal img');
+                    if (img) img.style.filter = `brightness(${e}%) contrast(${c}%) saturate(${s}%)`;
+                }
+
+                function setOpticProfile(prof) {
+                    ['btnOptAero','btnOptTitanium','btnOptRaw'].forEach(id => {
+                        const b = document.getElementById(id);
+                        if(b) { b.style.background='rgba(255,255,255,0.05)'; b.style.borderColor='rgba(255,255,255,0.15)'; b.style.color='#aaa'; }
+                    });
+                    if(prof === 'AERO') {
+                        const b = document.getElementById('btnOptAero');
+                        if(b) { b.style.background='rgba(0,229,255,0.15)'; b.style.borderColor='#00E5FF'; b.style.color='#00E5FF'; }
+                    } else if(prof === 'TITANIUM') {
+                        const b = document.getElementById('btnOptTitanium');
+                        if(b) { b.style.background='rgba(255,214,10,0.15)'; b.style.borderColor='#FFD60A'; b.style.color='#FFD60A'; }
+                    } else if(prof === 'RAW') {
+                        const b = document.getElementById('btnOptRaw');
+                        if(b) { b.style.background='rgba(255,45,85,0.15)'; b.style.borderColor='#FF2D55'; b.style.color='#FF2D55'; }
+                    }
+                }
+            </script>
         </div>
 
         <!-- 🌟 GADGETS COLOCADOS ABAJO, LIMPIANDO EL VISOR SUPERIOR 🌟 -->
@@ -386,7 +546,13 @@ HTML_CONTENT = """<!DOCTYPE html>
             <img id="assetDetailImg" src="" alt="Asset Detail" />
         </div>
         <div class="asset-metadata-card" id="assetDetailMeta"></div>
-        <div class="asset-action-row">
+        <!-- BOTÓN MÁS INFO INDIVIDUAL POR FOTO -->
+            <div style="display:flex; justify-content:center; width:100%; margin-bottom:10px;">
+                <div class="pill-info" onclick="togglePhotoWorkspace()" style="cursor:pointer; background:rgba(15, 23, 42, 0.9); border:1px solid rgba(0, 229, 255, 0.4); padding:6px 18px; border-radius:18px; font-size:10px; color:#00E5FF; font-weight:bold;">
+                    📊 MÁS INFO (EDITAR) ▲
+                </div>
+            </div>
+            <div class="asset-action-row">
             <button class="btn-asset-action" style="background:#00E5FF; color:#000;" onclick="downloadActiveAsset()">📥 Exportar HD</button>
             <button class="btn-asset-action" style="background:#FF3B30; color:#fff;" onclick="deleteActiveAsset()">🗑️ Eliminar</button>
         </div>
@@ -847,7 +1013,8 @@ HTML_CONTENT = """<!DOCTYPE html>
             await loadVaultAssets();
         }
 
-        function closeGalleryModal() { document.getElementById('galleryModal').style.display = 'none'; }
+        function closeGalleryModal() {
+            resetDrawerToGateway(); document.getElementById('galleryModal').style.display = 'none'; }
 
         async function loadVaultAssets() {
             const container = document.getElementById('galleryGridContent');
