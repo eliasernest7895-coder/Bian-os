@@ -1401,6 +1401,91 @@ HTML_CONTENT = """<!DOCTYPE html>
             alert("✔ Búfer purgado. RAM optimizada.");
         }
     </script>
+
+<script>
+(function() {
+    function launchBootSpores() {
+        const canvas = document.createElement('canvas');
+        canvas.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:999999;';
+        document.body.appendChild(canvas);
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const spores = [];
+        const count = 35;
+        const cx = canvas.width / 2;
+        const cy = canvas.height * 0.72;
+
+        for (let i = 0; i < count; i++) {
+            spores.push({
+                x: cx + (Math.random() - 0.5) * (canvas.width * 0.75),
+                y: cy + (Math.random() - 0.5) * 80,
+                vx: (Math.random() - 0.5) * 1.8,
+                vy: -(Math.random() * 2.8 + 1.2),
+                size: Math.random() * 2.8 + 1.2,
+                color: Math.random() > 0.4 ? '#00FFC8' : '#00E5FF'
+            });
+        }
+
+        const start = performance.now();
+        const duration = 800;
+
+        function loop(now) {
+            const elapsed = now - start;
+            const progress = Math.min(1, elapsed / duration);
+            const alpha = 1 - progress;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let s of spores) {
+                s.x += s.vx;
+                s.y += s.vy;
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = s.color;
+                ctx.fillStyle = s.color;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            if (progress < 1) {
+                requestAnimationFrame(loop);
+            } else {
+                canvas.remove();
+            }
+        }
+        requestAnimationFrame(loop);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', launchBootSpores);
+    } else {
+        launchBootSpores();
+    }
+})();
+</script>
+
+
+<div id="tlRenderModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.85);z-index:99999;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;">
+    <div style="background:#121622;border:1.5px solid #FF9E00;border-radius:16px;width:100%;max-width:380px;padding:14px;box-shadow:0 0 30px rgba(255,158,0,0.25);display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:#FF9E00;font-weight:bold;font-size:12px;letter-spacing:1px;">TIME-LAPSE // RENDERIZADO</span>
+            <button type="button" onclick="document.getElementById('tlRenderModal').style.display='none'" style="background:none;border:none;color:#888;font-size:16px;cursor:pointer;">✕</button>
+        </div>
+        <div style="width:100%;height:220px;background:#000;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+            <video id="tlRenderVideo" controls playsinline style="width:100%;height:100%;object-fit:contain;background:#000;"></video>
+        </div>
+        <div style="display:flex;gap:8px;">
+            <button type="button" onclick="document.getElementById('tlRenderModal').style.display='none'" style="flex:1;background:rgba(255,255,255,0.08);border:1px solid #333;color:#aaa;padding:10px;border-radius:10px;font-size:11px;font-weight:bold;">CERRAR</button>
+            <button type="button" id="btnTlDownload" style="flex:1.5;background:#FF9E00;border:none;color:#000;padding:10px;border-radius:10px;font-size:11px;font-weight:bold;cursor:pointer;">⬇ DESCARGAR VIDEO</button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>"""
 
