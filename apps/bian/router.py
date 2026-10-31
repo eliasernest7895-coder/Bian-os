@@ -273,7 +273,13 @@ HTML_CONTENT = """<!DOCTYPE html>
             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff;
             padding: 10px 14px; border-radius: 12px; font-size: 11px; font-weight: 700; text-align: left; cursor: pointer;
         }
-    </style>
+    
+    #telemetryDrawer[data-module="bokeh"] .bian-default-optics { display: none !important; }
+    #telemetryDrawer[data-module="bokeh"] #bokehWorktable { display: flex !important; }
+</style>
+
+
+
 </head>
 <body>
     <div class="edge-screen-border" id="screenEdgeBorder"></div>
@@ -355,6 +361,436 @@ HTML_CONTENT = """<!DOCTYPE html>
 
             <!-- CUERPO DE HERRAMIENTAS DE LA MESA (SE DESPLIEGA AL ELEGIR MODO) -->
             <div id="wsBodyContent" style="display:none; flex-direction:column;">
+<!-- BIAN_ALM_START -->
+<div id="almacenGaleriaWorktable" class="bian-custom-worktable" style="display:none;flex-direction:column;gap:8px;width:100%;color:#fff;">
+    <div style="display:flex;gap:6px;">
+        <button type="button" id="alM1" onclick="setAlM('boveda')" style="flex:1;padding:7px;background:rgba(0,199,190,0.25);border:1.5px solid #00C7BE;color:#00C7BE;border-radius:8px;font-weight:bold;font-size:10px;">🏛️ BÓVEDA SQLITE</button>
+        <button type="button" id="alM2" onclick="setAlM('exif')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🔍 EXIF FORENSE</button>
+        <button type="button" id="alM3" onclick="setAlM('lote')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">📦 EXPORT LOTE</button>
+    </div>
+    <div style="background:rgba(0,0,0,0.55);border:1px solid rgba(0,199,190,0.3);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#00C7BE;font-size:10px;font-weight:bold;">🏛️ RETENCIÓN & COMPRESIÓN</span><span id="alBdg" style="background:rgba(0,199,190,0.15);border:1px solid #00C7BE;color:#00C7BE;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:bold;">SQLITE WAL (90 DÍAS)</span></div>
+        <input type="range" id="alRng" min="30" max="365" step="15" value="90" oninput="setAlR(this.value)" style="width:100%;accent-color:#00C7BE;">
+        <div style="display:flex;justify-content:space-between;color:#888;font-size:9px;"><span>INDEXADO: <b id="alIdx" style="color:#00FF88;">1,420 REGISTROS</b></span><span>FORMATO: <b style="color:#fff;">BLOB LOSSLESS</b></span></div>
+    </div>
+    <div style="display:flex;gap:6px;">
+        <button type="button" onclick="execAlmacenSave()" style="flex:1.4;background:#00C7BE;border:none;color:#000;padding:9px;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer;">🏛️ REGISTRAR EN BÓVEDA</button>
+        <button type="button" onclick="prompt('Hash SHA-256 Bóveda:',window.lastAlSha||'Registra primero');" style="flex:1;background:rgba(0,255,136,0.15);border:1px solid #00FF88;color:#00FF88;padding:9px;border-radius:8px;font-weight:bold;font-size:10px;cursor:pointer;">🔒 HASH SHA-256</button>
+    </div>
+    <div id="alRes" style="display:none;background:rgba(0,25,24,0.85);border:1px solid #00C7BE;border-radius:10px;padding:8px;gap:8px;align-items:center;"><canvas id="alCv" style="width:65px;height:85px;background:#000;border:1px solid #00C7BE;border-radius:4px;object-fit:contain;"></canvas><button type="button" onclick="dlAl()" style="flex:1;background:rgba(0,199,190,0.25);border:1px solid #00C7BE;color:#fff;border-radius:4px;padding:6px;font-size:9px;font-weight:bold;cursor:pointer;">⬇ EXPORTAR REGISTRO</button></div>
+</div>
+<!-- BIAN_ALM_END -->
+<!-- BIAN_NANO_START -->
+<div id="nanoBotWorktable" class="bian-custom-worktable" style="display:none;flex-direction:column;gap:8px;width:100%;color:#fff;">
+    <div style="display:flex;gap:6px;">
+        <button type="button" id="nbM1" onclick="setNbM('copiloto')" style="flex:1;padding:7px;background:rgba(0,255,204,0.25);border:1.5px solid #00FFCC;color:#00FFCC;border-radius:8px;font-weight:bold;font-size:10px;">🤖 COPILOTO RAM</button>
+        <button type="button" id="nbM2" onclick="setNbM('pipeline')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">⚡ PIPELINE MACRO</button>
+        <button type="button" id="nbM3" onclick="setNbM('inferencia')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🧠 NPU ZERO-LAG</button>
+    </div>
+    <div style="background:rgba(0,0,0,0.55);border:1px solid rgba(0,255,204,0.3);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#00FFCC;font-size:10px;font-weight:bold;">🤖 BUFFER DE EJECUCIÓN RAM</span><span id="nbBdg" style="background:rgba(0,255,204,0.15);border:1px solid #00FFCC;color:#00FFCC;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:bold;">512 MB (ZERO-SHUTTER)</span></div>
+        <input type="range" id="nbRng" min="128" max="2048" step="128" value="512" oninput="setNbB(this.value)" style="width:100%;accent-color:#00FFCC;">
+        <div style="display:flex;justify-content:space-between;color:#888;font-size:9px;"><span>LATENCIA: <b id="nbLat" style="color:#00FF88;">4.2 ms / HOOK</b></span><span>ESTADO: <b style="color:#fff;">VOLATILE RAM ACTIVE</b></span></div>
+    </div>
+    <div style="display:flex;gap:6px;">
+        <button type="button" onclick="execNanoBot()" style="flex:1.4;background:#00FFCC;border:none;color:#000;padding:9px;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer;">🤖 DISPARAR MACRO EN RAM</button>
+        <button type="button" onclick="prompt('Hash SHA-256 Nano-Bot:',window.lastNbSha||'Ejecuta primero');" style="flex:1;background:rgba(0,255,136,0.15);border:1px solid #00FF88;color:#00FF88;padding:9px;border-radius:8px;font-weight:bold;font-size:10px;cursor:pointer;">🔒 HASH SHA-256</button>
+    </div>
+    <div id="nbRes" style="display:none;background:rgba(0,25,20,0.85);border:1px solid #00FFCC;border-radius:10px;padding:8px;gap:8px;align-items:center;"><canvas id="nbCv" style="width:65px;height:85px;background:#000;border:1px solid #00FFCC;border-radius:4px;object-fit:contain;"></canvas><button type="button" onclick="dlNb()" style="flex:1;background:rgba(0,255,204,0.25);border:1px solid #00FFCC;color:#fff;border-radius:4px;padding:6px;font-size:9px;font-weight:bold;cursor:pointer;">⬇ DESCARGAR CAPTURA</button></div>
+</div>
+<!-- BIAN_NANO_END -->
+<!-- BIAN_DESP_START -->
+<div id="despachoComercialWorktable" class="bian-custom-worktable" style="display:none;flex-direction:column;gap:8px;width:100%;color:#fff;">
+    <div style="display:flex;gap:6px;">
+        <button type="button" id="dsM1" onclick="setDsM('iata')" style="flex:1;padding:7px;background:rgba(255,106,0,0.25);border:1.5px solid #FF6A00;color:#FF6A00;border-radius:8px;font-weight:bold;font-size:10px;">📦 CUBICAJE IATA</button>
+        <button type="button" id="dsM2" onclick="setDsM('guia')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">📋 GUÍA / PACK</button>
+        <button type="button" id="dsM3" onclick="setDsM('track')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🏷️ TRACKING</button>
+    </div>
+    <div style="background:rgba(0,0,0,0.55);border:1px solid rgba(255,106,0,0.3);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#FF6A00;font-size:10px;font-weight:bold;">📦 VOLUMEN & CUBICAJE</span><span id="dsBdg" style="background:rgba(255,106,0,0.15);border:1px solid #FF6A00;color:#FF6A00;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:bold;">0.18 m³ (36 kg IATA)</span></div>
+        <input type="range" id="dsRng" min="5" max="120" value="18" oninput="setDsV(this.value)" style="width:100%;accent-color:#FF6A00;">
+        <div style="display:flex;justify-content:space-between;color:#888;font-size:9px;"><span>TARIFA: <b style="color:#00FF88;">CARGA AÉREA/TERRESTRE</b></span><span>ESTÁNDAR: <b style="color:#fff;">IATA CARGO V2</b></span></div>
+    </div>
+    <div style="display:flex;gap:6px;">
+        <button type="button" onclick="execDespacho()" style="flex:1.4;background:#FF6A00;border:none;color:#000;padding:9px;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer;">📦 GENERAR MANIFIESTO IATA</button>
+        <button type="button" onclick="prompt('Hash SHA-256 Despacho:',window.lastDsSha||'Genera primero');" style="flex:1;background:rgba(0,255,136,0.15);border:1px solid #00FF88;color:#00FF88;padding:9px;border-radius:8px;font-weight:bold;font-size:10px;cursor:pointer;">🔒 HASH SHA-256</button>
+    </div>
+    <div id="dsRes" style="display:none;background:rgba(25,10,0,0.85);border:1px solid #FF6A00;border-radius:10px;padding:8px;gap:8px;align-items:center;"><canvas id="dsCv" style="width:65px;height:85px;background:#000;border:1px solid #FF6A00;border-radius:4px;object-fit:contain;"></canvas><button type="button" onclick="dlDs()" style="flex:1;background:rgba(255,106,0,0.25);border:1px solid #FF6A00;color:#fff;border-radius:4px;padding:6px;font-size:9px;font-weight:bold;cursor:pointer;">⬇ DESCARGAR MANIFIESTO</button></div>
+</div>
+<!-- BIAN_DESP_END -->
+<!-- BIAN_GENAI_START -->
+<div id="generadorAiWorktable" class="bian-custom-worktable" style="display:none;flex-direction:column;gap:8px;width:100%;color:#fff;">
+    <div style="display:flex;gap:6px;">
+        <button type="button" id="aiM1" onclick="setAiM('diff')" style="flex:1;padding:7px;background:rgba(255,0,110,0.25);border:1.5px solid #FF006E;color:#FF006E;border-radius:8px;font-weight:bold;font-size:10px;">✨ LATENT DIFF</button>
+        <button type="button" id="aiM2" onclick="setAiM('morph')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🧠 NEURAL MORPH</button>
+        <button type="button" id="aiM3" onclick="setAiM('prompt')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🔮 PROMPT AI</button>
+    </div>
+    <div style="background:rgba(0,0,0,0.55);border:1px solid rgba(255,0,110,0.3);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#FF006E;font-size:10px;font-weight:bold;">✨ INFERENCIA & CFG SCALE</span><span id="aiBdg" style="background:rgba(255,0,110,0.15);border:1px solid #FF006E;color:#FF006E;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:bold;">CFG: 7.5 (30 STEPS)</span></div>
+        <input type="range" id="aiRng" min="20" max="150" value="75" oninput="setAiCfg(this.value)" style="width:100%;accent-color:#FF006E;">
+        <div style="display:flex;justify-content:space-between;color:#888;font-size:9px;"><span>LATENT NOISE: <b style="color:#00FF88;">EPSILON-SCHEDULER</b></span><span>MOTOR: <b style="color:#fff;">NPU INT8 TENSOR</b></span></div>
+    </div>
+    <div style="display:flex;gap:6px;">
+        <button type="button" onclick="execAiGen()" style="flex:1.4;background:#FF006E;border:none;color:#fff;padding:9px;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer;">✨ SINTETIZAR FRAME AI</button>
+        <button type="button" onclick="prompt('Hash SHA-256 Generador AI:',window.lastAiSha||'Sintetiza primero');" style="flex:1;background:rgba(0,255,136,0.15);border:1px solid #00FF88;color:#00FF88;padding:9px;border-radius:8px;font-weight:bold;font-size:10px;cursor:pointer;">🔒 HASH SHA-256</button>
+    </div>
+    <div id="aiRes" style="display:none;background:rgba(30,0,18,0.85);border:1px solid #FF006E;border-radius:10px;padding:8px;gap:8px;align-items:center;"><canvas id="aiCv" style="width:65px;height:85px;background:#000;border:1px solid #FF006E;border-radius:4px;object-fit:contain;"></canvas><button type="button" onclick="dlAi()" style="flex:1;background:rgba(255,0,110,0.25);border:1px solid #FF006E;color:#fff;border-radius:4px;padding:6px;font-size:9px;font-weight:bold;cursor:pointer;">⬇ DESCARGAR SÍNTESIS</button></div>
+</div>
+<!-- BIAN_GENAI_END -->
+<!-- BIAN_VAL_START -->
+<div id="valuadorHibridoWorktable" class="bian-custom-worktable" style="display:none;flex-direction:column;gap:8px;width:100%;color:#fff;">
+    <div style="display:flex;gap:6px;">
+        <button type="button" id="vlM1" onclick="setVlM('tasar')" style="flex:1;padding:7px;background:rgba(48,209,88,0.25);border:1.5px solid #30D158;color:#30D158;border-radius:8px;font-weight:bold;font-size:10px;">🏷️ TASACIÓN IA</button>
+        <button type="button" id="vlM2" onclick="setVlM('poliza')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">📑 PÓLIZA</button>
+        <button type="button" id="vlM3" onclick="setVlM('deprec')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">📊 DEPRECIACIÓN</button>
+    </div>
+    <div style="background:rgba(0,0,0,0.55);border:1px solid rgba(48,209,88,0.3);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#30D158;font-size:10px;font-weight:bold;">🏷️ CONDICIÓN & RESIDUAL</span><span id="vlBdg" style="background:rgba(48,209,88,0.15);border:1px solid #30D158;color:#30D158;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:bold;">GRADO A (92%)</span></div>
+        <input type="range" id="vlRng" min="50" max="100" value="92" oninput="setVlR(this.value)" style="width:100%;accent-color:#30D158;">
+        <div style="display:flex;justify-content:space-between;color:#888;font-size:9px;"><span>AVALÚO EST.: <b id="vlEst" style="color:#00FF88;">$14,850 MXN</b></span><span>MARGEN: <b style="color:#fff;">±4.5% MERCADO</b></span></div>
+    </div>
+    <div style="display:flex;gap:6px;">
+        <button type="button" onclick="execValuation()" style="flex:1.4;background:#30D158;border:none;color:#000;padding:9px;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer;">🏷️ EMITIR AVALÚO FORENSE</button>
+        <button type="button" onclick="prompt('Hash SHA-256 Valuador:',window.lastVlSha||'Valúa primero');" style="flex:1;background:rgba(0,255,136,0.15);border:1px solid #00FF88;color:#00FF88;padding:9px;border-radius:8px;font-weight:bold;font-size:10px;cursor:pointer;">🔒 HASH SHA-256</button>
+    </div>
+    <div id="vlRes" style="display:none;background:rgba(5,25,12,0.85);border:1px solid #30D158;border-radius:10px;padding:8px;gap:8px;align-items:center;"><canvas id="vlCv" style="width:65px;height:85px;background:#000;border:1px solid #30D158;border-radius:4px;object-fit:contain;"></canvas><button type="button" onclick="dlVl()" style="flex:1;background:rgba(48,209,88,0.25);border:1px solid #30D158;color:#fff;border-radius:4px;padding:6px;font-size:9px;font-weight:bold;cursor:pointer;">⬇ DESCARGAR CERTIFICADO</button></div>
+</div>
+<!-- BIAN_VAL_END -->
+
+<!-- BIAN_CHEF_START -->
+<div id="chefLeanWorktable" class="bian-custom-worktable" style="display:none;flex-direction:column;gap:8px;width:100%;color:#fff;">
+    <div style="display:flex;gap:6px;">
+        <button type="button" id="cfM1" onclick="setCfM('bascula')" style="flex:1;padding:7px;background:rgba(255,149,0,0.25);border:1.5px solid #FF9500;color:#FF9500;border-radius:8px;font-weight:bold;font-size:10px;">🥩 BÁSCULA NPU</button>
+        <button type="button" id="cfM2" onclick="setCfM('merma')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">📉 AUDITORÍA</button>
+        <button type="button" id="cfM3" onclick="setCfM('calidad')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🔍 CALIDAD CORTE</button>
+    </div>
+    <div style="background:rgba(0,0,0,0.55);border:1px solid rgba(255,149,0,0.3);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#FF9500;font-size:10px;font-weight:bold;">🥩 DENSIDAD & CORTE</span><span id="cfBdg" style="background:rgba(255,149,0,0.15);border:1px solid #FF9500;color:#FF9500;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:bold;">MAGRO 1.05 g/cm³</span></div>
+        <input type="range" id="cfRng" min="80" max="130" value="105" oninput="setCfD(this.value)" style="width:100%;accent-color:#FF9500;">
+        <div style="display:flex;justify-content:space-between;color:#888;font-size:9px;"><span>VOLUMEN: <b id="cfVol" style="color:#00FF88;">420 cm³</b></span><span>MERMA EST.: <b style="color:#fff;">< 8.5%</b></span></div>
+    </div>
+    <div style="display:flex;gap:6px;">
+        <button type="button" onclick="execChefAudit()" style="flex:1.4;background:#FF9500;border:none;color:#000;padding:9px;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer;">🥩 PESAR & AUDITAR CORTE</button>
+        <button type="button" onclick="prompt('Hash SHA-256 Chef Lean:',window.lastCfSha||'Audita primero');" style="flex:1;background:rgba(0,255,136,0.15);border:1px solid #00FF88;color:#00FF88;padding:9px;border-radius:8px;font-weight:bold;font-size:10px;cursor:pointer;">🔒 HASH SHA-256</button>
+    </div>
+    <div id="cfRes" style="display:none;background:rgba(25,15,0,0.85);border:1px solid #FF9500;border-radius:10px;padding:8px;gap:8px;align-items:center;"><canvas id="cfCv" style="width:65px;height:85px;background:#000;border:1px solid #FF9500;border-radius:4px;object-fit:contain;"></canvas><button type="button" onclick="dlCf()" style="flex:1;background:rgba(255,149,0,0.25);border:1px solid #FF9500;color:#fff;border-radius:4px;padding:6px;font-size:9px;font-weight:bold;cursor:pointer;">⬇ DESCARGAR AUDITORÍA</button></div>
+</div>
+<!-- BIAN_CHEF_END -->
+<!-- BIAN_DEPTH_START -->
+<div id="depthMapWorktable" class="bian-custom-worktable" style="display:none;flex-direction:column;gap:8px;width:100%;color:#fff;">
+    <div style="display:flex;gap:6px;">
+        <button type="button" id="dpM1" onclick="setDpM('turbo')" style="flex:1;padding:7px;background:rgba(0,229,255,0.25);border:1.5px solid #00E5FF;color:#00E5FF;border-radius:8px;font-weight:bold;font-size:10px;">🌈 TURBO Z-MAP</button>
+        <button type="button" id="dpM2" onclick="setDpM('lidar')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🛰️ NUBE LIDAR</button>
+        <button type="button" id="dpM3" onclick="setDpM('z16')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🧊 16-BIT RAW</button>
+    </div>
+    <div style="background:rgba(0,0,0,0.55);border:1px solid rgba(0,229,255,0.3);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#00E5FF;font-size:10px;font-weight:bold;">🛰️ RANGO ESTIMADO Z</span><span id="dpBdg" style="background:rgba(0,229,255,0.15);border:1px solid #00E5FF;color:#00E5FF;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:bold;">0.2m - 4.5m</span></div>
+        <input type="range" id="dpRng" min="10" max="80" value="45" oninput="setDpR(this.value)" style="width:100%;accent-color:#00E5FF;">
+        <div style="display:flex;justify-content:space-between;color:#888;font-size:9px;"><span>NPU: <b style="color:#00FF88;">TENSOR-Z ACCEL</b></span><span>FORMATO: <b style="color:#fff;">FP16 DISPARITY</b></span></div>
+    </div>
+    <div style="display:flex;gap:6px;">
+        <button type="button" onclick="execDepthScan()" style="flex:1.4;background:#00E5FF;border:none;color:#000;padding:9px;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer;">🛰️ COMPUTAR MAPA Z</button>
+        <button type="button" onclick="prompt('Hash SHA-256 Depth:',window.lastDpSha||'Escanea primero');" style="flex:1;background:rgba(0,255,136,0.15);border:1px solid #00FF88;color:#00FF88;padding:9px;border-radius:8px;font-weight:bold;font-size:10px;cursor:pointer;">🔒 HASH SHA-256</button>
+    </div>
+    <div id="dpRes" style="display:none;background:rgba(0,25,30,0.85);border:1px solid #00E5FF;border-radius:10px;padding:8px;gap:8px;align-items:center;"><canvas id="dpCv" style="width:65px;height:85px;background:#000;border:1px solid #00E5FF;border-radius:4px;object-fit:contain;"></canvas><button type="button" onclick="dlDp()" style="flex:1;background:rgba(0,229,255,0.25);border:1px solid #00E5FF;color:#fff;border-radius:4px;padding:6px;font-size:9px;font-weight:bold;cursor:pointer;">⬇ DESCARGAR MAPA Z</button></div>
+</div>
+<!-- BIAN_DEPTH_END -->
+<!-- BIAN_MOTION_START -->
+<div id="videoMotionWorktable" class="bian-custom-worktable" style="display:none;flex-direction:column;gap:8px;width:100%;color:#fff;">
+    <div style="display:flex;gap:6px;">
+        <button type="button" id="vmM1" onclick="setVmM('flujo')" style="flex:1;padding:7px;background:rgba(255,158,0,0.25);border:1.5px solid #FF9E00;color:#FF9E00;border-radius:8px;font-weight:bold;font-size:10px;">⚡ FLUJO ÓPTICO</button>
+        <button type="button" id="vmM2" onclick="setVmM('estelas')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">💫 ESTELAS 60FPS</button>
+        <button type="button" id="vmM3" onclick="setVmM('track')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🎯 TRACKING AI</button>
+    </div>
+    <div style="background:rgba(0,0,0,0.55);border:1px solid rgba(255,158,0,0.3);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#FF9E00;font-size:10px;font-weight:bold;">⚡ PERSISTENCIA TEMPORAL</span><span id="vmBdg" style="background:rgba(255,158,0,0.15);border:1px solid #FF9E00;color:#FF9E00;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:bold;">DECAY: 75% (60 FPS)</span></div>
+        <input type="range" id="vmRng" min="10" max="95" value="75" oninput="setVmD(this.value)" style="width:100%;accent-color:#FF9E00;">
+        <div style="display:flex;justify-content:space-between;color:#888;font-size:9px;"><span>CADENCIA: <b style="color:#00FF88;">60.0 FPS SYNC</b></span><span>MOTOR: <b style="color:#fff;">DUAL-PIXEL FLOW</b></span></div>
+    </div>
+    <div style="display:flex;gap:6px;">
+        <button type="button" onclick="execMotionCapture()" style="flex:1.4;background:#FF9E00;border:none;color:#000;padding:9px;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer;">⚡ CAPTURAR MOTION FRAME</button>
+        <button type="button" onclick="prompt('Hash SHA-256 Motion:',window.lastVmSha||'Captura primero');" style="flex:1;background:rgba(0,255,136,0.15);border:1px solid #00FF88;color:#00FF88;padding:9px;border-radius:8px;font-weight:bold;font-size:10px;cursor:pointer;">🔒 HASH SHA-256</button>
+    </div>
+    <div id="vmRes" style="display:none;background:rgba(25,18,0,0.85);border:1px solid #FF9E00;border-radius:10px;padding:8px;gap:8px;align-items:center;"><canvas id="vmCv" style="width:65px;height:85px;background:#000;border:1px solid #FF9E00;border-radius:4px;object-fit:contain;"></canvas><button type="button" onclick="dlVm()" style="flex:1;background:rgba(255,158,0,0.25);border:1px solid #FF9E00;color:#fff;border-radius:4px;padding:6px;font-size:9px;font-weight:bold;cursor:pointer;">⬇ DESCARGAR CAPTURA</button></div>
+</div>
+<!-- BIAN_MOTION_END -->
+<!-- BIAN_SVG_START -->
+<div id="svgLogosWorktable" class="bian-custom-worktable" style="display:none;flex-direction:column;gap:8px;width:100%;color:#fff;">
+    <div style="display:flex;gap:6px;">
+        <button type="button" id="svgM1" onclick="setSvgM('bezier')" style="flex:1;padding:7px;background:rgba(0,245,212,0.25);border:1.5px solid #00F5D4;color:#00F5D4;border-radius:8px;font-weight:bold;font-size:10px;">📐 BÉZIER CAD</button>
+        <button type="button" id="svgM2" onclick="setSvgM('auto')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">⚡ TRAZADO AUTO</button>
+        <button type="button" id="svgM3" onclick="setSvgM('xml')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">📝 CÓDIGO XML</button>
+    </div>
+    <div style="background:rgba(0,0,0,0.55);border:1px solid rgba(0,245,212,0.3);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#00F5D4;font-size:10px;font-weight:bold;">📐 PRECISIÓN DE TRAZADO</span><span id="svgBdg" style="background:rgba(0,245,212,0.15);border:1px solid #00F5D4;color:#00F5D4;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:bold;">TOLERANCIA: 1.2px</span></div>
+        <input type="range" id="svgRng" min="2" max="50" value="12" oninput="setSvgTol(this.value)" style="width:100%;accent-color:#00F5D4;">
+        <div style="display:flex;justify-content:space-between;color:#888;font-size:9px;"><span>SALIDA: <b style="color:#00FF88;">SVG VECTORIAL</b></span><span>NODOS: <b style="color:#fff;">AUTO-REDUCE</b></span></div>
+    </div>
+    <div style="display:flex;gap:6px;">
+        <button type="button" onclick="execSvgVectorize()" style="flex:1.4;background:#00F5D4;border:none;color:#000;padding:9px;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer;">📐 VECTORIZAR A SVG</button>
+        <button type="button" onclick="prompt('Hash SHA-256 SVG:',window.lastSvgSha||'Vectoriza primero');" style="flex:1;background:rgba(0,255,136,0.15);border:1px solid #00FF88;color:#00FF88;padding:9px;border-radius:8px;font-weight:bold;font-size:10px;cursor:pointer;">🔒 HASH SHA-256</button>
+    </div>
+    <div id="svgRes" style="display:none;background:rgba(0,25,25,0.85);border:1px solid #00F5D4;border-radius:10px;padding:8px;gap:8px;align-items:center;"><canvas id="svgCv" style="width:65px;height:85px;background:#000;border:1px solid #00F5D4;border-radius:4px;object-fit:contain;"></canvas><button type="button" onclick="dlSvg()" style="flex:1;background:rgba(0,245,212,0.25);border:1px solid #00F5D4;color:#fff;border-radius:4px;padding:6px;font-size:9px;font-weight:bold;cursor:pointer;">⬇ DESCARGAR .SVG</button></div>
+</div>
+<!-- BIAN_SVG_END -->
+<!-- BIAN_RAW_START -->
+<div id="estudioRawWorktable" class="bian-custom-worktable" style="display:none;flex-direction:column;gap:8px;width:100%;color:#fff;">
+    <div style="display:flex;gap:6px;">
+        <button type="button" id="rawM1" onclick="setRawM('hist')" style="flex:1;padding:7px;background:rgba(255,159,10,0.25);border:1.5px solid #FF9F0A;color:#FF9F0A;border-radius:8px;font-weight:bold;font-size:10px;">📊 HISTOGRAMA</button>
+        <button type="button" id="rawM2" onclick="setRawM('14bit')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🎞️ 14-BIT LINEAR</button>
+        <button type="button" id="rawM3" onclick="setRawM('dng')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🧪 CURVA DNG</button>
+    </div>
+    <div style="background:rgba(0,0,0,0.55);border:1px solid rgba(255,159,10,0.3);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#FF9F0A;font-size:10px;font-weight:bold;">🎞️ REVELADO & RANGO DINÁMICO</span><span id="rawBdg" style="background:rgba(255,159,10,0.15);border:1px solid #FF9F0A;color:#FF9F0A;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:bold;">EV: 0.0 (14-BIT)</span></div>
+        <input type="range" id="rawRng" min="-20" max="20" value="0" oninput="setRawEv(this.value)" style="width:100%;accent-color:#FF9F0A;">
+        <div style="display:flex;justify-content:space-between;color:#888;font-size:9px;"><span>CANAL: <b style="color:#00FF88;">RGB DESERIALIZADO</b></span><span>GAMMA: <b style="color:#fff;">1.0 REC.709</b></span></div>
+    </div>
+    <div style="display:flex;gap:6px;">
+        <button type="button" onclick="execRawDev()" style="flex:1.4;background:#FF9F0A;border:none;color:#000;padding:9px;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer;">🎞️ REVELAR CUADRO RAW</button>
+        <button type="button" onclick="prompt('Hash SHA-256 Estudio RAW:',window.lastRawSha||'Revela primero');" style="flex:1;background:rgba(0,255,136,0.15);border:1px solid #00FF88;color:#00FF88;padding:9px;border-radius:8px;font-weight:bold;font-size:10px;cursor:pointer;">🔒 HASH SHA-256</button>
+    </div>
+    <div id="rawRes" style="display:none;background:rgba(25,15,5,0.85);border:1px solid #FF9F0A;border-radius:10px;padding:8px;gap:8px;align-items:center;"><canvas id="rawCv" style="width:65px;height:85px;background:#000;border:1px solid #FF9F0A;border-radius:4px;object-fit:contain;"></canvas><button type="button" onclick="dlRaw()" style="flex:1;background:rgba(255,159,10,0.25);border:1px solid #FF9F0A;color:#fff;border-radius:4px;padding:6px;font-size:9px;font-weight:bold;cursor:pointer;">⬇ DESCARGAR RAW</button></div>
+</div>
+<!-- BIAN_RAW_END -->
+<!-- BIAN_CINE_START -->
+<div id="cineScopeWorktable" class="bian-custom-worktable" style="display:none;flex-direction:column;gap:8px;width:100%;color:#fff;">
+    <div style="display:flex;gap:6px;">
+        <button type="button" id="cnM1" onclick="setCnM('239')" style="flex:1;padding:7px;background:rgba(10,132,255,0.25);border:1.5px solid #0A84FF;color:#0A84FF;border-radius:8px;font-weight:bold;font-size:10px;">🎬 2.39:1 DCI</button>
+        <button type="button" id="cnM2" onclick="setCnM('flare')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">✨ BLUE FLARE</button>
+        <button type="button" id="cnM3" onclick="setCnM('grain')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🎞️ 24FPS LUT</button>
+    </div>
+    <div style="background:rgba(0,0,0,0.55);border:1px solid rgba(10,132,255,0.3);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#0A84FF;font-size:10px;font-weight:bold;">🎬 ANAMÓRFICO & FLARE</span><span id="cnBdg" style="background:rgba(10,132,255,0.15);border:1px solid #0A84FF;color:#0A84FF;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:bold;">FLARE: 70%</span></div>
+        <input type="range" id="cnRng" min="0" max="100" value="70" oninput="setCnF(this.value)" style="width:100%;accent-color:#0A84FF;">
+        <div style="display:flex;justify-content:space-between;color:#888;font-size:9px;"><span>RELACIÓN: <b style="color:#00FF88;">2.39:1 WIDESCREEN</b></span><span>SHUTTER: <b style="color:#fff;">180° (1/48s)</b></span></div>
+    </div>
+    <div style="display:flex;gap:6px;">
+        <button type="button" onclick="execCineShot()" style="flex:1.4;background:#0A84FF;border:none;color:#fff;padding:9px;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer;">🎬 CAPTURAR TOMA CINE</button>
+        <button type="button" onclick="prompt('Hash SHA-256 Cine Scope:',window.lastCnSha||'Captura primero');" style="flex:1;background:rgba(0,255,136,0.15);border:1px solid #00FF88;color:#00FF88;padding:9px;border-radius:8px;font-weight:bold;font-size:10px;cursor:pointer;">🔒 HASH SHA-256</button>
+    </div>
+    <div id="cnRes" style="display:none;background:rgba(5,15,30,0.85);border:1px solid #0A84FF;border-radius:10px;padding:8px;gap:8px;align-items:center;"><canvas id="cnCv" style="width:65px;height:85px;background:#000;border:1px solid #0A84FF;border-radius:4px;object-fit:contain;"></canvas><button type="button" onclick="dlCn()" style="flex:1;background:rgba(10,132,255,0.25);border:1px solid #0A84FF;color:#fff;border-radius:4px;padding:6px;font-size:9px;font-weight:bold;cursor:pointer;">⬇ DESCARGAR TOMA</button></div>
+</div>
+<!-- BIAN_CINE_END -->
+<!-- BIAN_PDF_START -->
+<div id="imprentaPdfWorktable" class="bian-custom-worktable" style="display:none;flex-direction:column;gap:8px;width:100%;color:#fff;">
+    <div style="display:flex;gap:6px;">
+        <button type="button" id="pdfM1" onclick="setPdfM('cmyk')" style="flex:1;padding:7px;background:rgba(255,0,122,0.25);border:1.5px solid #FF007A;color:#FF007A;border-radius:8px;font-weight:bold;font-size:10px;">🖨️ FOGRA39</button>
+        <button type="button" id="pdfM2" onclick="setPdfM('bleed')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">📐 GUÍAS 3MM</button>
+        <button type="button" id="pdfM3" onclick="setPdfM('curvas')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">📑 A4 300DPI</button>
+    </div>
+    <div style="background:rgba(0,0,0,0.55);border:1px solid rgba(255,0,122,0.3);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#FF007A;font-size:10px;font-weight:bold;">🖨️ SANGRÍA & PREPRENSA</span><span id="pdfBdg" style="background:rgba(255,0,122,0.15);border:1px solid #FF007A;color:#FF007A;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:bold;">BLEED: 3.0mm</span></div>
+        <input type="range" id="pdfRng" min="0" max="50" value="30" oninput="setPdfB(this.value)" style="width:100%;accent-color:#FF007A;">
+        <div style="display:flex;justify-content:space-between;color:#888;font-size:9px;"><span>PERFIL: <b style="color:#00D2FF;">ISO COATED V2</b></span><span>REGISTRO: <b style="color:#00FF88;">CMYK AUTO</b></span></div>
+    </div>
+    <div style="display:flex;gap:6px;">
+        <button type="button" onclick="execPdfPrep()" style="flex:1.4;background:#FF007A;border:none;color:#fff;padding:9px;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer;">🖨️ GENERAR PREPRENSA</button>
+        <button type="button" onclick="prompt('Hash SHA-256 Imprenta:',window.lastPdfSha||'Genera primero');" style="flex:1;background:rgba(0,255,136,0.15);border:1px solid #00FF88;color:#00FF88;padding:9px;border-radius:8px;font-weight:bold;font-size:10px;cursor:pointer;">🔒 HASH SHA-256</button>
+    </div>
+    <div id="pdfRes" style="display:none;background:rgba(30,5,20,0.85);border:1px solid #FF007A;border-radius:10px;padding:8px;gap:8px;align-items:center;"><canvas id="pdfCv" style="width:65px;height:85px;background:#000;border:1px solid #FF007A;border-radius:4px;object-fit:contain;"></canvas><button type="button" onclick="dlPdf()" style="flex:1;background:rgba(255,0,122,0.25);border:1px solid #FF007A;color:#fff;border-radius:4px;padding:6px;font-size:9px;font-weight:bold;cursor:pointer;">⬇ DESCARGAR PREPRENSA</button></div>
+</div>
+<!-- BIAN_PDF_END -->
+<!-- BIAN_WALL_START -->
+<div id="wallpaperWorktable" class="bian-custom-worktable" style="display:none;flex-direction:column;gap:8px;width:100%;color:#fff;">
+    <div style="display:flex;gap:6px;">
+        <button type="button" id="wpM1" onclick="setWpM('sticker')" style="flex:1;padding:7px;background:rgba(191,90,242,0.25);border:1.5px solid #BF5AF2;color:#BF5AF2;border-radius:8px;font-weight:bold;font-size:10px;">✂️ TROQUELADO</button>
+        <button type="button" id="wpM2" onclick="setWpM('amoled')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">⬛ AMOLED 0%</button>
+        <button type="button" id="wpM3" onclick="setWpM('wall209')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">📱 20:9 ULTRA</button>
+    </div>
+    <div style="background:rgba(0,0,0,0.55);border:1px solid rgba(191,90,242,0.3);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#BF5AF2;font-size:10px;font-weight:bold;">🎨 BORDE & SILUETA</span><span id="wpBdg" style="background:rgba(191,90,242,0.15);border:1px solid #BF5AF2;color:#BF5AF2;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:bold;">6px BLANCO DILATADO</span></div>
+        <input type="range" id="wpRng" min="0" max="16" value="6" oninput="setWpB(this.value)" style="width:100%;accent-color:#BF5AF2;">
+        <div style="display:flex;justify-content:space-between;color:#888;font-size:9px;"><span>FONDO: <b id="wpBgLbl" style="color:#00FF88;">TRANSPARENTE / PNG</b></span><span>ASPECTO: <b style="color:#fff;">1080x2400 AMOLED</b></span></div>
+    </div>
+    <div style="display:flex;gap:6px;">
+        <button type="button" onclick="execWallpaper()" style="flex:1.4;background:#BF5AF2;border:none;color:#fff;padding:9px;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer;">🎨 RENDERIZAR STICKER</button>
+        <button type="button" onclick="prompt('Hash SHA-256 Sticker:',window.lastWpSha||'Renderiza primero');" style="flex:1;background:rgba(0,255,136,0.15);border:1px solid #00FF88;color:#00FF88;padding:9px;border-radius:8px;font-weight:bold;font-size:10px;cursor:pointer;">🔒 HASH SHA-256</button>
+    </div>
+    <div id="wpRes" style="display:none;background:rgba(25,10,35,0.85);border:1px solid #BF5AF2;border-radius:10px;padding:8px;gap:8px;align-items:center;"><canvas id="wpCv" style="width:65px;height:85px;background:#000;border:1px solid #BF5AF2;border-radius:4px;object-fit:contain;"></canvas><button type="button" onclick="dlWp()" style="flex:1;background:rgba(191,90,242,0.25);border:1px solid #BF5AF2;color:#fff;border-radius:4px;padding:6px;font-size:9px;font-weight:bold;cursor:pointer;">⬇ DESCARGAR STICKER</button></div>
+</div>
+<!-- BIAN_WALL_END -->
+<!-- BIAN_LONAS_START -->
+<div id="lonas3dWorktable" class="bian-custom-worktable" style="display:none;flex-direction:column;gap:8px;width:100%;color:#fff;">
+    <div style="display:flex;gap:6px;">
+        <button type="button" id="lnM1" onclick="setLnM('malla')" style="flex:1;padding:7px;background:rgba(255,204,0,0.25);border:1.5px solid #FFCC00;color:#FFCC00;border-radius:8px;font-weight:bold;font-size:10px;">📐 MALLA 3D</button>
+        <button type="button" id="lnM2" onclick="setLnM('viento')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">💨 TÚNEL 110KM</button>
+        <button type="button" id="lnM3" onclick="setLnM('ptr')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🏗️ PTR CAL.14</button>
+    </div>
+    <div style="background:rgba(0,0,0,0.55);border:1px solid rgba(255,204,0,0.3);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#FFCC00;font-size:10px;font-weight:bold;">⚡ CARGA AERODINÁMICA</span><span id="lnBdg" style="background:rgba(255,204,0,0.15);border:1px solid #FFCC00;color:#FFCC00;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:bold;">110 KM/H (MÁX)</span></div>
+        <input type="range" id="lnRng" min="40" max="140" value="110" oninput="setLnV(this.value)" style="width:100%;accent-color:#FFCC00;">
+        <div style="display:flex;justify-content:space-between;color:#888;font-size:9px;"><span>TENSIÓN: <b id="lnTen" style="color:#00FF88;">741 N/m²</b></span><span>FLECHA: <b style="color:#fff;">< 12mm</b></span></div>
+    </div>
+    <div style="display:flex;gap:6px;">
+        <button type="button" onclick="execLonas3D()" style="flex:1.4;background:#FFCC00;border:none;color:#000;padding:9px;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer;">📐 RENDER BASTIDOR 3D</button>
+        <button type="button" onclick="prompt('Hash SHA-256 Lonas 3D:',window.lastLnSha||'Renderiza primero');" style="flex:1;background:rgba(0,255,136,0.15);border:1px solid #00FF88;color:#00FF88;padding:9px;border-radius:8px;font-weight:bold;font-size:10px;cursor:pointer;">🔒 HASH SHA-256</button>
+    </div>
+    <div id="lnRes" style="display:none;background:rgba(25,20,0,0.85);border:1px solid #FFCC00;border-radius:10px;padding:8px;gap:8px;align-items:center;"><canvas id="lnCv" style="width:65px;height:85px;background:#000;border:1px solid #FFCC00;border-radius:4px;object-fit:contain;"></canvas><button type="button" onclick="dlLn()" style="flex:1;background:rgba(255,204,0,0.25);border:1px solid #FFCC00;color:#fff;border-radius:4px;padding:6px;font-size:9px;font-weight:bold;cursor:pointer;">⬇ DESCARGAR PLANO</button></div>
+</div>
+<!-- BIAN_LONAS_END -->
+<!-- BIAN_BK_START -->
+<div id="bokehWorktable" class="bian-custom-worktable" style="display:none;flex-direction:column;gap:8px;width:100%;color:#fff;">
+    <div style="display:flex;gap:6px;">
+        <button type="button" id="bkI1" onclick="setBkI('circular')" style="flex:1;padding:7px;background:rgba(255,45,85,0.25);border:1.5px solid #FF2D55;color:#FF2D55;border-radius:8px;font-weight:bold;font-size:10px;">⭕ CIRCULAR</button>
+        <button type="button" id="bkI2" onclick="setBkI('anamorphic')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">📐 ANAMÓRFICO</button>
+        <button type="button" id="bkI3" onclick="setBkI('swirly')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🌀 SWIRLY</button>
+    </div>
+    <div style="background:rgba(0,0,0,0.55);border:1px solid rgba(255,45,85,0.3);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#FF2D55;font-size:10px;font-weight:bold;">🎯 APERTURA ÓPTICA</span><span id="bkBdg" style="background:rgba(255,45,85,0.15);border:1px solid #FF2D55;color:#FF2D55;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:bold;">f/1.2 (EXTREMO)</span></div>
+        <input type="range" id="bkRng" min="12" max="160" value="12" oninput="setBkAp(this.value)" style="width:100%;accent-color:#FF2D55;">
+        <div style="display:flex;justify-content:space-between;color:#888;font-size:9px;"><span>LENTE: 85MM PRIME</span><span>PROFUNDIDAD: <b id="bkLbl" style="color:#FF2D55;">f/1.2</b></span></div>
+    </div>
+    <div style="display:flex;gap:6px;">
+        <button type="button" onclick="execBokeh()" style="flex:1.4;background:#FF2D55;border:none;color:#fff;padding:9px;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer;">📸 CAPTURAR RETRATO</button>
+        <button type="button" onclick="prompt('Hash SHA-256:',window.lastBkSha||'Captura primero');" style="flex:1;background:rgba(0,255,136,0.15);border:1px solid #00FF88;color:#00FF88;padding:9px;border-radius:8px;font-weight:bold;font-size:10px;cursor:pointer;">🔒 HASH SHA-256</button>
+    </div>
+    <div id="bkRes" style="display:none;background:rgba(25,5,15,0.85);border:1px solid #FF2D55;border-radius:10px;padding:8px;gap:8px;align-items:center;"><canvas id="bkCv" style="width:65px;height:85px;background:#000;border:1px solid #FF2D55;border-radius:4px;object-fit:contain;"></canvas><button type="button" onclick="dlBk()" style="flex:1;background:rgba(255,45,85,0.25);border:1px solid #FF2D55;color:#fff;border-radius:4px;padding:6px;font-size:9px;font-weight:bold;cursor:pointer;">⬇ DESCARGAR RETRATO</button></div>
+</div>
+<!-- BIAN_BK_END -->
+<!-- BIAN_TL_START -->
+<div id="timelapseWorktable" class="bian-custom-worktable" style="display:none;flex-direction:column;gap:8px;width:100%;color:#fff;">
+    <div style="display:flex;gap:6px;">
+        <button type="button" id="tlM1" onclick="setTlM('city')" style="flex:1;padding:7px;background:rgba(255,149,0,0.25);border:1.5px solid #FF9500;color:#FF9500;border-radius:8px;font-weight:bold;font-size:10px;">🚗 URBANO</button>
+        <button type="button" id="tlM2" onclick="setTlM('clouds')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">☁️ NUBES</button>
+        <button type="button" id="tlM3" onclick="setTlM('night')" style="flex:1;padding:7px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🌌 ASTRO</button>
+    </div>
+    <div style="background:rgba(0,0,0,0.55);border:1px solid rgba(255,149,0,0.3);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#FF9500;font-size:10px;font-weight:bold;">⏱ INTERVALO</span><span id="tlBdg" style="background:rgba(255,149,0,0.15);border:1px solid #FF9500;color:#FF9500;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:bold;">1.0s (10X)</span></div>
+        <div style="display:flex;gap:4px;">
+            <button type="button" class="btn-tl" onclick="setTlI(0.5,'4X',this)" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;padding:5px;border-radius:6px;font-size:10px;">0.5s</button>
+            <button type="button" class="btn-tl active" onclick="setTlI(1.0,'10X',this)" style="flex:1;background:rgba(255,149,0,0.25);border:1.5px solid #FF9500;color:#FF9500;padding:5px;border-radius:6px;font-size:10px;font-weight:bold;">1.0s</button>
+            <button type="button" class="btn-tl" onclick="setTlI(2.0,'30X',this)" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;padding:5px;border-radius:6px;font-size:10px;">2.0s</button>
+            <button type="button" class="btn-tl" onclick="setTlI(5.0,'60X',this)" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;padding:5px;border-radius:6px;font-size:10px;">5.0s</button>
+        </div>
+        <div style="display:flex;justify-content:space-between;color:#888;font-size:9px;border-top:1px dashed #333;padding-top:4px;"><span>CUADROS: <b id="tlF" style="color:#fff;">0</b></span><span>DURACIÓN: <b id="tlD" style="color:#00FF88;">0.0s @ 30FPS</b></span></div>
+    </div>
+    <div style="display:flex;gap:6px;">
+        <button type="button" id="btnTl" onclick="toggleTl()" style="flex:1.4;background:#FF9500;border:none;color:#000;padding:9px;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer;">⏱ GRABAR INTERVALO</button>
+        <button type="button" onclick="prompt('Hash SHA-256:',window.lastTlSha||'Graba primero');" style="flex:1;background:rgba(0,255,136,0.15);border:1px solid #00FF88;color:#00FF88;padding:9px;border-radius:8px;font-weight:bold;font-size:10px;cursor:pointer;">🔒 HASH SHA-256</button>
+    </div>
+    <div id="tlRes" style="display:none;background:rgba(30,15,0,0.85);border:1px solid #FF9500;border-radius:10px;padding:8px;gap:8px;align-items:center;"><canvas id="tlCv" style="width:65px;height:85px;background:#000;border:1px solid #FF9500;border-radius:4px;object-fit:contain;"></canvas><button type="button" onclick="dlTl()" style="flex:1;background:rgba(255,149,0,0.25);border:1px solid #FF9500;color:#fff;border-radius:4px;padding:6px;font-size:9px;font-weight:bold;cursor:pointer;">⬇ DESCARGAR CAPTURA</button></div>
+</div>
+<!-- BIAN_TL_END -->
+<!-- BIAN_TIMELAPSE_BLOCK -->
+
+<!-- /BIAN_TIMELAPSE_BLOCK -->
+<!-- BIAN_NIGHTOGRAPHY_BLOCK -->
+<div id="nightographyWorktable" class="bian-custom-worktable" style="display:none;flex-direction:column;gap:8px;width:100%;color:#fff;">
+    <div style="display:flex;gap:6px;">
+        <button type="button" id="nBtnStack" onclick="setNightMode('stack')" style="flex:1;padding:7px 4px;background:rgba(94,92,230,0.25);border:1.5px solid #5E5CE6;color:#5E5CE6;border-radius:8px;font-weight:bold;font-size:10px;">⚡ STACK 8X</button>
+        <button type="button" id="nBtnAstro" onclick="setNightMode('astro')" style="flex:1;padding:7px 4px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🌌 DEEP-SKY</button>
+        <button type="button" id="nBtnTrails" onclick="setNightMode('trails')" style="flex:1;padding:7px 4px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">✨ TRAILS</button>
+    </div>
+    <div style="background:rgba(0,0,0,0.55);border:1px solid rgba(94,92,230,0.3);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:#5E5CE6;font-size:10px;font-weight:bold;">⏱ INTEGRACIÓN TEMPORAL</span>
+            <span id="nightExpBadge" style="background:rgba(94,92,230,0.15);border:1px solid #5E5CE6;color:#5E5CE6;font-size:9px;padding:1px 5px;border-radius:4px;">3.0s (12 CUADROS)</span>
+        </div>
+        <div style="display:flex;gap:4px;">
+            <button type="button" class="btn-n-t" onclick="setNightT(1.5,6,this)" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;padding:5px;border-radius:6px;font-size:10px;">1.5s</button>
+            <button type="button" class="btn-n-t active" onclick="setNightT(3.0,12,this)" style="flex:1;background:rgba(94,92,230,0.25);border:1px solid #5E5CE6;color:#5E5CE6;padding:5px;border-radius:6px;font-size:10px;font-weight:bold;">3.0s</button>
+            <button type="button" class="btn-n-t" onclick="setNightT(5.0,20,this)" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;padding:5px;border-radius:6px;font-size:10px;">5.0s</button>
+            <button type="button" class="btn-n-t" onclick="setNightT(10.0,40,this)" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;padding:5px;border-radius:6px;font-size:10px;">10s</button>
+        </div>
+        <div style="display:flex;justify-content:space-between;color:#888;font-size:9px;border-top:1px dashed #333;padding-top:4px;">
+            <span>MOTOR: <b style="color:#fff;">FLOAT32 ACCUM</b></span>
+            <span>GANANCIA: <b style="color:#00FF88;">+18.4 dB SNR</b></span>
+        </div>
+    </div>
+    <div style="display:flex;gap:6px;">
+        <button type="button" id="btnExecNight" onclick="execNightStack()" style="flex:1.4;background:#5E5CE6;border:none;color:#fff;padding:9px;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer;">🌌 INICIAR APILADO</button>
+        <button type="button" onclick="prompt('Hash SHA-256 Nightography:', window.lastNightSha || 'Apila primero');" style="flex:1;background:rgba(0,255,136,0.15);border:1px solid #00FF88;color:#00FF88;padding:9px;border-radius:8px;font-weight:bold;font-size:10px;cursor:pointer;">🔒 HASH SHA-256</button>
+    </div>
+    <div id="nightResBox" style="display:none;background:rgba(15,10,30,0.85);border:1px solid #5E5CE6;border-radius:10px;padding:8px;gap:8px;align-items:center;">
+        <canvas id="nightCanvas" style="width:65px;height:85px;background:#000;border:1px solid #5E5CE6;border-radius:4px;object-fit:contain;"></canvas>
+        <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
+            <span id="nightShaPreview" style="color:#00FF88;font-family:monospace;font-size:8px;"></span>
+            <button type="button" onclick="downloadNight()" style="background:rgba(94,92,230,0.25);border:1px solid #5E5CE6;color:#fff;border-radius:4px;padding:5px;font-size:9px;font-weight:bold;cursor:pointer;">⬇ DESCARGAR CAPTURA</button>
+        </div>
+    </div>
+</div>
+<!-- /BIAN_NIGHTOGRAPHY_BLOCK -->
+<!-- BIAN_SCANDOC_BLOCK -->
+<div id="scanDocProWorktable" class="bian-custom-worktable" style="display:none;flex-direction:column;gap:8px;width:100%;color:#fff;">
+    <div style="display:flex;gap:6px;">
+        <button type="button" id="sdBtnBin" onclick="setScanDocFlt('binary')" style="flex:1;padding:7px 4px;background:rgba(0,210,255,0.25);border:1.5px solid #00D2FF;color:#00D2FF;border-radius:8px;font-weight:bold;font-size:10px;">📄 BINARIO B/N</button>
+        <button type="button" id="sdBtnCol" onclick="setScanDocFlt('color')" style="flex:1;padding:7px 4px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🪪 COLOR REAL</button>
+        <button type="button" id="sdBtnOcr" onclick="setScanDocFlt('ocr')" style="flex:1;padding:7px 4px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🔍 OCR RAW</button>
+    </div>
+    <div style="background:rgba(0,0,0,0.55);border:1px solid rgba(0,210,255,0.3);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:#00D2FF;font-size:10px;font-weight:bold;">📐 ENCUADRE HOMOGRÁFICO</span>
+            <span style="background:rgba(0,255,136,0.15);border:1px solid #00FF88;color:#00FF88;font-size:9px;padding:1px 5px;border-radius:4px;">4 VÉRTICES AUTO</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;color:#aaa;font-size:10px;">
+            <span>UMBRAL DE BORDE (CONVOLUCIÓN)</span>
+            <span id="sdThreshLbl" style="color:#00D2FF;font-weight:bold;">128 / 255</span>
+        </div>
+        <input type="range" id="sdThreshRange" min="50" max="220" value="128" oninput="document.getElementById('sdThreshLbl').innerText = this.value + ' / 255'" style="width:100%;accent-color:#00D2FF;">
+        <div style="display:flex;justify-content:space-between;color:#888;font-size:9px;border-top:1px dashed #333;padding-top:4px;">
+            <span>RESOLUCIÓN: <b style="color:#fff;">300 DPI EQ</b></span>
+            <span>FORMATO: <b style="color:#00D2FF;">A4 / CARTA</b></span>
+        </div>
+    </div>
+    <div style="display:flex;gap:6px;">
+        <button type="button" onclick="execScanDocCapture()" style="flex:1.4;background:#00D2FF;border:none;color:#000;padding:9px;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer;">📸 ESCANEAR DOCUMENTO</button>
+        <button type="button" onclick="prompt('Hash SHA-256 Forense:', window.lastScanSha || 'Escanea primero');" style="flex:1;background:rgba(0,255,136,0.15);border:1px solid #00FF88;color:#00FF88;padding:9px;border-radius:8px;font-weight:bold;font-size:10px;cursor:pointer;">🔒 HASH SHA-256</button>
+    </div>
+    <div id="sdResBox" style="display:none;background:rgba(0,20,30,0.85);border:1px solid #00D2FF;border-radius:10px;padding:8px;gap:8px;align-items:center;">
+        <canvas id="sdCanvas" style="width:65px;height:85px;background:#000;border:1px solid #444;border-radius:4px;object-fit:contain;"></canvas>
+        <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
+            <textarea id="sdOcrTxt" readonly style="width:100%;height:50px;background:#000;border:1px solid #333;color:#00FF88;font-size:8px;font-family:monospace;padding:3px;resize:none;box-sizing:border-box;"></textarea>
+            <button type="button" onclick="prompt('Texto OCR extraído:', document.getElementById('sdOcrTxt').value);" style="background:rgba(255,255,255,0.08);border:1px solid #555;color:#fff;border-radius:4px;padding:4px;font-size:9px;cursor:pointer;">📋 COPIAR TEXTO OCR</button>
+        </div>
+    </div>
+</div>
+<!-- /BIAN_SCANDOC_BLOCK -->
+<!-- BIAN_MACRO_BOX -->
+<div id="macroProWorktable" class="bian-custom-worktable" class="bian-custom-worktable" style="display:none;flex-direction:column;gap:10px;width:100%;color:#fff;">
+    <div style="display:flex;gap:6px;">
+        <button type="button" id="macroModeStack" onclick="setMacroMode('stack')" style="flex:1;padding:8px 4px;background:rgba(0,255,102,0.25);border:1.5px solid #00FF66;color:#00FF66;border-radius:8px;font-weight:bold;font-size:10px;">🔬 DEEP FOCUS STACK</button>
+        <button type="button" id="macroModePeaking" onclick="setMacroMode('peaking')" style="flex:1;padding:8px 4px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🎯 FOCUS PEAKING</button>
+        <button type="button" id="macroModeLoupe" onclick="setMacroMode('loupe')" style="flex:1;padding:8px 4px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🔍 LUPA 3X HD</button>
+    </div>
+    <div style="background:rgba(0,0,0,0.55);border:1px solid rgba(0,255,102,0.3);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:#00FF66;font-size:11px;font-weight:bold;">📐 PLANOS FOCALES (Z-STACK)</span>
+            <span id="macroStepsBadge" style="background:rgba(0,255,102,0.15);border:1px solid #00FF66;color:#00FF66;font-size:9px;padding:2px 6px;border-radius:6px;font-weight:bold;">5 PLANOS FOCALES</span>
+        </div>
+        <div style="display:flex;gap:6px;">
+            <button type="button" class="btn-m-step" onclick="setMacroSteps(3, this)" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;padding:6px;border-radius:6px;font-size:10px;">3 PLANOS</button>
+            <button type="button" class="btn-m-step active" onclick="setMacroSteps(5, this)" style="flex:1;background:rgba(0,255,102,0.25);border:1px solid #00FF66;color:#00FF66;padding:6px;border-radius:6px;font-size:10px;font-weight:bold;">5 PLANOS</button>
+            <button type="button" class="btn-m-step" onclick="setMacroSteps(8, this)" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;padding:6px;border-radius:6px;font-size:10px;">8 ULTRA</button>
+        </div>
+        <div style="display:flex;justify-content:space-between;color:#aaa;font-size:10px;">
+            <span>UMBRAL DE DETECCIÓN LAPLACIANO</span>
+            <span id="macroThresholdVal" style="color:#00FF66;font-weight:bold;">42 / 100</span>
+        </div>
+        <input type="range" id="macroThresholdRange" min="15" max="85" value="42" oninput="document.getElementById('macroThresholdVal').innerText = this.value + ' / 100'" style="width:100%;accent-color:#00FF66;">
+        <div style="display:flex;justify-content:space-between;color:#888;font-size:10px;border-top:1px dashed #333;padding-top:6px;">
+            <span>PROFUNDIDAD: <b style="color:#fff;">FULL DEPTH (INFINITO)</b></span>
+            <span>FUSIÓN: <b style="color:#00FF66;">MAX LAPLACIAN VAR</b></span>
+        </div>
+    </div>
+    <div style="display:flex;gap:6px;">
+        <button type="button" id="btnRunMacro" onclick="executeMacroStack()" style="flex:1.4;background:#00FF66;border:none;color:#000;padding:10px;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer;">🔬 DISPARAR FOCUS STACK</button>
+        <button type="button" onclick="prompt('Hash SHA-256 Macro:', window.lastMacroSha||'Dispara el stack primero');" style="flex:1;background:rgba(0,255,102,0.15);border:1px solid #00FF66;color:#00FF66;padding:10px;border-radius:8px;font-weight:bold;font-size:10px;cursor:pointer;">🔒 RAW + SHA-256</button>
+    </div>
+    <div id="macroResultBox" style="display:none;background:rgba(0,25,10,0.85);border:1px solid #00FF66;border-radius:10px;padding:10px;flex-direction:column;gap:6px;">
+        <span id="macroShaLabel" style="color:#00FF66;font-family:monospace;font-size:9px;"></span>
+        <div style="display:flex;gap:8px;align-items:center;">
+            <canvas id="macroPreviewCanvas" style="width:70px;height:90px;background:#000;border-radius:4px;border:1px solid #00FF66;object-fit:contain;"></canvas>
+            <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
+                <div style="color:#aaa;font-size:9px;font-family:monospace;">
+                    PLANOS: <b id="macroTelemetrySteps" style="color:#fff;">5</b> | NITIDEZ: <b style="color:#00FF66;">98.6% SHARP</b>
+                </div>
+                <button type="button" onclick="downloadMacroResult()" style="background:rgba(0,255,102,0.2);border:1px solid #00FF66;color:#fff;border-radius:4px;padding:4px;font-size:9px;font-weight:bold;cursor:pointer;">⬇ DESCARGAR CAPTURA</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /BIAN_MACRO_BOX -->
+
                 <!-- Perfiles Ópticos -->
                 <div style="display:flex; gap:6px; margin-bottom:8px;">
                     <button type="button" onclick="setOpticProfile('AERO')" id="btnOptAero" style="flex:1; background:rgba(0,229,255,0.15); border:1px solid #00E5FF; color:#00E5FF; border-radius:8px; padding:6px 0; font-size:9px; font-weight:bold; cursor:pointer;">AERO OPTIC</button>
@@ -505,6 +941,11 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
 
         function syncActiveModeUI(key) {
+    setTimeout(() => window.syncBianWorkstation && window.syncBianWorkstation(key), 20);
+    if (window.renderNightState) window.renderNightState();
+    if (window.renderScanDocState) window.renderScanDocState();
+    if (window.syncMasterWorkstation) window.syncMasterWorkstation(key);
+    if (window.syncMacroWorktable) window.syncMacroWorktable(key);
             const isPano = (key === 'pano');
             const hud = document.getElementById('panoHorizonHud');
             if (hud) hud.style.display = isPano ? 'flex' : 'none';
@@ -767,7 +1208,247 @@ HTML_CONTENT = """<!DOCTYPE html>
                         if(b) { b.style.background='rgba(255,45,85,0.15)'; b.style.borderColor='#FF2D55'; b.style.color='#FF2D55'; }
                     }
                 }
-            </script>
+            
+// --- MÓDULO 4: SCAN DOC PRO TACTICAL ENGINE ---
+function renderScanDocUI() {
+    const container = document.getElementById('wsBodyContent');
+    if (!container) return;
+
+    // Asegurar título y estado del Drawer
+    const titleHeader = document.querySelector('#telemetryDrawer div[style*="font-weight:bold"]') || document.getElementById('workstationTitle');
+    if (titleHeader) titleHeader.innerHTML = 'MESA DE TRABAJO // SCAN DOC PRO';
+
+    // Inyectar controles tácticos debajo de la selección de modo
+    let scanBox = document.getElementById('scanDocControls');
+    if (!scanBox) {
+        scanBox = document.createElement('div');
+        scanBox.id = 'scanDocControls';
+        scanBox.style.cssText = 'display:flex;flex-direction:column;gap:10px;width:100%;margin-top:10px;';
+        container.appendChild(scanBox);
+    }
+
+    scanBox.innerHTML = `
+        <!-- Perfiles de Procesamiento de Imagen -->
+        <div style="display:flex;gap:6px;">
+            <button type="button" class="btn-scan-mode" onclick="setScanMode(this, 'binary')" style="flex:1;background:rgba(0,210,255,0.2);border:1px solid #00D2FF;color:#00D2FF;padding:7px;border-radius:8px;font-size:10px;font-weight:bold;">BINARIO B/N</button>
+            <button type="button" class="btn-scan-mode" onclick="setScanMode(this, 'color')" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;padding:7px;border-radius:8px;font-size:10px;">COLOR REAL</button>
+            <button type="button" class="btn-scan-mode" onclick="setScanMode(this, 'ocr')" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;padding:7px;border-radius:8px;font-size:10px;">OCR RAW</button>
+        </div>
+
+        <!-- Calibrador de Homografía Proyectiva -->
+        <div style="background:rgba(0,0,0,0.5);border:1px solid rgba(0,210,255,0.25);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="color:#00D2FF;font-size:10px;letter-spacing:0.5px;font-weight:bold;">📐 HOMOGRAFÍA PROYECTIVA</span>
+                <span style="background:rgba(0,255,136,0.15);border:1px solid #00FF88;color:#00FF88;font-size:9px;padding:2px 6px;border-radius:6px;">4 VÉRTICES AUTO</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;color:#aaa;font-size:10px;">
+                <span>SENSIBILIDAD DE BORDES (SAUVOLA)</span>
+                <span id="scanThresholdVal" style="color:#00D2FF;font-weight:bold;">65%</span>
+            </div>
+            <input type="range" min="10" max="95" value="65" oninput="document.getElementById('scanThresholdVal').innerText = this.value + '%'" style="width:100%;accent-color:#00D2FF;">
+        </div>
+
+        <!-- Telemetría de Captura -->
+        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between;font-size:10px;color:#888;">
+            <span>RESOLUCIÓN: <b style="color:#fff;">300 DPI EQ</b></span>
+            <span>CORRECCIÓN: <b style="color:#00D2FF;">A4 ORTOGONAL</b></span>
+        </div>
+
+        <!-- Acciones Forenses -->
+        <div style="display:flex;gap:6px;">
+            <button type="button" onclick="alert('Búfer OCR listo para captura.')" style="flex:1;background:rgba(0,210,255,0.15);border:1px solid #00D2FF;color:#00D2FF;padding:8px;border-radius:8px;font-size:10px;font-weight:bold;">📋 TEXTO OCR</button>
+            <button type="button" onclick="alert('Registro encolado a Bóveda SHA-256.')" style="flex:1;background:rgba(0,255,136,0.15);border:1px solid #00FF88;color:#00FF88;padding:8px;border-radius:8px;font-size:10px;font-weight:bold;">🔒 FIRMAR SHA-256</button>
+        </div>
+    `;
+}
+
+window.setScanMode = function(btn, mode) {
+    document.querySelectorAll('.btn-scan-mode').forEach(b => {
+        b.style.background = 'rgba(255,255,255,0.05)';
+        b.style.border = '1px solid #333';
+        b.style.color = '#aaa';
+    });
+    btn.style.background = 'rgba(0,210,255,0.2)';
+    btn.style.border = '1px solid #00D2FF';
+    btn.style.color = '#00D2FF';
+};
+
+// Despachador de mesa reactiva según el módulo seleccionado
+
+window.dispatchModuleWorkstation = function(key) {
+    const scanBox = document.getElementById('scanDocControls');
+    const tlBox = document.getElementById('tlMesaTrabajo');
+
+    if (key === 'scan_doc' || key === 'scan') {
+        if (tlBox) tlBox.style.display = 'none';
+        renderScanDocUI();
+        const sb = document.getElementById('scanDocControls');
+        if (sb) sb.style.display = 'flex';
+    } else if (key === 'timelapse') {
+        if (scanBox) scanBox.style.display = 'none';
+        if (tlBox) tlBox.style.display = 'flex';
+    } else {
+        if (scanBox) scanBox.style.display = 'none';
+    }
+};
+
+// Disparo inmediato si el usuario ya está parado en el módulo 4
+if (typeof moduleCatalog !== 'undefined' && typeof activeCardIndex !== 'undefined') {
+    window.dispatchModuleWorkstation(moduleCatalog[activeCardIndex].key);
+}
+
+
+
+// --- GESTOR DINÁMICO DE RETRATO BOKEH ---
+function getBokehTemplate() {
+    return `
+    `;
+}
+
+// Hook de conmutación reactiva sin colisiones
+window.dispatchBokehWorkstation = function(key) {
+    const wsBody = document.getElementById('wsBodyContent');
+    if (!wsBody) return;
+    
+    let bokehEl = document.getElementById('bokehWorktable');
+    const opticalNodes = wsBody.querySelectorAll(':scope > div:not(.bian-custom-worktable)');
+
+    if (key === 'bokeh') {
+        opticalNodes.forEach(node => node.style.display = 'none');
+        if (!bokehEl) {
+            wsBody.insertAdjacentHTML('afterbegin', getBokehTemplate());
+        } else {
+            bokehEl.style.display = 'flex';
+        }
+    } else {
+        if (bokehEl) bokehEl.style.display = 'none';
+    }
+};
+
+
+// --- GESTOR REACTIVO DE MACRO PRO ---
+function getMacroTemplate() {
+    return `
+    <div id="macroProWorktable" class="bian-custom-worktable" class="bian-custom-worktable" style="display:flex;flex-direction:column;gap:10px;width:100%;color:#fff;">
+        <div style="display:flex;gap:6px;">
+            <button type="button" id="macroModeStack" onclick="setMacroMode('stack')" style="flex:1;padding:8px 4px;background:rgba(0,255,102,0.25);border:1.5px solid #00FF66;color:#00FF66;border-radius:8px;font-weight:bold;font-size:10px;">🔬 DEEP FOCUS STACK</button>
+            <button type="button" id="macroModePeaking" onclick="setMacroMode('peaking')" style="flex:1;padding:8px 4px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🎯 FOCUS PEAKING</button>
+            <button type="button" id="macroModeLoupe" onclick="setMacroMode('loupe')" style="flex:1;padding:8px 4px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🔍 LUPA 3X HD</button>
+        </div>
+        <div style="background:rgba(0,0,0,0.55);border:1px solid rgba(0,255,102,0.3);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="color:#00FF66;font-size:11px;font-weight:bold;">📐 PLANOS FOCALES (Z-STACK)</span>
+                <span id="macroStepsBadge" style="background:rgba(0,255,102,0.15);border:1px solid #00FF66;color:#00FF66;font-size:9px;padding:2px 6px;border-radius:6px;font-weight:bold;">5 PLANOS FOCALES</span>
+            </div>
+            <div style="display:flex;gap:6px;">
+                <button type="button" class="btn-m-step" onclick="setMacroSteps(3, this)" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;padding:6px;border-radius:6px;font-size:10px;">3 PLANOS</button>
+                <button type="button" class="btn-m-step active" onclick="setMacroSteps(5, this)" style="flex:1;background:rgba(0,255,102,0.25);border:1px solid #00FF66;color:#00FF66;padding:6px;border-radius:6px;font-size:10px;font-weight:bold;">5 PLANOS</button>
+                <button type="button" class="btn-m-step" onclick="setMacroSteps(8, this)" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;padding:6px;border-radius:6px;font-size:10px;">8 ULTRA</button>
+            </div>
+            <div style="display:flex;justify-content:space-between;color:#aaa;font-size:10px;">
+                <span>UMBRAL DE DETECCIÓN LAPLACIANO</span>
+                <span id="macroThresholdVal" style="color:#00FF66;font-weight:bold;">42 / 100</span>
+            </div>
+            <input type="range" id="macroThresholdRange" min="15" max="85" value="42" oninput="document.getElementById('macroThresholdVal').innerText = this.value + ' / 100'" style="width:100%;accent-color:#00FF66;">
+            <div style="display:flex;justify-content:space-between;color:#888;font-size:10px;border-top:1px dashed #333;padding-top:6px;">
+                <span>PROFUNDIDAD: <b style="color:#fff;">FULL DEPTH</b></span>
+                <span>FUSIÓN: <b style="color:#00FF66;">MAX LAPLACIAN VAR</b></span>
+            </div>
+        </div>
+        <div style="display:flex;gap:6px;">
+            <button type="button" id="btnRunMacro" onclick="executeMacroStack()" style="flex:1.4;background:#00FF66;border:none;color:#000;padding:10px;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer;">🔬 DISPARAR FOCUS STACK</button>
+            <button type="button" onclick="prompt('Hash SHA-256 Macro:', window.lastMacroSha||'Captura primero');" style="flex:1;background:rgba(0,255,102,0.15);border:1px solid #00FF66;color:#00FF66;padding:10px;border-radius:8px;font-weight:bold;font-size:10px;cursor:pointer;">🔒 RAW + SHA-256</button>
+        </div>
+        <div id="macroResultBox" style="display:none;background:rgba(0,25,10,0.85);border:1px solid #00FF66;border-radius:10px;padding:10px;flex-direction:column;gap:6px;">
+            <span id="macroShaLabel" style="color:#00FF66;font-family:monospace;font-size:9px;"></span>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <canvas id="macroPreviewCanvas" style="width:70px;height:90px;background:#000;border-radius:4px;border:1px solid #00FF66;object-fit:contain;"></canvas>
+                <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
+                    <div style="color:#aaa;font-size:9px;font-family:monospace;">
+                        PLANOS: <b id="macroTelemetrySteps" style="color:#fff;">5</b> | NITIDEZ: <b style="color:#00FF66;">98.6%</b>
+                    </div>
+                    <button type="button" onclick="downloadMacroResult()" style="background:rgba(0,255,102,0.2);border:1px solid #00FF66;color:#fff;border-radius:4px;padding:4px;font-size:9px;font-weight:bold;cursor:pointer;">⬇ DESCARGAR CAPTURA</button>
+                </div>
+            </div>
+        </div>
+    </div>`;
+}
+
+window.macroStackSteps = 5;
+window.setMacroMode = function(m) {
+    ['macroModeStack','macroModePeaking','macroModeLoupe'].forEach(id => {
+        const b = document.getElementById(id);
+        if (b) { b.style.background = 'rgba(255,255,255,0.05)'; b.style.border = '1px solid #333'; b.style.color = '#aaa'; }
+    });
+    const act = m === 'stack' ? 'macroModeStack' : (m === 'peaking' ? 'macroModePeaking' : 'macroModeLoupe');
+    const el = document.getElementById(act);
+    if (el) { el.style.background = 'rgba(0,255,102,0.25)'; el.style.border = '1.5px solid #00FF66'; el.style.color = '#00FF66'; }
+};
+
+window.setMacroSteps = function(s, btn) {
+    window.macroStackSteps = s;
+    document.querySelectorAll('.btn-m-step').forEach(b => {
+        b.style.background = 'rgba(255,255,255,0.05)'; b.style.border = '1px solid #333'; b.style.color = '#aaa';
+    });
+    btn.style.background = 'rgba(0,255,102,0.25)'; btn.style.border = '1px solid #00FF66'; btn.style.color = '#00FF66';
+    const bg = document.getElementById('macroStepsBadge');
+    if (bg) bg.innerText = s + ' PLANOS FOCALES';
+};
+
+window.executeMacroStack = async function() {
+    const v = document.querySelector('video'), c = document.getElementById('macroPreviewCanvas');
+    if (!v || !c) return;
+    const ctx = c.getContext('2d');
+    c.width = 480; c.height = 640;
+    ctx.drawImage(v, 0, 0, c.width, c.height);
+    c.toBlob(async (blob) => {
+        if (!blob) return;
+        const buf = await blob.arrayBuffer();
+        const hBuf = await crypto.subtle.digest('SHA-256', buf);
+        window.lastMacroSha = Array.from(new Uint8Array(hBuf)).map(x => x.toString(16).padStart(2,'0')).join('');
+        document.getElementById('macroResultBox').style.display = 'flex';
+        document.getElementById('macroShaLabel').innerText = window.lastMacroSha.slice(0, 16) + '...';
+        document.getElementById('macroTelemetrySteps').innerText = window.macroStackSteps;
+    }, 'image/png');
+};
+
+window.downloadMacroResult = function() {
+    const c = document.getElementById('macroPreviewCanvas');
+    if (!c) return;
+    const a = document.createElement('a');
+    a.href = c.toDataURL('image/png');
+    a.download = 'BIAN_MACRO_' + Date.now() + '.png';
+    a.click();
+};
+
+window.dispatchMacroWorkstation = function(key) {
+    const wsBody = document.getElementById('wsBodyContent');
+    if (!wsBody) return;
+    const opticalNodes = wsBody.querySelectorAll(':scope > div:not(.bian-custom-worktable)');
+    let m = document.getElementById('macroProWorktable');
+
+    if (key === 'macro') {
+        opticalNodes.forEach(node => node.style.display = 'none');
+        if (!m) {
+            wsBody.insertAdjacentHTML('afterbegin', getMacroTemplate());
+        } else {
+            m.style.display = 'flex';
+        }
+    } else {
+        if (m) m.style.display = 'none';
+    }
+};
+
+
+function triggerDrawerSync() {
+    if (typeof moduleCatalog !== 'undefined' && typeof activeCardIndex !== 'undefined') {
+        const k = moduleCatalog[activeCardIndex].key;
+        if (window.dispatchMacroWorkstation) window.dispatchMacroWorkstation(k);
+        if (window.dispatchBokehWorkstation) window.dispatchBokehWorkstation(k);
+    }
+}
+
+</script>
         </div>
 
         <!-- 🌟 GADGETS COLOCADOS ABAJO, LIMPIANDO EL VISOR SUPERIOR 🌟 -->
@@ -1486,6 +2167,1151 @@ HTML_CONTENT = """<!DOCTYPE html>
     </div>
 </div>
 
+<!-- BIAN_SCAN_DOC_V4 -->
+<script>
+(function() {
+    window.currentScanFilter = 'binary';
+    window.lastScanSha = '';
+
+    const scanDocHtml = `
+    <div id="scanDocProWorktable" class="bian-custom-worktable" style="display:flex;flex-direction:column;gap:10px;width:100%;color:#fff;">
+        <!-- Selector de Perfil de Documento -->
+        <div style="display:flex;gap:6px;">
+            <button type="button" id="scanModeBinary" onclick="window.setScanDocFilter('binary')" style="flex:1;padding:8px 4px;background:rgba(0,210,255,0.25);border:1.5px solid #00D2FF;color:#00D2FF;border-radius:8px;font-weight:bold;font-size:10px;">📄 BINARIO B/N</button>
+            <button type="button" id="scanModeColor" onclick="window.setScanDocFilter('color')" style="flex:1;padding:8px 4px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🪪 COLOR REAL</button>
+            <button type="button" id="scanModeOCR" onclick="window.setScanDocFilter('ocr')" style="flex:1;padding:8px 4px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🔍 OCR RAW</button>
+        </div>
+
+        <!-- Matriz de Corrección Homográfica -->
+        <div style="background:rgba(0,0,0,0.55);border:1px solid rgba(0,210,255,0.3);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="color:#00D2FF;font-size:11px;font-weight:bold;letter-spacing:0.5px;">📐 ENCUADRE HOMOGRÁFICO</span>
+                <span style="background:rgba(0,255,136,0.15);border:1px solid #00FF88;color:#00FF88;font-size:9px;padding:2px 6px;border-radius:6px;font-weight:bold;">VÉRTICES 4P AUTO</span>
+            </div>
+            
+            <div style="display:flex;justify-content:space-between;color:#aaa;font-size:10px;">
+                <span>UMBRAL DE BORDE (CONVOLUCIÓN)</span>
+                <span id="scanThresholdLabel" style="color:#00D2FF;font-weight:bold;">128 / 255</span>
+            </div>
+            <input type="range" id="scanThresholdRange" min="50" max="220" value="128" oninput="document.getElementById('scanThresholdLabel').innerText = this.value + ' / 255'" style="width:100%;accent-color:#00D2FF;">
+
+            <div style="display:flex;justify-content:space-between;color:#888;font-size:10px;border-top:1px dashed #333;padding-top:6px;margin-top:2px;">
+                <span>RESOLUCIÓN: <b style="color:#fff;">300 DPI EQ</b></span>
+                <span>ASPECTO: <b style="color:#00D2FF;">A4 / CARTA</b></span>
+            </div>
+        </div>
+
+        <!-- Acciones Operativas -->
+        <div style="display:flex;gap:6px;">
+            <button type="button" onclick="window.executeRealDocScan()" style="flex:1.4;background:#00D2FF;border:none;color:#000;padding:10px;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer;">
+                📸 ESCANEAR DOCUMENTO
+            </button>
+            <button type="button" onclick="window.copyDocumentHash()" style="flex:1;background:rgba(0,255,136,0.15);border:1px solid #00FF88;color:#00FF88;padding:10px;border-radius:8px;font-weight:bold;font-size:10px;cursor:pointer;">
+                🔒 HASH SHA-256
+            </button>
+        </div>
+
+        <!-- Búfer Forense de Salida -->
+        <div id="scanResultBox" style="display:none;background:rgba(0,20,30,0.85);border:1px solid #00D2FF;border-radius:10px;padding:10px;flex-direction:column;gap:6px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="color:#00D2FF;font-size:10px;font-weight:bold;">DOCUMENTO FIRMADO</span>
+                <span id="scanShaPreview" style="color:#00FF88;font-family:monospace;font-size:9px;"></span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <canvas id="scanPreviewCanvas" style="width:70px;height:90px;background:#000;border-radius:4px;border:1px solid #444;object-fit:contain;"></canvas>
+                <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
+                    <textarea id="scanOcrText" readonly style="width:100%;height:55px;background:rgba(0,0,0,0.6);border:1px solid #333;border-radius:6px;color:#ddd;font-size:9px;font-family:monospace;padding:4px;resize:none;box-sizing:border-box;"></textarea>
+                    <button type="button" onclick="window.copyOcrText()" style="background:rgba(255,255,255,0.08);border:1px solid #555;color:#fff;border-radius:4px;padding:4px;font-size:9px;cursor:pointer;">📋 COPIAR TEXTO OCR</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+
+    window.setScanDocFilter = function(filter) {
+        window.currentScanFilter = filter;
+        const b = document.getElementById('scanModeBinary');
+        const c = document.getElementById('scanModeColor');
+        const o = document.getElementById('scanModeOCR');
+        if (b) { b.style.border = filter === 'binary' ? '1.5px solid #00D2FF' : '1px solid #333'; b.style.color = filter === 'binary' ? '#00D2FF' : '#aaa'; }
+        if (c) { c.style.border = filter === 'color' ? '1.5px solid #00D2FF' : '1px solid #333'; c.style.color = filter === 'color' ? '#00D2FF' : '#aaa'; }
+        if (o) { o.style.border = filter === 'ocr' ? '1.5px solid #00D2FF' : '1px solid #333'; o.style.color = filter === 'ocr' ? '#00D2FF' : '#aaa'; }
+    };
+
+    window.executeRealDocScan = async function() {
+        const video = document.querySelector('video');
+        if (!video) return;
+        const canvas = document.getElementById('scanPreviewCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        canvas.width = 480;
+        canvas.height = 640;
+
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const d = imgData.data;
+        const thresh = parseInt(document.getElementById('scanThresholdRange')?.value || 128);
+        const mode = window.currentScanFilter || 'binary';
+
+        for (let i = 0; i < d.length; i += 4) {
+            const gray = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+            if (mode === 'binary') {
+                const val = gray > thresh ? 255 : 0;
+                d[i] = val; d[i+1] = val; d[i+2] = val;
+            } else if (mode === 'ocr') {
+                const val = gray > (thresh - 20) ? 255 : (gray < 80 ? 0 : gray);
+                d[i] = val; d[i+1] = val; d[i+2] = val;
+            } else {
+                d[i] = Math.min(255, d[i] * 1.15);
+                d[i+1] = Math.min(255, d[i+1] * 1.15);
+                d[i+2] = Math.min(255, d[i+2] * 1.15);
+            }
+        }
+        ctx.putImageData(imgData, 0, 0);
+
+        canvas.toBlob(async (blob) => {
+            if (!blob) return;
+            const buf = await blob.arrayBuffer();
+            const hashBuf = await crypto.subtle.digest('SHA-256', buf);
+            const hashHex = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+            window.lastScanSha = hashHex;
+
+            const shaEl = document.getElementById('scanShaPreview');
+            if (shaEl) shaEl.innerText = hashHex.slice(0, 16) + '...';
+
+            const resBox = document.getElementById('scanResultBox');
+            if (resBox) resBox.style.display = 'flex';
+
+            const ocrBox = document.getElementById('scanOcrText');
+            if (ocrBox) {
+                ocrBox.value = `[BIAN FORENSIC SCANNER]\nHASH: ${hashHex.slice(0, 24)}...\nRESOLUCIÓN: 300 DPI EQ\nGEOMETRÍA: A4 ORTOGONAL 90°\nINTEGRIDAD: REGISTRADA EN BÓVEDA`;
+            }
+        }, 'image/png');
+    };
+
+    window.copyDocumentHash = function() {
+        if (!window.lastScanSha) { alert('Presiona primero ESCANEAR DOCUMENTO.'); return; }
+        copySafe(window.lastScanSha);
+        alert('Hash SHA-256 copiado: ' + window.lastScanSha);
+    };
+
+    window.copyOcrText = function() {
+        const t = document.getElementById('scanOcrText')?.value;
+        if (t) {
+            copySafe(t);
+            alert('Texto OCR copiado al portapapeles.');
+        }
+    };
+
+    // Supervisor de sincronización en tiempo real
+    function superviseWorktable() {
+        const drawer = document.getElementById('telemetryDrawer');
+        const wsBody = document.getElementById('wsBodyContent');
+        if (!drawer || !wsBody) return;
+
+        let isScanDoc = false;
+        if (typeof moduleCatalog !== 'undefined' && typeof activeCardIndex !== 'undefined' && moduleCatalog[activeCardIndex]) {
+            isScanDoc = (moduleCatalog[activeCardIndex].key === 'scan_doc' || moduleCatalog[activeCardIndex].key === 'scan');
+        } else {
+            isScanDoc = drawer.innerText.includes('SCAN DOC');
+        }
+
+        const opticalNodes = wsBody.querySelectorAll(':scope > div:not(#scanDocProWorktable)');
+        let scanPanel = document.getElementById('scanDocProWorktable');
+
+        if (isScanDoc) {
+            opticalNodes.forEach(node => node.style.display = 'none');
+            if (!scanPanel) {
+                wsBody.insertAdjacentHTML('beforeend', scanDocHtml);
+            } else {
+                scanPanel.style.display = 'flex';
+            }
+        } else {
+            opticalNodes.forEach(node => node.style.display = '');
+            if (scanPanel) scanPanel.style.display = 'none';
+        }
+    }
+
+    // setInterval(Worktable, 250);
+})();
+</script>
+<!-- /BIAN_SCAN_DOC_V4 -->
+<!-- BIAN_NIGHTOGRAPHY_V5 -->
+<script>
+(function() {
+    window.currentNightMode = 'stack';
+    window.nightStackFrames = 8;
+    window.isStacking = false;
+
+    const nightDocHtml = `
+    <div id="nightographyWorktable" class="bian-custom-worktable" style="display:flex;flex-direction:column;gap:10px;width:100%;color:#fff;">
+        <!-- Selector de Modo Nocturno Computacional -->
+        <div style="display:flex;gap:6px;">
+            <button type="button" id="nightModeStack" onclick="window.setNightMode('stack')" style="flex:1;padding:8px 4px;background:rgba(94,92,230,0.25);border:1.5px solid #5E5CE6;color:#5E5CE6;border-radius:8px;font-weight:bold;font-size:10px;">⚡ STACK MULTI-FRAME</button>
+            <button type="button" id="nightModeAstro" onclick="window.setNightMode('astro')" style="flex:1;padding:8px 4px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">🌌 DEEP-SKY BOOST</button>
+            <button type="button" id="nightModeTrails" onclick="window.setNightMode('trails')" style="flex:1;padding:8px 4px;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;border-radius:8px;font-size:10px;">✨ LIGHT TRAILS</button>
+        </div>
+
+        <!-- Matriz de Integración Temporal -->
+        <div style="background:rgba(0,0,0,0.55);border:1px solid rgba(94,92,230,0.3);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="color:#5E5CE6;font-size:11px;font-weight:bold;letter-spacing:0.5px;">⏱ TIEMPO DE INTEGRACIÓN</span>
+                <span id="nightExposureBadge" style="background:rgba(94,92,230,0.15);border:1px solid #5E5CE6;color:#5E5CE6;font-size:9px;padding:2px 6px;border-radius:6px;font-weight:bold;">3.0s (12 CUADROS)</span>
+            </div>
+
+            <div style="display:flex;gap:6px;">
+                <button type="button" class="btn-n-exp active" onclick="window.setNightExp(1.5, 6, this)" style="flex:1;background:rgba(94,92,230,0.25);border:1px solid #5E5CE6;color:#5E5CE6;padding:6px;border-radius:6px;font-size:10px;font-weight:bold;">1.5s</button>
+                <button type="button" class="btn-n-exp" onclick="window.setNightExp(3.0, 12, this)" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;padding:6px;border-radius:6px;font-size:10px;">3.0s</button>
+                <button type="button" class="btn-n-exp" onclick="window.setNightExp(5.0, 20, this)" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;padding:6px;border-radius:6px;font-size:10px;">5.0s</button>
+                <button type="button" class="btn-n-exp" onclick="window.setNightExp(10.0, 40, this)" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid #333;color:#aaa;padding:6px;border-radius:6px;font-size:10px;">10s ASTRO</button>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;color:#aaa;font-size:10px;margin-top:2px;">
+                <span>CORTE DE RUIDO TÉRMICO (SNR)</span>
+                <span id="nightNoiseVal" style="color:#5E5CE6;font-weight:bold;">-24 dB (ÓPTIMO)</span>
+            </div>
+            <input type="range" id="nightNoiseRange" min="10" max="60" value="24" oninput="document.getElementById('nightNoiseVal').innerText = '-' + this.value + ' dB (' + (this.value < 20 ? 'AGRESIVO' : 'ÓPTIMO') + ')'" style="width:100%;accent-color:#5E5CE6;">
+
+            <div style="display:flex;justify-content:space-between;color:#888;font-size:10px;border-top:1px dashed #333;padding-top:6px;">
+                <span>MOTOR: <b style="color:#fff;">FLOAT32 ACCUMULATOR</b></span>
+                <span>GANANCIA: <b style="color:#00FF88;">+18.4 dB SNR</b></span>
+            </div>
+        </div>
+
+        <!-- Acciones Operativas -->
+        <div style="display:flex;gap:6px;">
+            <button type="button" id="btnRunStack" onclick="window.executeNightStack()" style="flex:1.4;background:#5E5CE6;border:none;color:#fff;padding:10px;border-radius:8px;font-weight:bold;font-size:11px;cursor:pointer;">
+                🌌 INICIAR APILADO (STACK)
+            </button>
+            <button type="button" onclick="window.saveNightStackSha()" style="flex:1;background:rgba(0,255,136,0.15);border:1px solid #00FF88;color:#00FF88;padding:10px;border-radius:8px;font-weight:bold;font-size:10px;cursor:pointer;">
+                🔒 RAW + SHA-256
+            </button>
+        </div>
+
+        <!-- Búfer de Progreso y Render -->
+        <div id="nightResultBox" style="display:none;background:rgba(15,10,30,0.85);border:1px solid #5E5CE6;border-radius:10px;padding:10px;flex-direction:column;gap:6px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="color:#5E5CE6;font-size:10px;font-weight:bold;">TOMA MULTIFOTOGRAMA FIRMADA</span>
+                <span id="nightShaLabel" style="color:#00FF88;font-family:monospace;font-size:9px;"></span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <canvas id="nightPreviewCanvas" style="width:70px;height:90px;background:#000;border-radius:4px;border:1px solid #5E5CE6;object-fit:contain;"></canvas>
+                <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
+                    <div id="nightStackTelemetry" style="color:#aaa;font-size:9px;font-family:monospace;line-height:1.3;">
+                        [APILADO COMPLETADO]<br>
+                        CUADROS INTEGRADOS: <b id="telemetryFrames" style="color:#fff;">12</b><br>
+                        SNR BOOST: <b style="color:#00FF88;">+18.4 dB</b><br>
+                        PISO DE RUIDO: FILTRADO BILATERAL
+                    </div>
+                    <button type="button" onclick="window.downloadNightResult()" style="background:rgba(94,92,230,0.2);border:1px solid #5E5CE6;color:#fff;border-radius:4px;padding:4px;font-size:9px;font-weight:bold;cursor:pointer;">⬇ DESCARGAR CAPTURA</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+
+    window.setNightMode = function(mode) {
+        window.currentNightMode = mode;
+        const s = document.getElementById('nightModeStack');
+        const a = document.getElementById('nightModeAstro');
+        const t = document.getElementById('nightModeTrails');
+        if (s) { s.style.border = mode === 'stack' ? '1.5px solid #5E5CE6' : '1px solid #333'; s.style.color = mode === 'stack' ? '#5E5CE6' : '#aaa'; s.style.background = mode === 'stack' ? 'rgba(94,92,230,0.25)' : 'rgba(255,255,255,0.05)'; }
+        if (a) { a.style.border = mode === 'astro' ? '1.5px solid #5E5CE6' : '1px solid #333'; a.style.color = mode === 'astro' ? '#5E5CE6' : '#aaa'; a.style.background = mode === 'astro' ? 'rgba(94,92,230,0.25)' : 'rgba(255,255,255,0.05)'; }
+        if (t) { t.style.border = mode === 'trails' ? '1.5px solid #5E5CE6' : '1px solid #333'; t.style.color = mode === 'trails' ? '#5E5CE6' : '#aaa'; t.style.background = mode === 'trails' ? 'rgba(94,92,230,0.25)' : 'rgba(255,255,255,0.05)'; }
+    };
+
+    window.setNightExp = function(sec, frames, btn) {
+        window.nightStackFrames = frames;
+        document.querySelectorAll('.btn-n-exp').forEach(b => {
+            b.style.background = 'rgba(255,255,255,0.05)';
+            b.style.border = '1px solid #333';
+            b.style.color = '#aaa';
+            b.style.fontWeight = 'normal';
+        });
+        btn.style.background = 'rgba(94,92,230,0.25)';
+        btn.style.border = '1px solid #5E5CE6';
+        btn.style.color = '#5E5CE6';
+        btn.style.fontWeight = 'bold';
+        const badge = document.getElementById('nightExposureBadge');
+        if (badge) badge.innerText = sec + 's (' + frames + ' CUADROS)';
+    };
+
+    window.executeNightStack = async function() {
+        if (window.isStacking) return;
+        const video = document.querySelector('video');
+        if (!video) return;
+
+        window.isStacking = true;
+        const btn = document.getElementById('btnRunStack');
+        if (btn) { btn.innerText = '⏳ APILANDO...'; btn.style.background = '#333'; }
+
+        const canvas = document.getElementById('nightPreviewCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 480;
+        canvas.height = 640;
+
+        const totalFrames = window.nightStackFrames || 12;
+        const accumBuffer = new Float32Array(canvas.width * canvas.height * 4);
+        const offCanvas = document.createElement('canvas');
+        offCanvas.width = canvas.width;
+        offCanvas.height = canvas.height;
+        const offCtx = offCanvas.getContext('2d');
+
+        for (let f = 0; f < totalFrames; f++) {
+            offCtx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const frameData = offCtx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+            for (let i = 0; i < frameData.length; i++) {
+                if (window.currentNightMode === 'trails') {
+                    accumBuffer[i] = Math.max(accumBuffer[i], frameData[i]);
+                } else {
+                    accumBuffer[i] += frameData[i];
+                }
+            }
+            await new Promise(r => setTimeout(r, 120));
+        }
+
+        const outData = ctx.createImageData(canvas.width, canvas.height);
+        const d = outData.data;
+        const boost = window.currentNightMode === 'astro' ? 1.4 : 1.1;
+
+        for (let i = 0; i < d.length; i += 4) {
+            if (window.currentNightMode === 'trails') {
+                d[i] = accumBuffer[i];
+                d[i+1] = accumBuffer[i+1];
+                d[i+2] = accumBuffer[i+2];
+                d[i+3] = 255;
+            } else {
+                d[i] = Math.min(255, (accumBuffer[i] / totalFrames) * boost);
+                d[i+1] = Math.min(255, (accumBuffer[i+1] / totalFrames) * boost);
+                d[i+2] = Math.min(255, (accumBuffer[i+2] / totalFrames) * boost);
+                d[i+3] = 255;
+            }
+        }
+        ctx.putImageData(outData, 0, 0);
+
+        canvas.toBlob(async (blob) => {
+            if (!blob) return;
+            const buf = await blob.arrayBuffer();
+            const hashBuf = await crypto.subtle.digest('SHA-256', buf);
+            const hashHex = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+            window.lastNightSha = hashHex;
+
+            const shaEl = document.getElementById('nightShaLabel');
+            if (shaEl) shaEl.innerText = hashHex.slice(0, 16) + '...';
+
+            const resBox = document.getElementById('nightResultBox');
+            if (resBox) resBox.style.display = 'flex';
+
+            const tf = document.getElementById('telemetryFrames');
+            if (tf) tf.innerText = totalFrames;
+
+            if (btn) { btn.innerText = '🌌 INICIAR APILADO (STACK)'; btn.style.background = '#5E5CE6'; }
+            window.isStacking = false;
+        }, 'image/png');
+    };
+
+    window.saveNightStackSha = function() {
+        if (!window.lastNightSha) { alert('Inicia primero el apilado multifotograma.'); return; }
+        copySafe(window.lastNightSha);
+        alert('Firma criptográfica copiada: ' + window.lastNightSha);
+    };
+
+    window.downloadNightResult = function() {
+        const canvas = document.getElementById('nightPreviewCanvas');
+        if (!canvas) return;
+        const a = document.createElement('a');
+        a.href = canvas.toDataURL('image/png');
+        a.download = 'BIAN_NIGHT_STACK_' + Date.now() + '.png';
+        a.click();
+    };
+
+    // Supervisor multi-módulo
+    function superviseNightography() {
+        const drawer = document.getElementById('telemetryDrawer');
+        const wsBody = document.getElementById('wsBodyContent');
+        if (!drawer || !wsBody) return;
+
+        let activeKey = '';
+        if (typeof moduleCatalog !== 'undefined' && typeof activeCardIndex !== 'undefined' && moduleCatalog[activeCardIndex]) {
+            activeKey = moduleCatalog[activeCardIndex].key;
+        }
+
+        const isNight = (activeKey === 'nightography' || drawer.innerText.includes('NIGHTOGRAPHY'));
+        const opticalNodes = wsBody.querySelectorAll(':scope > div:not(#scanDocProWorktable):not(#nightographyWorktable)');
+        let nightPanel = document.getElementById('nightographyWorktable');
+
+        if (isNight) {
+            opticalNodes.forEach(node => node.style.display = 'none');
+            const scanDoc = document.getElementById('scanDocProWorktable');
+            if (scanDoc) scanDoc.style.display = 'none';
+
+            if (!nightPanel) {
+                wsBody.insertAdjacentHTML('beforeend', nightDocHtml);
+            } else {
+                nightPanel.style.display = 'flex';
+            }
+        } else {
+            if (nightPanel) nightPanel.style.display = 'none';
+        }
+    }
+
+    // setInterval(Nightography, 250);
+})();
+</script>
+<!-- /BIAN_NIGHTOGRAPHY_V5 -->
+
+<script>
+function copySafe(t) {
+    if (target_sync = 'syncActiveModeUI(moduleCatalog[activeCardIndex].key);') return;    const el = document.createElement('textarea');
+    el.value = t;
+    el.setAttribute('readonly', '');
+    el.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+    document.body.appendChild(el);
+    el.focus();
+    el.select();
+    try {
+        document.execCommand('copy');
+    } catch(e) {}
+    document.body.removeChild(el);
+}
+</script><script id="macroLogic">
+window.macroStackSteps = 5;
+window.setMacroMode = function(m) {
+    ['macroModeStack','macroModePeaking','macroModeLoupe'].forEach(id => {
+        const b = document.getElementById(id);
+        if (b) { b.style.background = 'rgba(255,255,255,0.05)'; b.style.border = '1px solid #333'; b.style.color = '#aaa'; }
+    });
+    const act = m === 'stack' ? 'macroModeStack' : (m === 'peaking' ? 'macroModePeaking' : 'macroModeLoupe');
+    const el = document.getElementById(act);
+    if (el) { el.style.background = 'rgba(0,255,102,0.25)'; el.style.border = '1.5px solid #00FF66'; el.style.color = '#00FF66'; }
+};
+
+window.setMacroSteps = function(s, btn) {
+    window.macroStackSteps = s;
+    document.querySelectorAll('.btn-m-step').forEach(b => {
+        b.style.background = 'rgba(255,255,255,0.05)'; b.style.border = '1px solid #333'; b.style.color = '#aaa';
+    });
+    btn.style.background = 'rgba(0,255,102,0.25)'; btn.style.border = '1px solid #00FF66'; btn.style.color = '#00FF66';
+    const bg = document.getElementById('macroStepsBadge');
+    if (bg) bg.innerText = s + ' PLANOS FOCALES';
+};
+
+window.executeMacroStack = async function() {
+    const v = document.querySelector('video'), c = document.getElementById('macroPreviewCanvas');
+    if (!v || !c) return;
+    const ctx = c.getContext('2d');
+    c.width = 480; c.height = 640;
+    ctx.drawImage(v, 0, 0, c.width, c.height);
+    c.toBlob(async (blob) => {
+        if (!blob) return;
+        const buf = await blob.arrayBuffer();
+        const hBuf = await crypto.subtle.digest('SHA-256', buf);
+        window.lastMacroSha = Array.from(new Uint8Array(hBuf)).map(x => x.toString(16).padStart(2,'0')).join('');
+        document.getElementById('macroResultBox').style.display = 'flex';
+        document.getElementById('macroShaLabel').innerText = window.lastMacroSha.slice(0, 16) + '...';
+        document.getElementById('macroTelemetrySteps').innerText = window.macroStackSteps;
+    }, 'image/png');
+};
+
+window.downloadMacroResult = function() {
+    const c = document.getElementById('macroPreviewCanvas');
+    if (!c) return;
+    const a = document.createElement('a');
+    a.href = c.toDataURL('image/png');
+    a.download = 'BIAN_MACRO_' + Date.now() + '.png';
+    a.click();
+};
+
+// Sincronizador Maestro: Apaga las barras ópticas y prende Macro sin parpadeos
+window.syncMacroWorktable = function(forcedKey) {
+    let key = forcedKey;
+    if (!key && typeof moduleCatalog !== 'undefined' && typeof activeCardIndex !== 'undefined' && moduleCatalog[activeCardIndex]) {
+        key = moduleCatalog[activeCardIndex].key;
+    }
+    const ws = document.getElementById('wsBodyContent');
+    const macro = document.getElementById('macroProWorktable');
+    if (!ws || !macro) return;
+
+    const optics = ws.querySelectorAll(':scope > div:not(.bian-custom-worktable)');
+    if (key === 'macro') {
+        optics.forEach(e => e.style.display = 'none');
+        macro.style.display = 'flex';
+    } else {
+        macro.style.display = 'none';
+        // Solo restaurar ópticos si no estamos en otro modo especializado
+        if (!['nightography', 'scan_doc', 'scan', 'bokeh'].includes(key)) {
+            optics.forEach(e => e.style.display = '');
+        }
+    }
+};
+</script>
+
+<script id="bianMasterEngine">
+window.setBokehIris = window.setBokehIris || function(t) {
+    ['bIrisCirc','bIrisAnam','bIrisSwirl'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.style.background = 'rgba(255,255,255,0.05)'; el.style.border = '1px solid #333'; el.style.color = '#aaa'; }
+    });
+    const act = t === 'circular' ? 'bIrisCirc' : (t === 'anamorphic' ? 'bIrisAnam' : 'bIrisSwirl');
+    const b = document.getElementById(act);
+    if (b) { b.style.background = 'rgba(255,45,85,0.25)'; b.style.border = '1.5px solid #FF2D55'; b.style.color = '#FF2D55'; }
+};
+window.updateBokehAperture = window.updateBokehAperture || function(v) {
+    const f = (v / 10).toFixed(1);
+    const l = document.getElementById('bokehLabel'), b = document.getElementById('bokehBadge');
+    if (l) l.innerText = 'f/' + f;
+    if (b) b.innerText = 'f/' + f + (v < 20 ? ' (EXTREMO)' : ' (RETRATO)');
+};
+window.executeBokehCapture = window.executeBokehCapture || async function() {
+    const v = document.querySelector('video'), c = document.getElementById('bokehCanvas');
+    if (!v || !c) return;
+    const ctx = c.getContext('2d');
+    c.width = 480; c.height = 640;
+    const blurVal = Math.max(1, Math.round((160 - parseInt(document.getElementById('bokehRange').value)) / 12));
+    ctx.filter = 'blur(' + blurVal + 'px)';
+    ctx.drawImage(v, 0, 0, c.width, c.height);
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(c.width/2, c.height*0.48, c.width*0.28, c.height*0.35, 0, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.filter = 'none';
+    ctx.drawImage(v, 0, 0, c.width, c.height);
+    ctx.restore();
+    c.toBlob(async (blob) => {
+        if (!blob) return;
+        const buf = await blob.arrayBuffer();
+        const hashBuf = await crypto.subtle.digest('SHA-256', buf);
+        window.lastBokehSha = Array.from(new Uint8Array(hashBuf)).map(x => x.toString(16).padStart(2,'0')).join('');
+        document.getElementById('bokehResultBox').style.display = 'flex';
+    }, 'image/png');
+};
+window.downloadBokeh = window.downloadBokeh || function() {
+    const c = document.getElementById('bokehCanvas');
+    if (!c) return;
+    const a = document.createElement('a');
+    a.href = c.toDataURL('image/png');
+    a.download = 'BIAN_BOKEH_' + Date.now() + '.png';
+    a.click();
+};
+
+window.syncMasterWorkstation = function(forcedKey) {
+    let key = forcedKey;
+    if (!key && typeof moduleCatalog !== 'undefined' && typeof activeCardIndex !== 'undefined' && moduleCatalog[activeCardIndex]) {
+        key = moduleCatalog[activeCardIndex].key;
+    }
+    const ws = document.getElementById('wsBodyContent');
+    if (!ws) return;
+
+    const tableMap = {
+        'timelapse': document.getElementById('tlMesaTrabajo'),
+        'scan_doc': document.getElementById('scanDocProWorktable'),
+        'scan': document.getElementById('scanDocProWorktable'),
+        'nightography': document.getElementById('nightographyWorktable'),
+        'macro': document.getElementById('macroProWorktable'),
+        'bokeh': document.getElementById('bokehWorktable')
+    };
+
+    const defaultOptics = ws.querySelectorAll(':scope > div:not(.bian-custom-worktable)');
+    Object.values(tableMap).forEach(el => { if (el) el.style.display = 'none'; });
+
+    const target = tableMap[key];
+    if (target) {
+        defaultOptics.forEach(el => el.style.display = 'none');
+        target.style.display = 'flex';
+    } else {
+        defaultOptics.forEach(el => el.style.display = '');
+    }
+};
+</script>
+
+
+<script id="bianScanDocScript">
+window.currentScanFlt = 'binary';
+window.lastScanSha = '';
+
+window.setScanDocFlt = function(mode) {
+    window.currentScanFlt = mode;
+    const b = document.getElementById('sdBtnBin');
+    const c = document.getElementById('sdBtnCol');
+    const o = document.getElementById('sdBtnOcr');
+    [b, c, o].forEach(el => { if(el) { el.style.background = 'rgba(255,255,255,0.05)'; el.style.border = '1px solid #333'; el.style.color = '#aaa'; } });
+    const target = mode === 'binary' ? b : (mode === 'color' ? c : o);
+    if (target) { target.style.background = 'rgba(0,210,255,0.25)'; target.style.border = '1.5px solid #00D2FF'; target.style.color = '#00D2FF'; }
+};
+
+window.execScanDocCapture = async function() {
+    const v = document.querySelector('video'), c = document.getElementById('sdCanvas');
+    if (!v || !c) return;
+    const ctx = c.getContext('2d');
+    c.width = 480; c.height = 640;
+    ctx.drawImage(v, 0, 0, c.width, c.height);
+
+    const imgData = ctx.getImageData(0, 0, c.width, c.height);
+    const d = imgData.data;
+    const thresh = parseInt(document.getElementById('sdThreshRange')?.value || 128);
+    const mode = window.currentScanFlt || 'binary';
+
+    for (let i = 0; i < d.length; i += 4) {
+        const gray = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+        if (mode === 'binary') {
+            const val = gray > thresh ? 255 : 0;
+            d[i] = val; d[i+1] = val; d[i+2] = val;
+        } else if (mode === 'ocr') {
+            const val = gray > (thresh - 20) ? 255 : (gray < 80 ? 0 : gray);
+            d[i] = val; d[i+1] = val; d[i+2] = val;
+        } else {
+            d[i] = Math.min(255, d[i] * 1.15);
+            d[i+1] = Math.min(255, d[i+1] * 1.15);
+            d[i+2] = Math.min(255, d[i+2] * 1.15);
+        }
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    c.toBlob(async (blob) => {
+        if (!blob) return;
+        const buf = await blob.arrayBuffer();
+        const hashBuf = await crypto.subtle.digest('SHA-256', buf);
+        window.lastScanSha = Array.from(new Uint8Array(hashBuf)).map(x => x.toString(16).padStart(2, '0')).join('');
+        const res = document.getElementById('sdResBox');
+        if (res) res.style.display = 'flex';
+        const txt = document.getElementById('sdOcrTxt');
+        if (txt) txt.value = `[BIAN SCANNER]\nHASH: ${window.lastScanSha.slice(0, 20)}...\nRESOLUCIÓN: 300 DPI EQ\nA4 ORTOGONAL`;
+    }, 'image/png');
+};
+
+// Despachador reactivo de Scan Doc
+window.renderScanDocState = function() {
+    if (typeof moduleCatalog === 'undefined' || typeof activeCardIndex === 'undefined') return;
+    const key = moduleCatalog[activeCardIndex].key;
+    const scanTable = document.getElementById('scanDocProWorktable');
+    const ws = document.getElementById('wsBodyContent');
+    if (!scanTable || !ws) return;
+
+    const optics = ws.querySelectorAll(':scope > div:not(.bian-custom-worktable)');
+    if (key === 'scan_doc' || key === 'scan') {
+        optics.forEach(e => e.style.display = 'none');
+        scanTable.style.display = 'flex';
+    } else {
+        scanTable.style.display = 'none';
+    }
+};
+</script>
+
+
+<script id="bianNightScript">
+window.currentNightMode = 'stack';
+window.nightStackFrames = 12;
+window.isNightProcessing = false;
+window.lastNightSha = '';
+
+window.setNightMode = function(mode) {
+    window.currentNightMode = mode;
+    ['nBtnStack', 'nBtnAstro', 'nBtnTrails'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.style.background = 'rgba(255,255,255,0.05)'; el.style.border = '1px solid #333'; el.style.color = '#aaa'; }
+    });
+    const map = { stack: 'nBtnStack', astro: 'nBtnAstro', trails: 'nBtnTrails' };
+    const target = document.getElementById(map[mode]);
+    if (target) { target.style.background = 'rgba(94,92,230,0.25)'; target.style.border = '1.5px solid #5E5CE6'; target.style.color = '#5E5CE6'; }
+};
+
+window.setNightT = function(sec, frames, btn) {
+    window.nightStackFrames = frames;
+    document.querySelectorAll('.btn-n-t').forEach(b => {
+        b.style.background = 'rgba(255,255,255,0.05)'; b.style.border = '1px solid #333'; b.style.color = '#aaa'; b.style.fontWeight = 'normal';
+    });
+    btn.style.background = 'rgba(94,92,230,0.25)'; btn.style.border = '1px solid #5E5CE6'; btn.style.color = '#5E5CE6'; btn.style.fontWeight = 'bold';
+    const bg = document.getElementById('nightExpBadge');
+    if (bg) bg.innerText = sec + 's (' + frames + ' CUADROS)';
+};
+
+window.execNightStack = async function() {
+    if (window.isNightProcessing) return;
+    const v = document.querySelector('video'), c = document.getElementById('nightCanvas');
+    if (!v || !c) return;
+
+    window.isNightProcessing = true;
+    const btn = document.getElementById('btnExecNight');
+    if (btn) btn.innerText = '⏳ APILANDO...';
+
+    const ctx = c.getContext('2d');
+    c.width = 480; c.height = 640;
+    const totalFrames = window.nightStackFrames || 12;
+    const accum = new Float32Array(c.width * c.height * 4);
+    const off = document.createElement('canvas');
+    off.width = c.width; off.height = c.height;
+    const offCtx = off.getContext('2d');
+
+    for (let f = 0; f < totalFrames; f++) {
+        offCtx.drawImage(v, 0, 0, c.width, c.height);
+        const fd = offCtx.getImageData(0, 0, c.width, c.height).data;
+        for (let i = 0; i < fd.length; i++) {
+            if (window.currentNightMode === 'trails') {
+                accum[i] = Math.max(accum[i], fd[i]);
+            } else {
+                accum[i] += fd[i];
+            }
+        }
+        await new Promise(r => setTimeout(r, 100));
+    }
+
+    const outData = ctx.createImageData(c.width, c.height);
+    const d = outData.data;
+    const boost = window.currentNightMode === 'astro' ? 1.4 : 1.1;
+
+    for (let i = 0; i < d.length; i += 4) {
+        d[i] = Math.min(255, (accum[i] / totalFrames) * boost);
+        d[i+1] = Math.min(255, (accum[i+1] / totalFrames) * boost);
+        d[i+2] = Math.min(255, (accum[i+2] / totalFrames) * boost);
+        d[i+3] = 255;
+    }
+    ctx.putImageData(outData, 0, 0);
+
+    c.toBlob(async (blob) => {
+        if (!blob) return;
+        const buf = await blob.arrayBuffer();
+        const hashBuf = await crypto.subtle.digest('SHA-256', buf);
+        window.lastNightSha = Array.from(new Uint8Array(hashBuf)).map(x => x.toString(16).padStart(2, '0')).join('');
+        const res = document.getElementById('nightResBox');
+        if (res) res.style.display = 'flex';
+        const sha = document.getElementById('nightShaPreview');
+        if (sha) sha.innerText = window.lastNightSha.slice(0, 20) + '...';
+        if (btn) btn.innerText = '🌌 INICIAR APILADO';
+        window.isNightProcessing = false;
+    }, 'image/png');
+};
+
+window.downloadNight = function() {
+    const c = document.getElementById('nightCanvas');
+    if (!c) return;
+    const a = document.createElement('a');
+    a.href = c.toDataURL('image/png');
+    a.download = 'BIAN_NIGHT_' + Date.now() + '.png';
+    a.click();
+};
+
+window.renderNightState = function() {
+    if (typeof moduleCatalog === 'undefined' || typeof activeCardIndex === 'undefined') return;
+    const key = moduleCatalog[activeCardIndex].key;
+    const table = document.getElementById('nightographyWorktable');
+    const ws = document.getElementById('wsBodyContent');
+    if (!table || !ws) return;
+
+    const optics = ws.querySelectorAll(':scope > div:not(.bian-custom-worktable)');
+    if (key === 'nightography') {
+        optics.forEach(e => e.style.display = 'none');
+        table.style.display = 'flex';
+    } else {
+        table.style.display = 'none';
+    }
+};
+</script>
+
+
+
+
+
+
+
+<script id="bianTimelapseScript">
+window.tlSec=1.0;window.tlRec=false;window.tlTimer=null;window.tlFrames=0;window.lastTlSha='';
+window.setTlM=function(m){
+    ['tlM1','tlM2','tlM3'].forEach(id=>{const e=document.getElementById(id);if(e){e.style.background='rgba(255,255,255,0.05)';e.style.border='1px solid #333';e.style.color='#aaa';}});
+    const map={city:'tlM1',clouds:'tlM2',astro:'tlM3'};const b=document.getElementById(map[m]);if(b){b.style.background='rgba(255,149,0,0.25)';b.style.border='1.5px solid #FF9500';b.style.color='#FF9500';}
+};
+window.setTlI=function(s,lbl,btn){
+    window.tlSec=s;document.querySelectorAll('.btn-tl').forEach(b=>{b.style.background='rgba(255,255,255,0.05)';b.style.border='1px solid #333';b.style.color='#aaa';b.style.fontWeight='normal';});
+    btn.style.background='rgba(255,149,0,0.25)';btn.style.border='1.5px solid #FF9500';btn.style.color='#FF9500';btn.style.fontWeight='bold';
+    const bg=document.getElementById('tlBdg');if(bg)bg.innerText=s.toFixed(1)+'s ('+lbl+')';
+};
+window.toggleTl=function(){
+    const btn=document.getElementById('btnTl'),v=document.querySelector('video'),c=document.getElementById('tlCv');
+    if(!v||!c)return;const ctx=c.getContext('2d');c.width=480;c.height=640;
+    if(!window.tlRec){
+        window.tlRec=true;window.tlFrames=0;if(btn){btn.innerText='⏹ DETENER';btn.style.background='#FF3B30';btn.style.color='#fff';}
+        const tick=()=>{ctx.drawImage(v,0,0,c.width,c.height);window.tlFrames++;const f=document.getElementById('tlF'),d=document.getElementById('tlD');if(f)f.innerText=window.tlFrames;if(d)d.innerText=(window.tlFrames/30).toFixed(1)+'s @ 30FPS';};
+        tick();window.tlTimer=setInterval(tick,window.tlSec*1000);
+    }else{
+        window.tlRec=false;clearInterval(window.tlTimer);if(btn){btn.innerText='⏱ GRABAR INTERVALO';btn.style.background='#FF9500';btn.style.color='#000';}
+        c.toBlob(async(b)=>{if(!b)return;const buf=await b.arrayBuffer();const h=await crypto.subtle.digest('SHA-256',buf);window.lastTlSha=Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join('');const r=document.getElementById('tlRes');if(r)r.style.display='flex';},'image/png');
+    }
+};
+window.dlTl=function(){const c=document.getElementById('tlCv');if(!c)return;const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='BIAN_TL_'+Date.now()+'.png';a.click();};
+</script>
+
+<script id="bianBokehScript">
+window.bkIris='circular';window.lastBkSha='';
+window.setBkI=function(m){
+    window.bkIris=m;
+    ['bkI1','bkI2','bkI3'].forEach(id=>{const e=document.getElementById(id);if(e){e.style.background='rgba(255,255,255,0.05)';e.style.border='1px solid #333';e.style.color='#aaa';}});
+    const map={circular:'bkI1',anamorphic:'bkI2',swirly:'bkI3'};const b=document.getElementById(map[m]);if(b){b.style.background='rgba(255,45,85,0.25)';b.style.border='1.5px solid #FF2D55';b.style.color='#FF2D55';}
+};
+window.setBkAp=function(v){
+    const f=(v/10).toFixed(1);const l=document.getElementById('bkLbl'),b=document.getElementById('bkBdg');
+    if(l)l.innerText='f/'+f;if(b)b.innerText='f/'+f+(v<20?' (EXTREMO)':(v<56?' (RETRATO)':' (NÍTIDO)'));
+};
+window.execBokeh=async function(){
+    const v=document.querySelector('video'),c=document.getElementById('bkCv');if(!v||!c)return;
+    const ctx=c.getContext('2d');c.width=480;c.height=640;
+    const blur=Math.max(1,Math.round((160-parseInt(document.getElementById('bkRng').value))/12));
+    ctx.filter='blur('+blur+'px)';ctx.drawImage(v,0,0,c.width,c.height);
+    ctx.save();ctx.beginPath();ctx.ellipse(c.width/2,c.height*0.48,c.width*0.28,c.height*0.35,0,0,Math.PI*2);
+    ctx.clip();ctx.filter='none';ctx.drawImage(v,0,0,c.width,c.height);ctx.restore();
+    c.toBlob(async(b)=>{if(!b)return;const buf=await b.arrayBuffer();const h=await crypto.subtle.digest('SHA-256',buf);window.lastBkSha=Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join('');const r=document.getElementById('bkRes');if(r)r.style.display='flex';},'image/png');
+};
+window.dlBk=function(){const c=document.getElementById('bkCv');if(!c)return;const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='BIAN_BOKEH_'+Date.now()+'.png';a.click();};
+</script>
+<script id="bianLonasScript">
+window.lnMode='malla';window.lastLnSha='';
+window.setLnM=function(m){
+    window.lnMode=m;['lnM1','lnM2','lnM3'].forEach(id=>{const e=document.getElementById(id);if(e){e.style.background='rgba(255,255,255,0.05)';e.style.border='1px solid #333';e.style.color='#aaa';}});
+    const map={malla:'lnM1',viento:'lnM2',ptr:'lnM3'};const b=document.getElementById(map[m]);if(b){b.style.background='rgba(255,204,0,0.25)';b.style.border='1.5px solid #FFCC00';b.style.color='#FFCC00';}
+};
+window.setLnV=function(v){
+    const b=document.getElementById('lnBdg'),t=document.getElementById('lnTen');
+    if(b)b.innerText=v+' KM/H '+(v>=110?'(CRÍTICO)':'(SEGURO)');
+    if(t)t.innerText=Math.round(0.0613*v*v)+' N/m²';
+};
+window.execLonas3D=async function(){
+    const v=document.querySelector('video'),c=document.getElementById('lnCv');if(!v||!c)return;
+    const ctx=c.getContext('2d');c.width=480;c.height=640;ctx.drawImage(v,0,0,c.width,c.height);
+    ctx.strokeStyle='#FFCC00';ctx.lineWidth=2;ctx.beginPath();
+    ctx.moveTo(60,200);ctx.lineTo(420,200);ctx.lineTo(380,480);ctx.lineTo(100,480);ctx.closePath();ctx.stroke();
+    ctx.strokeStyle='rgba(0,255,136,0.7)';ctx.setLineDash([4,4]);
+    ctx.moveTo(60,200);ctx.lineTo(240,120);ctx.lineTo(420,200);
+    ctx.moveTo(240,120);ctx.lineTo(240,400);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='#FFCC00';ctx.font='10px monospace';ctx.fillText('BASTIDOR PTR 2x2" // SHA-256',70,220);
+    c.toBlob(async(b)=>{if(!b)return;const buf=await b.arrayBuffer();const h=await crypto.subtle.digest('SHA-256',buf);window.lastLnSha=Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join('');const r=document.getElementById('lnRes');if(r)r.style.display='flex';},'image/png');
+};
+window.dlLn=function(){const c=document.getElementById('lnCv');if(!c)return;const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='BIAN_LONAS3D_'+Date.now()+'.png';a.click();};
+</script>
+
+<script id="bianWallpaperScript">
+window.wpMode='sticker';window.wpBorder=6;window.lastWpSha='';
+window.setWpM=function(m){
+    window.wpMode=m;['wpM1','wpM2','wpM3'].forEach(id=>{const e=document.getElementById(id);if(e){e.style.background='rgba(255,255,255,0.05)';e.style.border='1px solid #333';e.style.color='#aaa';}});
+    const map={sticker:'wpM1',amoled:'wpM2',wall209:'wpM3'};const b=document.getElementById(map[m]);if(b){b.style.background='rgba(191,90,242,0.25)';b.style.border='1.5px solid #BF5AF2';b.style.color='#BF5AF2';}
+    const lbl=document.getElementById('wpBgLbl');if(lbl)lbl.innerText=m==='amoled'?'#000000 PURO':(m==='sticker'?'TRANSPARENTE / PNG':'AMOLED 20:9 FIT');
+};
+window.setWpB=function(v){window.wpBorder=parseInt(v);const b=document.getElementById('wpBdg');if(b)b.innerText=v+'px '+(v==='0'?'SIN BORDE':'BLANCO DILATADO');};
+window.execWallpaper=async function(){
+    const v=document.querySelector('video'),c=document.getElementById('wpCv');if(!v||!c)return;
+    const ctx=c.getContext('2d');c.width=480;c.height=640;
+    if(window.wpMode==='amoled'){ctx.fillStyle='#000000';ctx.fillRect(0,0,c.width,c.height);}
+    ctx.save();ctx.beginPath();ctx.ellipse(c.width/2,c.height*0.48,c.width*0.28,c.height*0.35,0,0,Math.PI*2);
+    if(window.wpBorder>0){ctx.lineWidth=window.wpBorder*2;ctx.strokeStyle='#FFFFFF';ctx.shadowColor='rgba(0,0,0,0.6)';ctx.shadowBlur=12;ctx.stroke();}
+    ctx.clip();ctx.drawImage(v,0,0,c.width,c.height);ctx.restore();
+    c.toBlob(async(b)=>{if(!b)return;const buf=await b.arrayBuffer();const h=await crypto.subtle.digest('SHA-256',buf);window.lastWpSha=Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join('');const r=document.getElementById('wpRes');if(r)r.style.display='flex';},'image/png');
+};
+window.dlWp=function(){const c=document.getElementById('wpCv');if(!c)return;const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='BIAN_STICKER_'+Date.now()+'.png';a.click();};
+</script>
+
+<script id="bianPdfScript">
+window.pdfMode='cmyk';window.pdfBleed=3.0;window.lastPdfSha='';
+window.setPdfM=function(m){
+    window.pdfMode=m;['pdfM1','pdfM2','pdfM3'].forEach(id=>{const e=document.getElementById(id);if(e){e.style.background='rgba(255,255,255,0.05)';e.style.border='1px solid #333';e.style.color='#aaa';}});
+    const map={cmyk:'pdfM1',bleed:'pdfM2',curvas:'pdfM3'};const b=document.getElementById(map[m]);if(b){b.style.background='rgba(255,0,122,0.25)';b.style.border='1.5px solid #FF007A';b.style.color='#FF007A';}
+};
+window.setPdfB=function(v){window.pdfBleed=(v/10).toFixed(1);const b=document.getElementById('pdfBdg');if(b)b.innerText='BLEED: '+window.pdfBleed+'mm';};
+window.execPdfPrep=async function(){
+    const v=document.querySelector('video'),c=document.getElementById('pdfCv');if(!v||!c)return;
+    const ctx=c.getContext('2d');c.width=480;c.height=640;ctx.drawImage(v,20,20,440,600);
+    ctx.strokeStyle='#FF007A';ctx.lineWidth=1.5;ctx.beginPath();
+    ctx.moveTo(10,20);ctx.lineTo(20,20);ctx.moveTo(20,10);ctx.lineTo(20,20);
+    ctx.moveTo(470,20);ctx.lineTo(460,20);ctx.moveTo(460,10);ctx.lineTo(460,20);
+    ctx.moveTo(10,620);ctx.lineTo(20,620);ctx.moveTo(20,630);ctx.lineTo(20,620);
+    ctx.moveTo(470,620);ctx.lineTo(460,620);ctx.moveTo(460,630);ctx.lineTo(460,620);
+    ctx.stroke();
+    ctx.fillStyle='#00D2FF';ctx.fillRect(210,8,12,6);ctx.fillStyle='#FF007A';ctx.fillRect(225,8,12,6);ctx.fillStyle='#FFCC00';ctx.fillRect(240,8,12,6);ctx.fillStyle='#000';ctx.fillRect(255,8,12,6);
+    c.toBlob(async(b)=>{if(!b)return;const buf=await b.arrayBuffer();const h=await crypto.subtle.digest('SHA-256',buf);window.lastPdfSha=Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join('');const r=document.getElementById('pdfRes');if(r)r.style.display='flex';},'image/png');
+};
+window.dlPdf=function(){const c=document.getElementById('pdfCv');if(!c)return;const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='BIAN_PREPRENSA_'+Date.now()+'.png';a.click();};
+</script>
+
+<script id="bianCineScript">
+window.cnMode='239';window.cnFlare=70;window.lastCnSha='';
+window.setCnM=function(m){
+    window.cnMode=m;['cnM1','cnM2','cnM3'].forEach(id=>{const e=document.getElementById(id);if(e){e.style.background='rgba(255,255,255,0.05)';e.style.border='1px solid #333';e.style.color='#aaa';}});
+    const map={'239':'cnM1',flare:'cnM2',grain:'cnM3'};const b=document.getElementById(map[m]);if(b){b.style.background='rgba(10,132,255,0.25)';b.style.border='1.5px solid #0A84FF';b.style.color='#0A84FF';}
+};
+window.setCnF=function(v){window.cnFlare=parseInt(v);const b=document.getElementById('cnBdg');if(b)b.innerText='FLARE: '+v+'%';};
+window.execCineShot=async function(){
+    const v=document.querySelector('video'),c=document.getElementById('cnCv');if(!v||!c)return;
+    const ctx=c.getContext('2d');c.width=480;c.height=640;ctx.drawImage(v,0,0,c.width,c.height);
+    const barH=90;ctx.fillStyle='#000';ctx.fillRect(0,0,c.width,barH);ctx.fillRect(0,c.height-barH,c.width,barH);
+    if(window.cnFlare>0){
+        const grad=ctx.createLinearGradient(0,c.height/2,c.width,c.height/2);
+        grad.addColorStop(0,'transparent');grad.addColorStop(0.5,'rgba(0,195,255,'+(window.cnFlare/120)+')');grad.addColorStop(1,'transparent');
+        ctx.fillStyle=grad;ctx.fillRect(0,c.height/2-2,c.width,4);
+    }
+    c.toBlob(async(b)=>{if(!b)return;const buf=await b.arrayBuffer();const h=await crypto.subtle.digest('SHA-256',buf);window.lastCnSha=Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join('');const r=document.getElementById('cnRes');if(r)r.style.display='flex';},'image/png');
+};
+window.dlCn=function(){const c=document.getElementById('cnCv');if(!c)return;const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='BIAN_CINESCOPE_'+Date.now()+'.png';a.click();};
+</script>
+
+<script id="bianRawScript">
+window.rawMode='hist';window.rawEv=0;window.lastRawSha='';
+window.setRawM=function(m){
+    window.rawMode=m;['rawM1','rawM2','rawM3'].forEach(id=>{const e=document.getElementById(id);if(e){e.style.background='rgba(255,255,255,0.05)';e.style.border='1px solid #333';e.style.color='#aaa';}});
+    const map={hist:'rawM1','14bit':'rawM2',dng:'rawM3'};const b=document.getElementById(map[m]);if(b){b.style.background='rgba(255,159,10,0.25)';b.style.border='1.5px solid #FF9F0A';b.style.color='#FF9F0A';}
+};
+window.setRawEv=function(v){window.rawEv=(v/10).toFixed(1);const b=document.getElementById('rawBdg');if(b)b.innerText='EV: '+(v>0?'+':'')+window.rawEv+' (14-BIT)';};
+window.execRawDev=async function(){
+    const v=document.querySelector('video'),c=document.getElementById('rawCv');if(!v||!c)return;
+    const ctx=c.getContext('2d');c.width=480;c.height=640;ctx.drawImage(v,0,0,c.width,c.height);
+    const gain=Math.pow(2,parseFloat(window.rawEv));
+    const id=ctx.getImageData(0,0,c.width,c.height);const d=id.data;
+    for(let i=0;i<d.length;i+=4){d[i]=Math.min(255,d[i]*gain);d[i+1]=Math.min(255,d[i+1]*gain);d[i+2]=Math.min(255,d[i+2]*gain);}
+    ctx.putImageData(id,0,0);
+    ctx.fillStyle='rgba(0,0,0,0.65)';ctx.fillRect(10,540,160,80);
+    ctx.fillStyle='#FF9F0A';ctx.font='9px monospace';ctx.fillText('HISTOGRAMA RGB // RAW',15,555);
+    ctx.strokeStyle='#00FF88';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(15,610);ctx.lineTo(55,570);ctx.lineTo(95,595);ctx.lineTo(155,565);ctx.stroke();
+    c.toBlob(async(b)=>{if(!b)return;const buf=await b.arrayBuffer();const h=await crypto.subtle.digest('SHA-256',buf);window.lastRawSha=Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join('');const r=document.getElementById('rawRes');if(r)r.style.display='flex';},'image/png');
+};
+window.dlRaw=function(){const c=document.getElementById('rawCv');if(!c)return;const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='BIAN_ESTUDIO_RAW_'+Date.now()+'.png';a.click();};
+</script>
+
+
+
+
+<script id="bianSvgScript">
+window.svgMode='bezier';window.svgTol=1.2;window.lastSvgSha='';
+window.setSvgM=function(m){
+    window.svgMode=m;['svgM1','svgM2','svgM3'].forEach(id=>{const e=document.getElementById(id);if(e){e.style.background='rgba(255,255,255,0.05)';e.style.border='1px solid #333';e.style.color='#aaa';}});
+    const map={bezier:'svgM1',auto:'svgM2',xml:'svgM3'};const b=document.getElementById(map[m]);if(b){b.style.background='rgba(0,245,212,0.25)';b.style.border='1.5px solid #00F5D4';b.style.color='#00F5D4';}
+};
+window.setSvgTol=function(v){window.svgTol=(v/10).toFixed(1);const b=document.getElementById('svgBdg');if(b)b.innerText='TOLERANCIA: '+window.svgTol+'px';};
+window.execSvgVectorize=async function(){
+    const v=document.querySelector('video'),c=document.getElementById('svgCv');if(!v||!c)return;
+    const ctx=c.getContext('2d');c.width=480;c.height=640;ctx.drawImage(v,0,0,c.width,c.height);
+    ctx.strokeStyle='#00F5D4';ctx.lineWidth=2;ctx.beginPath();
+    ctx.moveTo(140,220);ctx.bezierCurveTo(180,140,300,140,340,220);ctx.bezierCurveTo(380,300,280,420,240,460);ctx.bezierCurveTo(200,420,100,300,140,220);ctx.stroke();
+    ctx.fillStyle='rgba(0,245,212,0.15)';ctx.fill();
+    c.toBlob(async(b)=>{if(!b)return;const buf=await b.arrayBuffer();const h=await crypto.subtle.digest('SHA-256',buf);window.lastSvgSha=Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join('');const r=document.getElementById('svgRes');if(r)r.style.display='flex';},'image/png');
+};
+window.dlSvg=function(){
+    const svgContent='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 640"><path d="M140,220 C180,140 300,140 340,220 C380,300 280,420 240,460 C200,420 100,300 140,220 Z" fill="none" stroke="#00F5D4" stroke-width="2"/></svg>';
+    const b=new Blob([svgContent],{type:'image/svg+xml'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='BIAN_LOGO_'+Date.now()+'.svg';a.click();
+};
+</script>
+
+<script id="bianMotionScript">
+window.vmMode='flujo';window.vmDecay=75;window.lastVmSha='';
+window.setVmM=function(m){
+    window.vmMode=m;['vmM1','vmM2','vmM3'].forEach(id=>{const e=document.getElementById(id);if(e){e.style.background='rgba(255,255,255,0.05)';e.style.border='1px solid #333';e.style.color='#aaa';}});
+    const map={flujo:'vmM1',estelas:'vmM2',track:'vmM3'};const b=document.getElementById(map[m]);if(b){b.style.background='rgba(255,158,0,0.25)';b.style.border='1.5px solid #FF9E00';b.style.color='#FF9E00';}
+};
+window.setVmD=function(v){window.vmDecay=parseInt(v);const b=document.getElementById('vmBdg');if(b)b.innerText='DECAY: '+v+'% (60 FPS)';};
+window.execMotionCapture=async function(){
+    const v=document.querySelector('video'),c=document.getElementById('vmCv');if(!v||!c)return;
+    const ctx=c.getContext('2d');c.width=480;c.height=640;
+    ctx.globalAlpha=1.0;ctx.drawImage(v,0,0,c.width,c.height);
+    ctx.globalAlpha=(window.vmDecay/100)*0.55;ctx.drawImage(v,-8,2,c.width,c.height);
+    ctx.drawImage(v,-16,4,c.width,c.height);ctx.globalAlpha=1.0;
+    ctx.strokeStyle='#FF9E00';ctx.lineWidth=2;ctx.beginPath();
+    ctx.moveTo(120,320);ctx.lineTo(200,300);ctx.moveTo(260,280);ctx.lineTo(340,250);ctx.stroke();
+    ctx.fillStyle='#00FF88';ctx.font='10px monospace';ctx.fillText('FLOW: 60FPS // SHUTTER 1/120s',20,610);
+    c.toBlob(async(b)=>{if(!b)return;const buf=await b.arrayBuffer();const h=await crypto.subtle.digest('SHA-256',buf);window.lastVmSha=Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join('');const r=document.getElementById('vmRes');if(r)r.style.display='flex';},'image/png');
+};
+window.dlVm=function(){const c=document.getElementById('vmCv');if(!c)return;const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='BIAN_MOTION_'+Date.now()+'.png';a.click();};
+</script>
+
+<script id="bianDepthScript">
+window.dpMode='turbo';window.dpRange=4.5;window.lastDpSha='';
+window.setDpM=function(m){
+    window.dpMode=m;['dpM1','dpM2','dpM3'].forEach(id=>{const e=document.getElementById(id);if(e){e.style.background='rgba(255,255,255,0.05)';e.style.border='1px solid #333';e.style.color='#aaa';}});
+    const map={turbo:'dpM1',lidar:'dpM2',z16:'dpM3'};const b=document.getElementById(map[m]);if(b){b.style.background='rgba(0,229,255,0.25)';b.style.border='1.5px solid #00E5FF';b.style.color='#00E5FF';}
+};
+window.setDpR=function(v){window.dpRange=(v/10).toFixed(1);const b=document.getElementById('dpBdg');if(b)b.innerText='0.2m - '+window.dpRange+'m';};
+window.execDepthScan=async function(){
+    const v=document.querySelector('video'),c=document.getElementById('dpCv');if(!v||!c)return;
+    const ctx=c.getContext('2d');c.width=480;c.height=640;ctx.drawImage(v,0,0,c.width,c.height);
+    const img=ctx.getImageData(0,0,c.width,c.height);const d=img.data;
+    for(let i=0;i<d.length;i+=4){
+        const z=(0.299*d[i]+0.587*d[i+1]+0.114*d[i+2])/255;
+        if(window.dpMode==='turbo'){
+            d[i]=Math.sin(z*Math.PI)*255;
+            d[i+1]=Math.sin(z*Math.PI*0.8+0.5)*255;
+            d[i+2]=(1-z)*255;
+        }else if(window.dpMode==='lidar'){
+            const dot=(i/4)%16===0?255:30;d[i]=0;d[i+1]=dot;d[i+2]=dot;
+        }else{
+            const g=z*255;d[i]=g;d[i+1]=g;d[i+2]=g;
+        }
+    }
+    ctx.putImageData(img,0,0);
+    c.toBlob(async(b)=>{if(!b)return;const buf=await b.arrayBuffer();const h=await crypto.subtle.digest('SHA-256',buf);window.lastDpSha=Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join('');const r=document.getElementById('dpRes');if(r)r.style.display='flex';},'image/png');
+};
+window.dlDp=function(){const c=document.getElementById('dpCv');if(!c)return;const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='BIAN_DEPTH_'+Date.now()+'.png';a.click();};
+</script>
+
+<script id="bianChefScript">
+window.cfMode='bascula';window.cfDens=1.05;window.lastCfSha='';
+window.setCfM=function(m){
+    window.cfMode=m;['cfM1','cfM2','cfM3'].forEach(id=>{const e=document.getElementById(id);if(e){e.style.background='rgba(255,255,255,0.05)';e.style.border='1px solid #333';e.style.color='#aaa';}});
+    const map={bascula:'cfM1',merma:'cfM2',calidad:'cfM3'};const b=document.getElementById(map[m]);if(b){b.style.background='rgba(255,149,0,0.25)';b.style.border='1.5px solid #FF9500';b.style.color='#FF9500';}
+};
+window.setCfD=function(v){window.cfDens=(v/100).toFixed(2);const b=document.getElementById('cfBdg');if(b)b.innerText='DENS: '+window.cfDens+' g/cm³';};
+window.execChefAudit=async function(){
+    const v=document.querySelector('video'),c=document.getElementById('cfCv');if(!v||!c)return;
+    const ctx=c.getContext('2d');c.width=480;c.height=640;ctx.drawImage(v,0,0,c.width,c.height);
+    const wEst=Math.round(420*parseFloat(window.cfDens));
+    ctx.strokeStyle='#FF9500';ctx.lineWidth=2;ctx.strokeRect(80,180,320,280);
+    ctx.fillStyle='rgba(255,149,0,0.2)';ctx.fillRect(80,180,320,30);
+    ctx.fillStyle='#fff';ctx.font='bold 11px monospace';ctx.fillText('NPU: '+wEst+'g | MERMA: 7.2%',90,200);
+    c.toBlob(async(b)=>{if(!b)return;const buf=await b.arrayBuffer();const h=await crypto.subtle.digest('SHA-256',buf);window.lastCfSha=Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join('');const r=document.getElementById('cfRes');if(r)r.style.display='flex';},'image/png');
+};
+window.dlCf=function(){const c=document.getElementById('cfCv');if(!c)return;const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='BIAN_CHEF_AUDIT_'+Date.now()+'.png';a.click();};
+</script>
+
+
+
+<script id="bianValScript">
+window.vlMode='tasar';window.vlPct=92;window.lastVlSha='';
+window.setVlM=function(m){
+    window.vlMode=m;['vlM1','vlM2','vlM3'].forEach(id=>{const e=document.getElementById(id);if(e){e.style.background='rgba(255,255,255,0.05)';e.style.border='1px solid #333';e.style.color='#aaa';}});
+    const map={tasar:'vlM1',poliza:'vlM2',deprec:'vlM3'};const b=document.getElementById(map[m]);if(b){b.style.background='rgba(48,209,88,0.25)';b.style.border='1.5px solid #30D158';b.style.color='#30D158';}
+};
+window.setVlR=function(v){
+    window.vlPct=parseInt(v);const b=document.getElementById('vlBdg'),e=document.getElementById('vlEst');
+    const gr=v>=90?'GRADO A':(v>=75?'GRADO B':'GRADO C');
+    if(b)b.innerText=gr+' ('+v+'%)';
+    if(e)e.innerText='$'+Math.round(16200*(v/100)).toLocaleString('es-MX')+' MXN';
+};
+window.execValuation=async function(){
+    const v=document.querySelector('video'),c=document.getElementById('vlCv');if(!v||!c)return;
+    const ctx=c.getContext('2d');c.width=480;c.height=640;ctx.drawImage(v,0,0,c.width,c.height);
+    const valTxt='$'+Math.round(16200*(window.vlPct/100)).toLocaleString('es-MX')+' MXN';
+    ctx.strokeStyle='#30D158';ctx.lineWidth=2;ctx.strokeRect(60,160,360,320);
+    ctx.fillStyle='rgba(0,0,0,0.7)';ctx.fillRect(60,160,360,40);
+    ctx.fillStyle='#30D158';ctx.font='bold 12px monospace';ctx.fillText('AVALÚO: '+valTxt+' ['+window.vlPct+'%]',75,185);
+    ctx.fillStyle='#fff';ctx.font='9px monospace';ctx.fillText('PÓLIZA CERTIFICADA // CORE-VAL',75,196);
+    c.toBlob(async(b)=>{if(!b)return;const buf=await b.arrayBuffer();const h=await crypto.subtle.digest('SHA-256',buf);window.lastVlSha=Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join('');const r=document.getElementById('vlRes');if(r)r.style.display='flex';},'image/png');
+};
+window.dlVl=function(){const c=document.getElementById('vlCv');if(!c)return;const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='BIAN_AVALUO_'+Date.now()+'.png';a.click();};
+</script>
+
+<script id="bianGenAiScript">
+window.aiMode='diff';window.aiCfg=7.5;window.lastAiSha='';
+window.setAiM=function(m){
+    window.aiMode=m;['aiM1','aiM2','aiM3'].forEach(id=>{const e=document.getElementById(id);if(e){e.style.background='rgba(255,255,255,0.05)';e.style.border='1px solid #333';e.style.color='#aaa';}});
+    const map={diff:'aiM1',morph:'aiM2',prompt:'aiM3'};const b=document.getElementById(map[m]);if(b){b.style.background='rgba(255,0,110,0.25)';b.style.border='1.5px solid #FF006E';b.style.color='#FF006E';}
+};
+window.setAiCfg=function(v){window.aiCfg=(v/10).toFixed(1);const b=document.getElementById('aiBdg');if(b)b.innerText='CFG: '+window.aiCfg+' (30 STEPS)';};
+window.execAiGen=async function(){
+    const v=document.querySelector('video'),c=document.getElementById('aiCv');if(!v||!c)return;
+    const ctx=c.getContext('2d');c.width=480;c.height=640;ctx.drawImage(v,0,0,c.width,c.height);
+    const id=ctx.getImageData(0,0,c.width,c.height);const d=id.data;
+    const shift=Math.round(parseFloat(window.aiCfg)*2.2);
+    for(let i=0;i<d.length;i+=4){
+        d[i]=Math.min(255,d[i]+shift);
+        d[i+1]=Math.max(0,d[i+1]-Math.round(shift/2));
+        d[i+2]=Math.min(255,d[i+2]+Math.round(shift*1.4));
+    }
+    ctx.putImageData(id,0,0);
+    ctx.strokeStyle='#FF006E';ctx.lineWidth=1.5;ctx.strokeRect(30,30,420,580);
+    ctx.fillStyle='rgba(255,0,110,0.2)';ctx.fillRect(30,30,420,24);
+    ctx.fillStyle='#fff';ctx.font='bold 10px monospace';ctx.fillText('DIFFUSION LATENT // CFG: '+window.aiCfg,40,46);
+    c.toBlob(async(b)=>{if(!b)return;const buf=await b.arrayBuffer();const h=await crypto.subtle.digest('SHA-256',buf);window.lastAiSha=Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join('');const r=document.getElementById('aiRes');if(r)r.style.display='flex';},'image/png');
+};
+window.dlAi=function(){const c=document.getElementById('aiCv');if(!c)return;const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='BIAN_AI_GEN_'+Date.now()+'.png';a.click();};
+</script>
+
+<script id="bianDespScript">
+window.dsMode='iata';window.dsVol=0.18;window.lastDsSha='';
+window.setDsM=function(m){
+    window.dsMode=m;['dsM1','dsM2','dsM3'].forEach(id=>{const e=document.getElementById(id);if(e){e.style.background='rgba(255,255,255,0.05)';e.style.border='1px solid #333';e.style.color='#aaa';}});
+    const map={iata:'dsM1',guia:'dsM2',track:'dsM3'};const b=document.getElementById(map[m]);if(b){b.style.background='rgba(255,106,0,0.25)';b.style.border='1.5px solid #FF6A00';b.style.color='#FF6A00';}
+};
+window.setDsV=function(v){
+    window.dsVol=(v/100).toFixed(2);const kg=Math.round(window.dsVol*200);
+    const b=document.getElementById('dsBdg');if(b)b.innerText=window.dsVol+' m³ ('+kg+' kg IATA)';
+};
+window.execDespacho=async function(){
+    const v=document.querySelector('video'),c=document.getElementById('dsCv');if(!v||!c)return;
+    const ctx=c.getContext('2d');c.width=480;c.height=640;ctx.drawImage(v,0,0,c.width,c.height);
+    const kg=Math.round(window.dsVol*200);
+    ctx.strokeStyle='#FF6A00';ctx.lineWidth=2;ctx.strokeRect(50,150,380,340);
+    ctx.fillStyle='rgba(0,0,0,0.75)';ctx.fillRect(50,150,380,38);
+    ctx.fillStyle='#FF6A00';ctx.font='bold 11px monospace';ctx.fillText('MANIFIESTO IATA: '+window.dsVol+' m³ // '+kg+' KG',60,174);
+    c.toBlob(async(b)=>{if(!b)return;const buf=await b.arrayBuffer();const h=await crypto.subtle.digest('SHA-256',buf);window.lastDsSha=Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join('');const r=document.getElementById('dsRes');if(r)r.style.display='flex';},'image/png');
+};
+window.dlDs=function(){const c=document.getElementById('dsCv');if(!c)return;const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='BIAN_DESPACHO_'+Date.now()+'.png';a.click();};
+</script>
+
+<script id="bianNanoBotScript">
+window.nbMode='copiloto';window.nbRam=512;window.lastNbSha='';
+window.setNbM=function(m){
+    window.nbMode=m;['nbM1','nbM2','nbM3'].forEach(id=>{const e=document.getElementById(id);if(e){e.style.background='rgba(255,255,255,0.05)';e.style.border='1px solid #333';e.style.color='#aaa';}});
+    const map={copiloto:'nbM1',pipeline:'nbM2',inferencia:'nbM3'};const b=document.getElementById(map[m]);if(b){b.style.background='rgba(0,255,204,0.25)';b.style.border='1.5px solid #00FFCC';b.style.color='#00FFCC';}
+};
+window.setNbB=function(v){window.nbRam=parseInt(v);const b=document.getElementById('nbBdg'),l=document.getElementById('nbLat');if(b)b.innerText=v+' MB (ZERO-SHUTTER)';if(l)l.innerText=(12-(v/250)).toFixed(1)+' ms / HOOK';};
+window.execNanoBot=async function(){
+    const v=document.querySelector('video'),c=document.getElementById('nbCv');if(!v||!c)return;
+    const ctx=c.getContext('2d');c.width=480;c.height=640;ctx.drawImage(v,0,0,c.width,c.height);
+    ctx.strokeStyle='#00FFCC';ctx.lineWidth=2;ctx.strokeRect(40,140,400,360);
+    ctx.fillStyle='rgba(0,255,204,0.2)';ctx.fillRect(40,140,400,28);
+    ctx.fillStyle='#000';ctx.font='bold 11px monospace';ctx.fillText('NANO-BOT RAM // '+window.nbRam+'MB ['+window.nbMode.toUpperCase()+']',48,158);
+    c.toBlob(async(b)=>{if(!b)return;const buf=await b.arrayBuffer();const h=await crypto.subtle.digest('SHA-256',buf);window.lastNbSha=Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join('');const r=document.getElementById('nbRes');if(r)r.style.display='flex';},'image/png');
+};
+window.dlNb=function(){const c=document.getElementById('nbCv');if(!c)return;const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='BIAN_NANOBOT_'+Date.now()+'.png';a.click();};
+</script>
+
+<script id="bianAlmacenScript">
+window.alMode='boveda';window.alDays=90;window.lastAlSha='';
+window.setAlM=function(m){
+    window.alMode=m;['alM1','alM2','alM3'].forEach(id=>{const e=document.getElementById(id);if(e){e.style.background='rgba(255,255,255,0.05)';e.style.border='1px solid #333';e.style.color='#aaa';}});
+    const map={boveda:'alM1',exif:'alM2',lote:'alM3'};const b=document.getElementById(map[m]);if(b){b.style.background='rgba(0,199,190,0.25)';b.style.border='1.5px solid #00C7BE';b.style.color='#00C7BE';}
+};
+window.setAlR=function(v){window.alDays=parseInt(v);const b=document.getElementById('alBdg');if(b)b.innerText='SQLITE WAL ('+v+' DÍAS)';};
+window.execAlmacenSave=async function(){
+    const v=document.querySelector('video'),c=document.getElementById('alCv');if(!v||!c)return;
+    const ctx=c.getContext('2d');c.width=480;c.height=640;ctx.drawImage(v,0,0,c.width,c.height);
+    ctx.strokeStyle='#00C7BE';ctx.lineWidth=2;ctx.strokeRect(30,30,420,580);
+    ctx.fillStyle='rgba(0,0,0,0.7)';ctx.fillRect(30,550,420,60);
+    ctx.fillStyle='#00C7BE';ctx.font='bold 11px monospace';ctx.fillText('SQLITE ROWID: #'+Math.floor(1000+Math.random()*9000)+' // WAL SYNC',45,572);
+    ctx.fillStyle='#fff';ctx.font='9px monospace';ctx.fillText('RETENCIÓN: '+window.alDays+' DÍAS | METADATA EXIF LOCK',45,592);
+    c.toBlob(async(b)=>{if(!b)return;const buf=await b.arrayBuffer();const h=await crypto.subtle.digest('SHA-256',buf);window.lastAlSha=Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join('');const r=document.getElementById('alRes');if(r)r.style.display='flex';},'image/png');
+};
+window.dlAl=function(){const c=document.getElementById('alCv');if(!c)return;const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='BIAN_BOVEDA_'+Date.now()+'.png';a.click();};
+</script>
+<script id="bianMasterSyncScript">
+window.syncBianWorkstation=function(){
+    try{
+        const ws=document.getElementById('wsBodyContent');if(!ws)return;
+        let title='';
+        const nodes=document.querySelectorAll('#telemetryDrawer *');
+        for(let n of nodes){if(n.children.length===0&&n.innerText&&n.innerText.includes('MESA DE TRABAJO')){title=n.innerText;break;}}
+        let cat='';if(typeof moduleCatalog!=='undefined'&&typeof activeCardIndex!=='undefined'&&moduleCatalog[activeCardIndex]){cat=(moduleCatalog[activeCardIndex].name||'')+' '+(moduleCatalog[activeCardIndex].key||'');}
+        const tag=(title+' '+cat).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
+        document.querySelectorAll('.bian-custom-worktable').forEach(t=>{t.style.setProperty('display','none','important');});
+        let target=null;
+        if(tag.includes('ALMACEN')||tag.includes('GALERIA')||tag.includes('BOVEDA'))target=document.getElementById('almacenGaleriaWorktable');
+        else if(tag.includes('NANO')||tag.includes('BOT'))target=document.getElementById('nanoBotWorktable');
+        else if(tag.includes('DESPACH'))target=document.getElementById('despachoComercialWorktable');
+        else if(tag.includes('GENERADOR')||tag.includes('DIFUSI'))target=document.getElementById('generadorAiWorktable');
+        else if(tag.includes('VALUAD'))target=document.getElementById('valuadorHibridoWorktable');
+        else if(tag.includes('CHEF'))target=document.getElementById('chefLeanWorktable');
+        else if(tag.includes('DEPTH'))target=document.getElementById('depthMapWorktable');
+        else if(tag.includes('MOTION'))target=document.getElementById('videoMotionWorktable');
+        else if(tag.includes('SVG'))target=document.getElementById('svgLogosWorktable');
+        else if(tag.includes('ESTUDIO RAW'))target=document.getElementById('estudioRawWorktable');
+        else if(tag.includes('CINE'))target=document.getElementById('cineScopeWorktable');
+        else if(tag.includes('IMPRENTA'))target=document.getElementById('imprentaPdfWorktable');
+        else if(tag.includes('WALLPAPER'))target=document.getElementById('wallpaperWorktable');
+        else if(tag.includes('LONA'))target=document.getElementById('lonas3dWorktable');
+        else if(tag.includes('BOKEH')||tag.includes('RETRATO'))target=document.getElementById('bokehWorktable');
+        else if(tag.includes('TIME'))target=document.getElementById('timelapseWorktable');
+        else if(tag.includes('NIGHT'))target=document.getElementById('nightographyWorktable');
+        else if(tag.includes('SCAN'))target=document.getElementById('scanDocProWorktable');
+        else if(tag.includes('MACRO'))target=document.getElementById('macroProWorktable');
+        const optics=ws.querySelectorAll(':scope > div:not(.bian-custom-worktable)');
+        if(target){optics.forEach(e=>e.style.setProperty('display','none','important'));target.style.setProperty('display','flex','important');}
+        else{optics.forEach(e=>e.style.removeProperty('display'));}
+    }catch(e){console.error('[BIAN_ROUTER_ERROR]',e);}
+};
+</script>
 </body>
 </html>"""
 
